@@ -15,15 +15,16 @@ interface EventDetails {
   time: string;
   location: string;
   description: string;
-  fee: string;
+  registration_fee: number;
+  ticket_fee: number;
   image: File | null;
   category: string;
-  maxParticipants: string;
-  judgingCriteria: string[];
+  max_participants: number;
+  judging_criteria: string[];
   prize_sponsorship: string;
   org_phone_no: string;
   org_email: string;
-  socialMedia: SocialMediaLink[];
+  social_media: SocialMediaLink[];
 }
 
 const AdminPanel = () => {
@@ -32,17 +33,17 @@ const AdminPanel = () => {
 
   // Initialize state with all the new fields
   const [eventDetails, setEventDetails] = useState<EventDetails>({
-    name: '', date: '', time: '', location: '', description: '', fee: '', image: null,
-    category: 'General', maxParticipants: '50', judgingCriteria: [''], prize_sponsorship: '',
-    org_phone_no: '', org_email: '', socialMedia: [{ platform: 'Instagram', handle: '' }],
+    name: '', date: '', time: '', location: '', description: '', registration_fee: 1000, ticket_fee: 500, image: null,
+    category: 'General', max_participants: 50, judging_criteria: [''], prize_sponsorship: '',
+    org_phone_no: '', org_email: '', social_media: [{ platform: 'Instagram', handle: '' }],
   });
 
   const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
   const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setEventDetails(prev => ({ ...prev, [name]: value }));
+    const { name, value, type } = e.target;
+    setEventDetails(prev => ({ ...prev, [name]: type === "number" ? Number(value) : value }));
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -53,30 +54,30 @@ const AdminPanel = () => {
 
   // --- Handlers for Judging Criteria ---
   const handleCriteriaChange = (index: number, value: string) => {
-    const newCriteria = [...eventDetails.judgingCriteria];
+    const newCriteria = [...eventDetails.judging_criteria];
     newCriteria[index] = value;
-    setEventDetails(prev => ({ ...prev, judgingCriteria: newCriteria }));
+    setEventDetails(prev => ({ ...prev, judging_criteria: newCriteria }));
   };
   const addCriteriaField = () => {
-    setEventDetails(prev => ({ ...prev, judgingCriteria: [...prev.judgingCriteria, ''] }));
+    setEventDetails(prev => ({ ...prev, judging_criteria: [...prev.judging_criteria, ''] }));
   };
   const removeCriteriaField = (index: number) => {
-    const newCriteria = eventDetails.judgingCriteria.filter((_, i) => i !== index);
-    setEventDetails(prev => ({ ...prev, judgingCriteria: newCriteria }));
+    const newCriteria = eventDetails.judging_criteria.filter((_, i) => i !== index);
+    setEventDetails(prev => ({ ...prev, judging_criteria: newCriteria }));
   };
 
-  // --- NEW HANDLERS FOR SOCIAL MEDIA ---
+  // --- Handlers for Social Media ---
   const handleSocialMediaChange = (index: number, field: 'platform' | 'handle', value: string) => {
-    const newSocials = [...eventDetails.socialMedia];
+    const newSocials = [...eventDetails.social_media];
     newSocials[index][field] = value as any; // Type assertion for platform
-    setEventDetails(prev => ({ ...prev, socialMedia: newSocials }));
+    setEventDetails(prev => ({ ...prev, social_media: newSocials }));
   };
   const addSocialMediaField = () => {
-    setEventDetails(prev => ({ ...prev, socialMedia: [...prev.socialMedia, { platform: 'Instagram', handle: '' }] }));
+    setEventDetails(prev => ({ ...prev, social_media: [...prev.social_media, { platform: 'Instagram', handle: '' }] }));
   };
   const removeSocialMediaField = (index: number) => {
-    const newSocials = eventDetails.socialMedia.filter((_, i) => i !== index);
-    setEventDetails(prev => ({ ...prev, socialMedia: newSocials }));
+    const newSocials = eventDetails.social_media.filter((_, i) => i !== index);
+    setEventDetails(prev => ({ ...prev, social_media: newSocials }));
   };
 
   const handleFormSubmit = async (e: React.FormEvent) => {
@@ -92,19 +93,23 @@ const AdminPanel = () => {
         imageUrl = cloudinaryResponse.data.secure_url;
       }
 
-      const finalCriteria = eventDetails.judgingCriteria.filter(c => c.trim() !== '');
-      const finalSocials = eventDetails.socialMedia.filter(s => s.handle.trim() !== '');
+      const finalCriteria = eventDetails.judging_criteria.filter(c => c.trim() !== '');
+      const finalSocials = eventDetails.social_media.filter(s => s.handle.trim() !== '');
 
-      const eventData = { ...eventDetails, imageUrl, judgingCriteria: finalCriteria, socialMedia: finalSocials };
+      const { image, ...dataWithoutImage } = eventDetails;
+
+      const eventData = { ...dataWithoutImage, image_url: imageUrl, judging_criteria: finalCriteria, social_media: finalSocials };
+      // console.log("Posting event data:", eventData); // DEBUG
 
       await axios.post('https://discipl-server.onrender.com/api/events', eventData); // This is used when running from github repo
-      // await axios.post('http://localhost:8172/api/events', eventData); // This is used when running on localhost
+      // const response = await axios.post('http://localhost:8172/api/events', eventData); // This is used when running on localhost
+      // console.log(response.data); // DEBUG
       alert("Event created successfully!");
       setIsModalOpen(false);
       setEventDetails({
-        name: '', date: '', time: '', location: '', description: '', fee: '', image: null,
-        category: 'General', maxParticipants: '50', judgingCriteria: [''], prize_sponsorship: '',
-        org_phone_no: '', org_email: '', socialMedia: [{ platform: 'Instagram', handle: '' }],
+        name: '', date: '', time: '', location: '', description: '', registration_fee: 0, ticket_fee: 0, image: null,
+        category: 'General', max_participants: 50, judging_criteria: [''], prize_sponsorship: '',
+        org_phone_no: '', org_email: '', social_media: [{ platform: 'Instagram', handle: '' }],
       });
     } catch (error) {
       console.error("Failed to create event:", error);
@@ -164,18 +169,19 @@ const AdminPanel = () => {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="relative"><input type="text" name="location" placeholder="Location or Venue" required onChange={handleInputChange} value={eventDetails.location} className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" /><MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" /></div>
-                <div className="relative"><input type="number" name="fee" placeholder="Registration Fee" required onChange={handleInputChange} value={eventDetails.fee} className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" /><IndianRupee className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" /></div>
+                <div className="relative"><input type="number" name="registration_fee" placeholder="Registration Fee" required onChange={handleInputChange} value={eventDetails.registration_fee} className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" /><IndianRupee className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" /></div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="relative"><input type="text" name="category" placeholder="Category (e.g., Challenge)" required onChange={handleInputChange} value={eventDetails.category} className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" /><FileText className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" /></div>
-                <div className="relative"><input type="number" name="maxParticipants" placeholder="Max Participants" required onChange={handleInputChange} value={eventDetails.maxParticipants} className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" /><Users className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" /></div>
+                <div className="relative"><input type="number" name="max_participants" placeholder="Max Participants" required onChange={handleInputChange} value={eventDetails.max_participants} className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" /><Users className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" /></div>
+                <div className="relative"><input type="number" name="ticket_fee" placeholder="Audience Ticket Fee" required onChange={handleInputChange} value={eventDetails.ticket_fee} className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" /><IndianRupee className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" /></div>
               </div>
               <div className="relative"><textarea name="description" placeholder="Event Description" required rows={4} onChange={handleInputChange} value={eventDetails.description} className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors resize-none" /><FileText className="absolute left-4 top-4 h-5 w-5 text-gray-400" /></div>
               
               {/* Judging Criteria */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Judging Criteria</label>
-                {eventDetails.judgingCriteria.map((criterion, index) => (<div key={index} className="flex items-center gap-2 mb-2"><input type="text" placeholder={`Criterion #${index + 1}`} value={criterion} onChange={(e) => handleCriteriaChange(index, e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" />{eventDetails.judgingCriteria.length > 1 && (<button type="button" onClick={() => removeCriteriaField(index)} className="p-3 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"><Trash2 className="w-5 h-5" /></button>)}</div>))}
+                {eventDetails.judging_criteria.map((criterion, index) => (<div key={index} className="flex items-center gap-2 mb-2"><input type="text" placeholder={`Criterion #${index + 1}`} value={criterion} onChange={(e) => handleCriteriaChange(index, e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" />{eventDetails.judging_criteria.length > 1 && (<button type="button" onClick={() => removeCriteriaField(index)} className="p-3 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"><Trash2 className="w-5 h-5" /></button>)}</div>))}
                 <button type="button" onClick={addCriteriaField} className="mt-2 flex items-center text-sm font-medium text-red-600 hover:text-red-800"><Plus className="w-4 h-4 mr-1" />Add Criterion</button>
               </div>
 
@@ -188,10 +194,9 @@ const AdminPanel = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6"><div className="relative"><input type="tel" name="org_phone_no" placeholder="Organizer Phone" required pattern="[0-9]{10}" onChange={handleInputChange} value={eventDetails.org_phone_no} className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" /><Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" /></div><div className="relative"><input type="email" name="org_email" placeholder="Organizer Email" required onChange={handleInputChange} value={eventDetails.org_email} className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" /><AtSign className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" /></div></div>
               </div>
 
-              {/* --- NEW UI FOR SOCIAL MEDIA --- */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Social Media Handles</label>
-                {eventDetails.socialMedia.map((social, index) => (
+                {eventDetails.social_media.map((social, index) => (
                   <div key={index} className="flex items-center gap-2 mb-2">
                     <select value={social.platform} onChange={(e) => handleSocialMediaChange(index, 'platform', e.target.value)} className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors bg-white">
                       <option>Instagram</option>
@@ -199,7 +204,7 @@ const AdminPanel = () => {
                       <option>Facebook</option>
                     </select>
                     <input type="text" placeholder="Handle (e.g., @username)" value={social.handle} onChange={(e) => handleSocialMediaChange(index, 'handle', e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" />
-                    {eventDetails.socialMedia.length > 1 && (<button type="button" onClick={() => removeSocialMediaField(index)} className="p-3 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"><Trash2 className="w-5 h-5" /></button>)}
+                    {eventDetails.social_media.length > 1 && (<button type="button" onClick={() => removeSocialMediaField(index)} className="p-3 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"><Trash2 className="w-5 h-5" /></button>)}
                   </div>
                 ))}
                 <button type="button" onClick={addSocialMediaField} className="mt-2 flex items-center text-sm font-medium text-red-600 hover:text-red-800"><Plus className="w-4 h-4 mr-1" />Add Social Media</button>

@@ -8,11 +8,10 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // 1. DEFINE MIDDLEWARE (MUST BE FIRST)
-app.use(cors());
 app.use(express.json());
 
 const corsOptions = {
-  origin: 'https://dicipl-alpha-build.netlify.app', // Your Netlify URL
+  origin: ['https://dicipl-alpha-build.netlify.app', 'http://localhost:5173'], // Your Netlify URL , // Your local host '
   optionsSuccessStatus: 200 
 };
 

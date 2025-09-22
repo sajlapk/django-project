@@ -4,26 +4,27 @@ const createEvent = async (req, res) => {
   try {
     // Destructure all new fields from the request body
     const { 
-      name, date, time, location, description, fee, imageUrl, 
-      category, maxParticipants, judgingCriteria, prize_sponsorship, 
-      org_phone_no, org_email, socialMedia 
+      name, date, time, location, description, registration_fee, ticket_fee, image_url, 
+      category, max_participants, judging_criteria, prize_sponsorship, 
+      org_phone_no, org_email, social_media 
     } = req.body;
 
-    if (!name || !date || !time || !location || !description || !fee || !category || !maxParticipants) {
+    if (!name || !date || !time || !location || !description || !registration_fee || !ticket_fee || !category || !max_participants) {
       return res.status(400).json({ message: 'Please fill in all required fields' });
     }
 
     const newEvent = new Event({
       name, date, time, location, description,
-      fee: Number(fee),
-      imageUrl: imageUrl || '',
+      registration_fee: Number(registration_fee),
+      ticket_fee: Number(ticket_fee),
+      image_url: image_url || '',
       category,
-      maxParticipants: Number(maxParticipants),
-      judgingCriteria,
+      max_participants: Number(max_participants),
+      judging_criteria,
       prize_sponsorship,
       org_phone_no,
       org_email,
-      socialMedia,
+      social_media,
     });
 
     const savedEvent = await newEvent.save();

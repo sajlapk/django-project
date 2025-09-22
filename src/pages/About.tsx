@@ -1,5 +1,5 @@
 import React from 'react';
-import { Target, Users, Award, Heart } from 'lucide-react';
+import { Target, Users, Award, Heart, Download } from 'lucide-react';
 
 const About = () => {
   const values = [
@@ -167,7 +167,7 @@ const About = () => {
             {/* Step 1 */}
             <div className="flex flex-col items-center bg-black rounded-xl shadow hover:shadow-lg transition  w-full md:w-[25rem] h-[15rem]">
               <img
-                src="https://thediscipl.com/wp-content/uploads/2022/12/icons8-download-24-1-1.png"
+                src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBjbGFzcz0ibHVjaWRlIGx1Y2lkZS1kb3dubG9hZC1pY29uIGx1Y2lkZS1kb3dubG9hZCI+PHBhdGggZD0iTTEyIDE1VjMiLz48cGF0aCBkPSJNMjEgMTV2NGEyIDIgMCAwIDEtMiAySDVhMiAyIDAgMCAxLTItMnYtNCIvPjxwYXRoIGQ9Im03IDEwIDUgNSA1LTUiLz48L3N2Zz4="
                 alt="Download Icon"
                 className="p-8 mb-4 bg-red-600 rounded-xl"
                 width={100}
@@ -188,7 +188,7 @@ const About = () => {
             {/* Step 2 */}
             <div className="flex flex-col items-center bg-black rounded-xl shadow hover:shadow-lg transition w-full md:w-[25rem] h-[15rem]">
               <img
-                src="https://thediscipl.com/wp-content/uploads/2022/12/icons8-search-more-50-1.png"
+                src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBjbGFzcz0ibHVjaWRlIGx1Y2lkZS1zZWFyY2gtaWNvbiBsdWNpZGUtc2VhcmNoIj48cGF0aCBkPSJtMjEgMjEtNC4zNC00LjM0Ii8+PGNpcmNsZSBjeD0iMTEiIGN5PSIxMSIgcj0iOCIvPjwvc3ZnPg=="
                 alt="Search Icon"
                 className="p-8 mb-4 bg-red-600 rounded-xl"
                 width={100}
@@ -209,8 +209,7 @@ const About = () => {
             {/* Step 3 */}
             <div className="flex flex-col items-center bg-black rounded-xl shadow hover:shadow-lg transition w-full md:w-[25rem] h-[15rem]">
               <img
-                src="https://thediscipl.com/wp-content/uploads/2022/12/icons8-hand-cursor-50-1.png"
-                alt="Select Icon"
+                src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBjbGFzcz0ibHVjaWRlIGx1Y2lkZS1tb3VzZS1wb2ludGVyLWNsaWNrLWljb24gbHVjaWRlLW1vdXNlLXBvaW50ZXItY2xpY2siPjxwYXRoIGQ9Ik0xNCA0LjEgMTIgNiIvPjxwYXRoIGQ9Im01LjEgOC0yLjktLjgiLz48cGF0aCBkPSJtNiAxMi0xLjkgMiIvPjxwYXRoIGQ9Ik03LjIgMi4yIDggNS4xIi8+PHBhdGggZD0iTTkuMDM3IDkuNjlhLjQ5OC40OTggMCAwIDEgLjY1My0uNjUzbDExIDQuNWEuNS41IDAgMCAxLS4wNzQuOTQ5bC00LjM0OSAxLjA0MWExIDEgMCAwIDAtLjc0LjczOWwtMS4wNCA0LjM1YS41LjUgMCAwIDEtLjk1LjA3NHoiLz48L3N2Zz4="
                 className="p-8 mb-4 bg-red-600 rounded-xl"
                 width={100}
                 height={100}
@@ -230,7 +229,7 @@ const About = () => {
             {/* Step 4 */}
             <div className="flex flex-col items-center bg-black rounded-xl shadow hover:shadow-lg transition w-full md:w-[25rem] h-[15rem]">
               <img
-                src="https://thediscipl.com/wp-content/uploads/2022/12/icons8-double-tick-50-1.png"
+                src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBjbGFzcz0ibHVjaWRlIGx1Y2lkZS1ub3RlYm9vay1wZW4taWNvbiBsdWNpZGUtbm90ZWJvb2stcGVuIj48cGF0aCBkPSJNMTMuNCAySDZhMiAyIDAgMCAwLTIgMnYxNmEyIDIgMCAwIDAgMiAyaDEyYTIgMiAwIDAgMCAyLTJ2LTcuNCIvPjxwYXRoIGQ9Ik0yIDZoNCIvPjxwYXRoIGQ9Ik0yIDEwaDQiLz48cGF0aCBkPSJNMiAxNGg0Ii8+PHBhdGggZD0iTTIgMThoNCIvPjxwYXRoIGQ9Ik0yMS4zNzggNS42MjZhMSAxIDAgMSAwLTMuMDA0LTMuMDA0bC01LjAxIDUuMDEyYTIgMiAwIDAgMC0uNTA2Ljg1NGwtLjgzNyAyLjg3YS41LjUgMCAwIDAgLjYyLjYybDIuODctLjgzN2EyIDIgMCAwIDAgLjg1NC0uNTA2eiIvPjwvc3ZnPg=="
                 alt="Book Icon"
                 className="p-8 mb-4 bg-red-600 rounded-xl"
                 width={100}

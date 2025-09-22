@@ -1,26 +1,27 @@
 const mongoose = require('mongoose');
 
 const socialMediaSchema = new mongoose.Schema({
-  platform: { type: String, required: true },
-  handle: { type: String, required: true },
+  platform: { type: String},
+  handle: { type: String},
 });
 
 const eventSchema = new mongoose.Schema({
-  name: { type: String, required: true, trim: true },
-  date: { type: String, required: true },
-  time: { type: String, required: true },
-  location: { type: String, required: true },
-  description: { type: String, required: true },
-  fee: { type: Number, required: true },
-  imageUrl: { type: String },
-  category: { type: String, required: true, default: 'General' },
+  name: { type: String, default: 'Untitled Event' },
+  date: { type: String, default: 'To be announced' },
+  time: { type: String, default: 'To be announced' },
+  location: { type: String, default: 'To be announced' },
+  description: { type: String, default: 'No description provided.' },
+  registration_fee: { type: Number, default: 1000 },
+  ticket_fee: {type: Number, default: 500},
+  image_url: { type: String, default: 'https://res.cloudinary.com/dgfvk6ouy/image/upload/v1758466128/placeholder_banner_lwgiqn.png' },
+  category: { type: String, default: 'General' },
   participants: { type: Number, default: 0 },
-  maxParticipants: { type: Number, default: 50 },
-  judgingCriteria: { type: [String], default: [] },
-  prize_sponsorship: { type: String },
-  org_phone_no: { type: String },
-  org_email: { type: String },
-  socialMedia: { type: [socialMediaSchema], default: [] },
+  max_participants: { type: Number, default: 50 },
+  judging_criteria: { type: [String], default: ['Overall Physique'] },
+  prize_sponsorship: { type: String, default: 'Not Sponsored' },
+  org_phone_no: { type: String, default: 'Not Provided' },
+  org_email: { type: String, default: 'Not Provided' },
+  social_media: { type: [socialMediaSchema], default: [] },
 }, {
   timestamps: true,
 });
