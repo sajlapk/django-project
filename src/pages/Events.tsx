@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Calendar, MapPin, Users, Clock, IndianRupee, FileText, User, Cake } from "lucide-react";
+import { Calendar, MapPin, Users, Clock, Weight, Ruler, User, Cake } from "lucide-react";
+import RazorPayButton from "../components/RazorPayButton";
 
 interface IEvent {
   _id: string;
@@ -28,6 +29,13 @@ const Events: React.FC = () => {
   const [events, setEvents] = useState<IEvent[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const [participantData, setParticipantData] = useState({
+    name: "",
+    age: 0,
+    height: 0,
+    weight: 0
+  });
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
   const [isParticipantModalOpen, setIsParticipantModalOpen] = useState(false);
@@ -46,9 +54,7 @@ const Events: React.FC = () => {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const response = await axios.get('https://discipl-server.onrender.com/api/events'); // This is used when running from github repo
-        // const response = await axios.get('http://localhost:8172/api/events'); // This is used when running on localhost
-        // console.log(response.data); // DEBUG
+        const response = await axios.get('https://discipl-server.onrender.com/api/events'); // Used to fetch events and display events from backend
 
         if (Array.isArray(response.data)) {
           setEvents(response.data);
@@ -88,10 +94,34 @@ const Events: React.FC = () => {
     return <p className="text-center text-gray-600">Loading events...</p>;
   }
 
-  // To calculate total price of tickets
-  const calculateTotal = (ticket_fee: number, no_of_tickets: number) => {
-    return ticket_fee * no_of_tickets;
-  }
+  const handleParticipantPaymentSuccess = async (paymentDetails: any) => {  
+    if (!selectedEvent) return;
+
+    try {
+      const payload = {
+        eventId: selectedEvent._id,
+        ...participantData, // make sure participantData is from state
+        tickets: noOfTickets,
+        paymentId: paymentDetails.razorpay_payment_id
+      };
+
+      await axios.post('https://discipl-server.onrender.com/api/particpants/add', payload); // This is used to add participants detail on successful registration payment
+      setIsParticipantModalOpen(false);
+    } catch (err) {
+      // console.error("Error saving participant data:", err); // DEBUG
+      // alert("Payment succeeded but failed to save participant data."); //DEBUG
+    }
+  };
+
+  // Helper function to check if participant form is complete
+  const isParticipantFormComplete = () => {
+    return (
+      participantData.name.trim() !== "" &&
+      participantData.age > 0 &&
+      participantData.height > 0 &&
+      participantData.weight > 0
+    );
+  };
 
   return (
     <div className="container mx-auto px-4 py-10">
@@ -120,24 +150,6 @@ const Events: React.FC = () => {
                 <h2 className="text-2xl font-bold mb-2 text-gray-900">
                   {event.name}
                 </h2>
-
-                {/* Judging Criteria on card
-                {event.judgingCriteria && event.judgingCriteria.length > 0 && (
-                  // </div>
-                  <div className="mb-4">
-                    <div className="flex items-center text-sm font-bold text-gray-800 mb-2">
-                        <Award className="w-4 h-4 mr-2 text-red-500" />
-                        <span>Judging Criteria</span>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {event.judgingCriteria.map((criterion, index) => (
-                        <span key={index} className="bg-red-100 text-red-800 text-xs font-medium px-3 py-1 rounded-full">
-                          {criterion}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )} */}
 
                 <span>
                   <span className={`px-3 py-1 rounded-full text-sm font-medium ${getCategoryColor(event.category)}`}>
@@ -335,9 +347,9 @@ const Events: React.FC = () => {
 
             {/* Payment Summary */}
             <div className="p-4 sm:p-8 border border-gray-200 flex-shrink-0">
-              <p className="text-gray-500">₹{selectedEvent.ticket_fee} x {noOfTickets} {noOfTickets>1 ? "Tickets" : "Ticket"} = ₹{calculateTotal(selectedEvent.ticket_fee, noOfTickets)}</p>
+              <p className="text-gray-500">₹{selectedEvent.ticket_fee} x {noOfTickets} {noOfTickets>1 ? "Tickets" : "Ticket"} = ₹{selectedEvent.ticket_fee * noOfTickets}</p>
             </div>
-
+          
             <div className="bg-white rounded-b-3xl flex justify-end items-center p-4 border-t border-gray-200 space-x-4 flex-shrink-0">
               <button
                 onClick={()=>{setIsTicketModalOpen(false); setIsModalOpen(true);}}
@@ -345,11 +357,9 @@ const Events: React.FC = () => {
               >
                 Close
               </button>
-              <button 
-                // onClick={{/*Logic for payment gateway */}}
-                className="px-6 py-3 rounded-full font-semibold text-white border-2 border-green-500 bg-green-500 hover:bg-white hover:text-green-500 hover:border-2 border-green-500 transition-colors">
-                Proceed to pay ₹{calculateTotal(selectedEvent.ticket_fee, noOfTickets)}
-              </button>
+              <RazorPayButton
+                amount={selectedEvent.ticket_fee * noOfTickets}
+                eventName={selectedEvent.name}/>
             </div>
           </div>
         </div>
@@ -369,18 +379,35 @@ const Events: React.FC = () => {
             {/* Participant Details */}
             <div className="space-y-2 p-8 overflow-y-auto flex-1">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="relative"><input type="text" placeholder="Name" name="name" required className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" /><User className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" /></div>
-                <div className="relative"><input type="number" min={0} placeholder="Age" name="age" required className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" /><Cake className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" /></div>
+                <div className="relative"><input type="text" placeholder="Name" name="name" required className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors"
+                value={participantData.name}
+                onChange={(e) => setParticipantData({ ...participantData, name: e.target.value })}
+                /><User className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" /></div>
+                <div className="relative"><input type="number" min={0} placeholder="Age" name="age" required className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" 
+                value={participantData.age}
+                onChange={(e) => setParticipantData({ ...participantData, age: Number(e.target.value) })}
+                /><Cake className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" /></div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="relative"><input type="number" min={0} placeholder="Height(cm)" name="height" required className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" /><MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" /></div>
-                <div className="relative"><input type="number" min={0} placeholder="Weight(kg)" name="weight" required className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" /><IndianRupee className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" /></div>
+                <div className="relative"><input type="number" min={0} placeholder="Height(cm)" name="height" required className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" 
+                value={participantData.height}
+                onChange={(e) => setParticipantData({ ...participantData, height: Number(e.target.value) })}
+                /><Ruler className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" /></div>
+                <div className="relative"><input type="number" min={0} placeholder="Weight(kg)" name="weight" required className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" 
+                value={participantData.weight}
+                onChange={(e) => setParticipantData({ ...participantData, weight: Number(e.target.value) })}
+                /><Weight className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" /></div>
               </div>
             </div>
 
             {/* Payment Summary */}
             <div className="p-4 sm:p-8 border border-gray-200 flex-shrink-0">
-              <p className="text-gray-500">₹{selectedEvent.registration_fee} x {noOfTickets} {noOfTickets>1 ? "Tickets" : "Ticket"} = ₹{calculateTotal(selectedEvent.registration_fee, noOfTickets)}</p>
+              <p className="text-gray-500">₹{selectedEvent.registration_fee} x {noOfTickets} {noOfTickets>1 ? "Tickets" : "Ticket"} = ₹{selectedEvent.registration_fee * noOfTickets}</p>
+              {!isParticipantFormComplete() ?
+                <p className="text-red-500">Please fill all fields before proceeding to payment.</p>
+                :
+                <p>&nbsp;</p>
+              }
             </div>
 
             <div className="bg-white rounded-b-3xl flex justify-end items-center p-4 border-t border-gray-200 space-x-4 flex-shrink-0">
@@ -390,11 +417,12 @@ const Events: React.FC = () => {
               >
                 Close
               </button>
-              <button 
-                // onClick={{/*Logic for payment gateway */}}
-                className="px-6 py-3 rounded-full font-semibold text-white border-2 border-green-500 bg-green-500 hover:bg-white hover:text-green-500 hover:border-2 border-green-500 transition-colors">
-                Proceed to pay ₹{calculateTotal(selectedEvent.registration_fee, noOfTickets)}
-              </button>
+              <RazorPayButton
+                amount={selectedEvent.registration_fee * noOfTickets}
+                eventName={selectedEvent.name}
+                onSuccess={(paymentDetails) => handleParticipantPaymentSuccess(paymentDetails)}
+                disabled={!isParticipantFormComplete()}
+                />
             </div>
           </div>
         </div>

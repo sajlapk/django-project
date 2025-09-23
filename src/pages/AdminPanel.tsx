@@ -99,12 +99,9 @@ const AdminPanel = () => {
       const { image, ...dataWithoutImage } = eventDetails;
 
       const eventData = { ...dataWithoutImage, image_url: imageUrl, judging_criteria: finalCriteria, social_media: finalSocials };
-      // console.log("Posting event data:", eventData); // DEBUG
 
-      await axios.post('https://discipl-server.onrender.com/api/events', eventData); // This is used when running from github repo
-      // const response = await axios.post('http://localhost:8172/api/events', eventData); // This is used when running on localhost
-      // console.log(response.data); // DEBUG
-      alert("Event created successfully!");
+      await axios.post('https://discipl-server.onrender.com/api/events', eventData); // Used to create events in admin panel and post to backend
+      
       setIsModalOpen(false);
       setEventDetails({
         name: '', date: '', time: '', location: '', description: '', registration_fee: 0, ticket_fee: 0, image: null,
@@ -112,8 +109,6 @@ const AdminPanel = () => {
         org_phone_no: '', org_email: '', social_media: [{ platform: 'Instagram', handle: '' }],
       });
     } catch (error) {
-      console.error("Failed to create event:", error);
-      alert("Failed to create event. See console for details.");
     } finally {
       setIsUploading(false);
     }
