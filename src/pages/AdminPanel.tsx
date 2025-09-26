@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect  } from 'react';
 import { Plus, X, Calendar, Clock, MapPin, IndianRupee, FileText, Image as ImageIcon, Trash2, Users, Phone, AtSign, Award, TicketCheck } from 'lucide-react';
 import axios from 'axios';
 
@@ -29,8 +29,24 @@ interface EventDetails {
 }
 
 const AdminPanel = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false); // Popup that is used to add event
   const [isUploading, setIsUploading] = useState(false);
+  const [successModal, setSuccessModal] = useState(false); // Popup that triggers on adding event
+  const [successMessage, setSuccessMessage] = useState('') // This will contain the message that wil show up in the success modal
+
+  useEffect(() => {
+    // Check if the modal is currently showing
+    if (successModal) {
+      // If it is, set a timer to hide it after 3 seconds
+      const timer = setTimeout(() => {
+        setSuccessModal(false);
+      }, 3000); // 3000 milliseconds = 3 seconds
+
+      // This is a cleanup function.
+      // It runs if the component unmounts or if successModal changes again before the timer finishes.
+      return () => clearTimeout(timer);
+    }
+  }, [successModal]); // The dependency array ensures this effect runs only when `successModal` changes.
 
   // Initialize state with all the new fields
   const [eventDetails, setEventDetails] = useState<EventDetails>({
@@ -102,11 +118,13 @@ const AdminPanel = () => {
       const eventData = { ...dataWithoutImage, image_url: imageUrl, judging_criteria: finalCriteria, social_media: finalSocials };
       // console.log("Posting event data:", eventData); // DEBUG
 
-      await axios.post('https://discipl-server.onrender.com/api/events', eventData); // This is used when running from github repo
-      // const response = await axios.post('http://localhost:8172/api/events', eventData); // This is used when running on localhost
+      // const response = await axios.post('https://discipl-server.onrender.com/api/events', eventData); // This is used when running from github repo
+      const response = await axios.post('http://localhost:8172/api/events', eventData); // This is used when running on localhost
       // console.log(response.data); // DEBUG
       // alert("Event created successfully!"); // DEBUG
-      
+
+      determineSuccessModal(response);
+
       setIsModalOpen(false);
       setEventDetails({
         name: '', date: '', time: '', location: '', description: '', registration_fee: 0, ticket_fee: 0, total_tickets: 0,image: null,
@@ -119,6 +137,20 @@ const AdminPanel = () => {
     } finally {
       setIsUploading(false);
     }
+  };
+
+  // helper function to determine if the success modal should show "successfully added" or "error occurred."
+  const determineSuccessModal = (response: any) => {
+    // Setting the message
+    if(response.status === 201){
+      setSuccessMessage("Successfully created Event.")
+    }else if(response.status === 500){
+      setSuccessMessage("Server error while creating event.")
+    }else{  
+      setSuccessMessage("Some error occurred.")
+    }
+
+    setSuccessModal(true); // Showing the modal
   };
 
   // Helper function to check if all important fields in event form are filled
@@ -146,6 +178,18 @@ const AdminPanel = () => {
 
   return (
     <>
+      {/* Modal that pops up on adding an event */}
+      {successModal == true && (
+        (successMessage === "Successfully created Event." ?
+        <div className="fixed z-50 to-4, bg-white shadow-lg inset-x-4 border border-green-300 rounded-full h-20 flex items-center justify-center text-2xl">
+          <p className= "text-green-300">{successMessage}</p>
+        </div>
+        :
+        <div className="fixed z-50 to-4, bg-white shadow-lg inset-x-4 border border-red-500 rounded-full h-20 flex items-center justify-center text-2xl">
+          <p className= "text-red-500">{successMessage}</p>
+        </div>
+        )
+      )}
       <div className="min-h-screen bg-gray-50 pt-16 md:pt-20">
         <header className="bg-white shadow-sm">
           <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">

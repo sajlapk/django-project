@@ -16,8 +16,8 @@ function PaymentButton({ amount, eventName, buyer_name, buyer_email, onSuccess, 
         return;
     }
     
-    const { data: order } =  await axios.post('https://discipl-server.onrender.com/api/payments/create-order', { amount }); // This is used when running from github repo
-    // const { data: order } = await axios.post("http://localhost:8172/api/payments/create-order", { amount }); // This is used when running on localhost
+    // const { data: order } =  await axios.post('https://discipl-server.onrender.com/api/payments/create-order', { amount }); // This is used when running from github repo
+    const { data: order } = await axios.post("http://localhost:8172/api/payments/create-order", { amount }); // This is used when running on localhost
     //console.log("order: " + order); // DEBUG
 
     const options = {

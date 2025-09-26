@@ -10,3 +10,6 @@ This is the public-facing platform for Discipl.
 - TailwindCSS - https://tailwindcss.com/
 - Lucide React - https://lucide.dev/guide/packages/lucide-react
 - Render - https://render.com/
+- RazorPay - https://razorpay.com/
+- Axios - https://axios-http.com/docs/intro
+- ExpressJs - https://expressjs.com/

@@ -2,10 +2,13 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
+
+// Routes
 const eventRoutes = require('./routes/eventRoutes');
 const paymentRoutes = require("./routes/paymentRoutes.js");
 const participantRoutes = require("./routes/participantRoute.js");
 const ticketRoutes = require('./routes/ticketRoutes.js')
+const userRoutes = require('./routes/userRoutes.js')
 
 const app = express();
 const PORT = process.env.BACKEND_PORT || 5000;
@@ -34,6 +37,7 @@ app.use('/api/events', eventRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/participants", participantRoutes);
 app.use("/api/tickets", ticketRoutes);
+app.use("/api/users", userRoutes);
 
 // 4. START THE SERVER (ONLY ONCE, AT THE END)
 app.listen(PORT, () => {

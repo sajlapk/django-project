@@ -59,8 +59,8 @@ const Events: React.FC = () => {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const response = await axios.get('https://discipl-server.onrender.com/api/events'); // This is used when running from github repo
-        // const response = await axios.get('http://localhost:8172/api/events'); // This is used when running on localhost
+        // const response = await axios.get('https://discipl-server.onrender.com/api/events'); // This is used when running from github repo
+        const response = await axios.get('http://localhost:8172/api/events'); // This is used when running on localhost
         // console.log(response.data); // DEBUG
 
         if (Array.isArray(response.data)) {
@@ -110,17 +110,28 @@ const Events: React.FC = () => {
     try {
       const payload = {
         eventId: selectedEvent._id,
+        userId: user?.id,
         ...participantData, // make sure participantData is from state
         paymentId: paymentDetails.response.razorpay_payment_id
       };
 
-      await axios.post('https://discipl-server.onrender.com/api/participants/add', payload); // This is used when running from github repo
-      // await axios.post("http://localhost:8172/api/participants/add", payload); // This is used when running on localhost
-      // alert("Participant registered successfully!"); //DEBUG
-      setIsParticipantModalOpen(false);
-    } catch (err) {
-      // console.error("Error saving participant data:", err); // DEBUG
-      // alert("Payment succeeded but failed to save participant data."); //DEBUG
+      // await axios.post('https://discipl-server.onrender.com/api/participants/add', payload); // This is used when running from github repo
+      const pre_payment_response = await axios.post("http://localhost:8172/api/participants/add", payload); // This is used when running on localhost
+      console.log("Participant registered successfully", pre_payment_response); //DEBUG
+      
+      // Close all modals
+      setIsParticipantModalOpen(false)
+      setIsModalOpen(false);
+
+      // Refetch the events so the issued_tickets_count and registered_participants_count can refresh 
+      // const post_payment_response = await axios.get('https://discipl-server.onrender.com/api/events'); // This is used when running from github repo      
+      const post_payment_response = await axios.get('http://localhost:8172/api/events'); // This is used when running on localhost
+      console.log("Fetched events after payment", post_payment_response) // DEBUG
+
+      setEvents(post_payment_response.data);
+    } catch (error) {
+      console.error("Error saving participant data:", error); // DEBUG
+      alert("Payment succeeded but failed to save participant data."); //DEBUG
     }
   };
 
@@ -141,22 +152,30 @@ const Events: React.FC = () => {
     try{
       const payload = {
         eventId: selectedEvent._id,
+        userId: user?.id,
         paymentId: paymentDetails.response.razorpay_payment_id,
         buyer_name: user?.name,
         buyer_email: user?.email,
         amount: paymentDetails.order.amount, // money is sent in paise
         no_of_tickets: noOfTickets,
       }
-      
       // console.log(payload) // DEBUG
-      await axios.post('https://discipl-server.onrender.com/api/tickets/issueTicket', payload); // This is used when running from github repo
-      // const response = await axios.post("http://localhost:8172/api/tickets/issueTicket", payload); // This is used when running on localhost
-      // console.log("Issued Ticket", response); //DEBUG
+      
+      // await axios.post('https://discipl-server.onrender.com/api/tickets/issueTicket', payload); // This is used when running from github repo
+      const pre_payment_response = await axios.post("http://localhost:8172/api/tickets/issueTicket", payload); // This is used when running on localhost
+      console.log("Issued Ticket", pre_payment_response); //DEBUG
       
       // Close the modal and reset state
       setIsTicketModalOpen(false);
       setNoOfTickets(1);
+      setIsModalOpen(false);
 
+      // Refetch the events so the issued_tickets_count and registered_participants_count can refresh 
+      // const post_payment_response = await axios.get('https://discipl-server.onrender.com/api/events'); // This is used when running from github repo      
+      const post_payment_response = await axios.get('http://localhost:8172/api/events'); // This is used when running on localhost
+      console.log("Fetched events after payment", post_payment_response) // DEBUG
+
+      setEvents(post_payment_response.data);
     }catch(error){
       console.error("Error issuing ticket for payment", error); // DEBUG
       alert("Payment succeeded but failed to issue ticket for payment."); //DEBUG
