@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, X, Calendar, Clock, MapPin, IndianRupee, FileText, Image as ImageIcon, Trash2, Users, Phone, AtSign, Award } from 'lucide-react';
+import { Plus, X, Calendar, Clock, MapPin, IndianRupee, FileText, Image as ImageIcon, Trash2, Users, Phone, AtSign, Award, TicketCheck } from 'lucide-react';
 import axios from 'axios';
 
 // Define the structure for social media links
@@ -17,6 +17,7 @@ interface EventDetails {
   description: string;
   registration_fee: number;
   ticket_fee: number;
+  total_tickets: number,
   image: File | null;
   category: string;
   max_participants: number;
@@ -33,8 +34,8 @@ const AdminPanel = () => {
 
   // Initialize state with all the new fields
   const [eventDetails, setEventDetails] = useState<EventDetails>({
-    name: '', date: '', time: '', location: '', description: '', registration_fee: 1000, ticket_fee: 500, image: null,
-    category: 'General', max_participants: 50, judging_criteria: [''], prize_sponsorship: '',
+    name: '', date: '', time: '', location: '', description: '', registration_fee: 0, ticket_fee: 0, total_tickets: 0, image: null,
+    category: '', max_participants: 0, judging_criteria: [''], prize_sponsorship: '',
     org_phone_no: '', org_email: '', social_media: [{ platform: 'Instagram', handle: '' }],
   });
 
@@ -99,19 +100,48 @@ const AdminPanel = () => {
       const { image, ...dataWithoutImage } = eventDetails;
 
       const eventData = { ...dataWithoutImage, image_url: imageUrl, judging_criteria: finalCriteria, social_media: finalSocials };
+      // console.log("Posting event data:", eventData); // DEBUG
 
-      await axios.post('https://discipl-server.onrender.com/api/events', eventData); // Used to create events in admin panel and post to backend
+      await axios.post('https://discipl-server.onrender.com/api/events', eventData); // This is used when running from github repo
+      // const response = await axios.post('http://localhost:8172/api/events', eventData); // This is used when running on localhost
+      // console.log(response.data); // DEBUG
+      // alert("Event created successfully!"); // DEBUG
       
       setIsModalOpen(false);
       setEventDetails({
-        name: '', date: '', time: '', location: '', description: '', registration_fee: 0, ticket_fee: 0, image: null,
+        name: '', date: '', time: '', location: '', description: '', registration_fee: 0, ticket_fee: 0, total_tickets: 0,image: null,
         category: 'General', max_participants: 50, judging_criteria: [''], prize_sponsorship: '',
         org_phone_no: '', org_email: '', social_media: [{ platform: 'Instagram', handle: '' }],
       });
     } catch (error) {
+      // console.error("Failed to create event:", error); //  DEBUG
+      // alert("Failed to create event. See console for details."); // DEBUG
     } finally {
       setIsUploading(false);
     }
+  };
+
+  // Helper function to check if all important fields in event form are filled
+  const formIncompleteCheck = (eventDetails: any) => {
+    if(
+      eventDetails.name === '' || 
+      eventDetails.date  === '' || 
+      eventDetails.time === '' || 
+      eventDetails.location === '' ||
+      eventDetails.registration_fee  === 0 ||
+      eventDetails.category === '' ||
+      eventDetails.max_participants === 0 ||
+      eventDetails.ticket_fee === 0 ||
+      eventDetails.total_tickets === 0 ||
+      eventDetails.description === '' ||
+      eventDetails.judging_criteria.length === 0 ||
+      eventDetails.prize_sponsorship === '' ||
+      eventDetails.org_phone_no === '' || 
+      eventDetails.org_email === '' 
+    )
+      return true
+    else 
+      return false
   };
 
   return (
@@ -159,17 +189,20 @@ const AdminPanel = () => {
                 <FileText className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="relative"><input type="date" name="date" required onChange={handleInputChange} value={eventDetails.date} className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" /><Calendar className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" /></div>
-                <div className="relative"><input type="time" name="time" required onChange={handleInputChange} value={eventDetails.time} className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" /><Clock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" /></div>
+                <div className="relative"><label htmlFor="date">Date of Event</label><input type="date" name="date" required onChange={handleInputChange} value={eventDetails.date} className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" /><Calendar className="absolute left-4 top-12 -translate-y-1/2 h-5 w-5 text-gray-400" /></div>
+                <div className="relative"><label htmlFor="time">Time of Event</label><input type="time" name="time" required onChange={handleInputChange} value={eventDetails.time} className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" /><Clock className="absolute left-4 top-12 -translate-y-1/2 h-5 w-5 text-gray-400" /></div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="relative"><input type="text" name="location" placeholder="Location or Venue" required onChange={handleInputChange} value={eventDetails.location} className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" /><MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" /></div>
-                <div className="relative"><input type="number" name="registration_fee" placeholder="Registration Fee" required onChange={handleInputChange} value={eventDetails.registration_fee} className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" /><IndianRupee className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" /></div>
+                <div className="relative"><input type="number" name="registration_fee" placeholder="Registration Fee" required onChange={handleInputChange} value={eventDetails.registration_fee === 0 ? '' : eventDetails.registration_fee} className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" /><IndianRupee className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" /></div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="relative"><input type="text" name="category" placeholder="Category (e.g., Challenge)" required onChange={handleInputChange} value={eventDetails.category} className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" /><FileText className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" /></div>
-                <div className="relative"><input type="number" name="max_participants" placeholder="Max Participants" required onChange={handleInputChange} value={eventDetails.max_participants} className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" /><Users className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" /></div>
-                <div className="relative"><input type="number" name="ticket_fee" placeholder="Audience Ticket Fee" required onChange={handleInputChange} value={eventDetails.ticket_fee} className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" /><IndianRupee className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" /></div>
+                <div className="relative"><input type="text" name="category" placeholder="Category" required onChange={handleInputChange} value={eventDetails.category} className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" /><FileText className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" /></div>
+                <div className="relative"><input type="number" name="max_participants" placeholder="Max Participants" required onChange={handleInputChange} value={eventDetails.max_participants === 0 ?  '' : eventDetails.max_participants} className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" /><Users className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" /></div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="relative"><input type="number" name="ticket_fee" placeholder="Ticket Fee" required onChange={handleInputChange} value={eventDetails.ticket_fee === 0 ? '' : eventDetails.ticket_fee} className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" /><IndianRupee className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" /></div>
+                <div className="relative"><input type="number" name="total_tickets" placeholder="Total Tickets" required onChange={handleInputChange} value={eventDetails.total_tickets === 0 ? '' : eventDetails.total_tickets} className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" /><TicketCheck className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" /></div>
               </div>
               <div className="relative"><textarea name="description" placeholder="Event Description" required rows={4} onChange={handleInputChange} value={eventDetails.description} className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors resize-none" /><FileText className="absolute left-4 top-4 h-5 w-5 text-gray-400" /></div>
               
@@ -214,7 +247,12 @@ const AdminPanel = () => {
               {/* Form Actions */}
               <div className="flex justify-end items-center pt-6 border-t border-gray-200 space-x-4 flex-shrink-0">
                 <button type="button" onClick={() => setIsModalOpen(false)} disabled={isUploading} className="px-6 py-3 rounded-full font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors disabled:opacity-50">Cancel</button>
-                <button type="submit" disabled={isUploading} className="px-6 py-3 rounded-full font-semibold text-white bg-red-500 hover:bg-red-600 transition-colors flex items-center disabled:bg-red-400">{isUploading && <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>}{isUploading ? 'Creating...' : 'Create Event'}</button>
+                {(formIncompleteCheck(eventDetails) ?
+                  <button type="submit" disabled className="px-6 py-3 rounded-full font-semibold text-gray-500 bg-gray-200 transition-colors flex items-center border border-gray-500">Please fill all fields</button>
+                :
+                  <button type="submit" disabled={isUploading} className="px-6 py-3 rounded-full font-semibold text-white bg-red-500 hover:bg-red-600 transition-colors flex items-center disabled:bg-red-400">{isUploading && <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>}{isUploading ? 'Creating...' : 'Create Event'}</button>
+                )}
+                
               </div>
             </form>
           </div>

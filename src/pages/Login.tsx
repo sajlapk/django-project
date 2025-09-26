@@ -12,6 +12,9 @@ const Login = () => {
   const [error, setError] = useState('');
   const { login, isLoading } = useAuth();
   const navigate = useNavigate();
+  // const location = useLocation();
+
+  // const from = location.state?.from?.pathname || '/';
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({

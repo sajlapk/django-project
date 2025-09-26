@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useAuth } from "../contexts/AuthContext";
 import axios from "axios";
 import { Calendar, MapPin, Users, Clock, Weight, Ruler, User, Cake } from "lucide-react";
 import RazorPayButton from "../components/RazorPayButton";
@@ -17,13 +18,17 @@ interface IEvent {
   category: string;
   registration_fee: number;
   ticket_fee: number;
-  participants: number;
+  total_tickets: number;
+  registered_participants_count: number;
   max_participants: number;
   image_url?: string;
   prize_sponsorship: string;
+  issued_tickets_count: number;
 }
 
 const Events: React.FC = () => {
+  const { user } = useAuth(); // Get the logged-in user from context
+
   const [noOfTickets, setNoOfTickets] = useState(1)
 
   const [events, setEvents] = useState<IEvent[]>([]);
@@ -54,7 +59,9 @@ const Events: React.FC = () => {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const response = await axios.get('https://discipl-server.onrender.com/api/events'); // Used to fetch events and display events from backend
+        const response = await axios.get('https://discipl-server.onrender.com/api/events'); // This is used when running from github repo
+        // const response = await axios.get('http://localhost:8172/api/events'); // This is used when running on localhost
+        // console.log(response.data); // DEBUG
 
         if (Array.isArray(response.data)) {
           setEvents(response.data);
@@ -83,9 +90,12 @@ const Events: React.FC = () => {
 
   const getCategoryColor = (category: string) => {
     const colors: { [key: string]: string } = {
-      'Challenge': 'bg-red-100 text-red-800', 'Workshop': 'bg-blue-100 text-blue-800',
-      'Competition': 'bg-purple-100 text-purple-800', 'Seminar': 'bg-green-100 text-green-800',
-      'Training': 'bg-orange-100 text-orange-800', 'Dance': 'bg-pink-100 text-pink-800'
+      'Power Lifting': 'bg-red-100 text-red-800', 
+      'Arm Wrestling': 'bg-blue-100 text-blue-800',
+      'Cardio': 'bg-purple-100 text-purple-800', 
+      'Calisthenics': 'bg-green-100 text-green-800',
+      'Training': 'bg-orange-100 text-orange-800', 
+      'Physique': 'bg-pink-100 text-pink-800'
     };
     return colors[category] || 'bg-gray-100 text-gray-800';
   };
@@ -101,11 +111,12 @@ const Events: React.FC = () => {
       const payload = {
         eventId: selectedEvent._id,
         ...participantData, // make sure participantData is from state
-        tickets: noOfTickets,
-        paymentId: paymentDetails.razorpay_payment_id
+        paymentId: paymentDetails.response.razorpay_payment_id
       };
 
-      await axios.post('https://discipl-server.onrender.com/api/particpants/add', payload); // This is used to add participants detail on successful registration payment
+      await axios.post('https://discipl-server.onrender.com/api/participants/add', payload); // This is used when running from github repo
+      // await axios.post("http://localhost:8172/api/participants/add", payload); // This is used when running on localhost
+      // alert("Participant registered successfully!"); //DEBUG
       setIsParticipantModalOpen(false);
     } catch (err) {
       // console.error("Error saving participant data:", err); // DEBUG
@@ -122,6 +133,35 @@ const Events: React.FC = () => {
       participantData.weight > 0
     );
   };
+
+  // // Function to issue a ticket on successful payment for ticket purchase
+  const issueTicket = async(paymentDetails: any) =>{
+    if(!selectedEvent) return
+
+    try{
+      const payload = {
+        eventId: selectedEvent._id,
+        paymentId: paymentDetails.response.razorpay_payment_id,
+        buyer_name: user?.name,
+        buyer_email: user?.email,
+        amount: paymentDetails.order.amount, // money is sent in paise
+        no_of_tickets: noOfTickets,
+      }
+      
+      // console.log(payload) // DEBUG
+      await axios.post('https://discipl-server.onrender.com/api/tickets/issueTicket', payload); // This is used when running from github repo
+      // const response = await axios.post("http://localhost:8172/api/tickets/issueTicket", payload); // This is used when running on localhost
+      // console.log("Issued Ticket", response); //DEBUG
+      
+      // Close the modal and reset state
+      setIsTicketModalOpen(false);
+      setNoOfTickets(1);
+
+    }catch(error){
+      console.error("Error issuing ticket for payment", error); // DEBUG
+      alert("Payment succeeded but failed to issue ticket for payment."); //DEBUG
+    }
+  }
 
   return (
     <div className="container mx-auto px-4 py-10">
@@ -151,6 +191,24 @@ const Events: React.FC = () => {
                   {event.name}
                 </h2>
 
+                {/* Judging Criteria on card
+                {event.judgingCriteria && event.judgingCriteria.length > 0 && (
+                  // </div>
+                  <div className="mb-4">
+                    <div className="flex items-center text-sm font-bold text-gray-800 mb-2">
+                        <Award className="w-4 h-4 mr-2 text-red-500" />
+                        <span>Judging Criteria</span>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {event.judgingCriteria.map((criterion, index) => (
+                        <span key={index} className="bg-red-100 text-red-800 text-xs font-medium px-3 py-1 rounded-full">
+                          {criterion}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )} */}
+
                 <span>
                   <span className={`px-3 py-1 rounded-full text-sm font-medium ${getCategoryColor(event.category)}`}>
                     {event.category}
@@ -173,14 +231,14 @@ const Events: React.FC = () => {
                   <div className="mt-5 space-y-2 pb-4 pt-5">
                     <div className="flex items-center text-gray-700">
                       <Users className="w-4 h-4 mr-2 text-red-500" />
-                      <span className="text-sm">{event.participants}/{event.max_participants} participants</span>
+                      <span className="text-sm">{event.registered_participants_count}/{event.max_participants} participants</span>
                     </div>
 
                     <div className="flex items-center justify-between">
                       <div className="w-full bg-gray-200 rounded-full h-2 mr-4">
                         <div
                           className="bg-red-500 h-2 rounded-full"
-                          style={{ width: `${(event.participants / event.max_participants) * 100}%` }}
+                          style={{ width: `${(event.registered_participants_count / event.max_participants) * 100}%` }}
                         ></div>
                       </div>
                     </div>
@@ -194,7 +252,7 @@ const Events: React.FC = () => {
           ))}
         </div>
       )}
-
+  
       {/* Popup for view event details */}
       {isModalOpen && selectedEvent && (
         <div className="rounded-3xl fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
@@ -253,7 +311,7 @@ const Events: React.FC = () => {
                   <p className="text-medium"><span className="text-black">Ticket Fee:</span> {selectedEvent.ticket_fee}</p>
                 </div>
                 <div className="flex items-center text-gray-700">
-                  <p className="text-medium"><span className="text-black">Participants:</span> {selectedEvent.participants}/{selectedEvent.max_participants}</p>
+                  <p className="text-medium"><span className="text-black">Participants:</span> {selectedEvent.registered_participants_count}/{selectedEvent.max_participants}</p>
                 </div>
                 <div className="flex items-center text-gray-700 pb-5">
                   <p className="text-medium"><span className="text-black">Prize:</span> {selectedEvent.prize_sponsorship}</p>
@@ -314,56 +372,87 @@ const Events: React.FC = () => {
                 className=" px-6 py-3 rounded-full font-semibold text-black bg-white border-2 border-black hover:bg-black hover:text-white transition-colors">
                 Buy Ticket
               </button>
+              {( selectedEvent.registered_participants_count >= selectedEvent.max_participants ?
+              <button
+                className="px-6 py-3 rounded-full font-semibold text-red-500 bg-white border border-red-500"
+                disabled>
+                Maximum participants registered.
+              </button>
+              :
               <button
                 onClick={()=>{setIsParticipantModalOpen(true); setIsModalOpen(false);}}
                 className="px-6 py-3 rounded-full font-semibold text-white bg-red-500 hover:bg-red-600 transition-colors">
                 Register for Event
               </button>
+              )}
             </div>
           </div>
         </div>
       )}
 
       {/* Popup for Ticket Payment */}
-      {isTicketModalOpen && selectedEvent && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
-            {/* Header */}
-            <div className="bg-red-500 rounded-t-3xl flex justify-between items-center p-4 sm:p-6 border-b border-gray-200 flex-shrink-0">
-              <h2 className="text-xl sm:text-2xl font-bold text-white">
-                Purchase Ticket for {selectedEvent.name}?
-              </h2>
-            </div>
+      {isTicketModalOpen && selectedEvent && (() => {
+        // console.log("Selected Event Data:", selectedEvent); // DEBUG
+        const availableTickets = selectedEvent.total_tickets - selectedEvent.issued_tickets_count;
+        
+        return(
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+              {/* Header */}
+              <div className="bg-red-500 rounded-t-3xl flex justify-between items-center p-4 sm:p-6 border-b border-gray-200 flex-shrink-0">
+                <h2 className="text-xl sm:text-2xl font-bold text-white">
+                  Purchase Ticket for {selectedEvent.name}?
+                </h2>
+              </div>
 
-            {/* Content */}
-            <div className="space-y-2 p-8 overflow-y-auto flex-1">
-              <div className="flex flex-row items-center text-gray-700 justify-evenly gap-2">
-                <p className="text-small text-black">How many tickets?</p>
-                <div className="w-1/4">
-                  <input className="border-2 border-black rounded-xl w-full pl-3" type="number"  min={1} max={selectedEvent.max_participants} value={noOfTickets} onChange={(event)=>setNoOfTickets(Number(event.target.value))}/>
+              {/* Content */}
+              {(availableTickets>0 ?
+              <div className="space-y-2 p-8 overflow-y-auto flex-1">
+                <div className="flex flex-row items-center text-gray-700 justify-evenly gap-2">
+                  <p className="text-small text-black">How many tickets?</p>
+                  <div className="w-1/4">
+                    <input className="border-2 border-black rounded-xl w-full pl-3" type="number"  min={1} max={availableTickets} value={noOfTickets} onChange={(event)=>setNoOfTickets(Number(event.target.value))}/>
+                  </div>
                 </div>
               </div>
-            </div>
+              :
+              <div className="space-y-2 p-8 overflow-y-auto flex-1">
+                <p className="text-2xl text-black">Sorry. All Tickets are booked</p>
+              </div>
+              )}
 
-            {/* Payment Summary */}
-            <div className="p-4 sm:p-8 border border-gray-200 flex-shrink-0">
-              <p className="text-gray-500">₹{selectedEvent.ticket_fee} x {noOfTickets} {noOfTickets>1 ? "Tickets" : "Ticket"} = ₹{selectedEvent.ticket_fee * noOfTickets}</p>
-            </div>
-          
-            <div className="bg-white rounded-b-3xl flex justify-end items-center p-4 border-t border-gray-200 space-x-4 flex-shrink-0">
-              <button
-                onClick={()=>{setIsTicketModalOpen(false); setIsModalOpen(true);}}
-                className="px-6 py-3 rounded-full font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors"
-              >
-                Close
-              </button>
-              <RazorPayButton
-                amount={selectedEvent.ticket_fee * noOfTickets}
-                eventName={selectedEvent.name}/>
+              {/* Payment Summary */}
+              <div className="p-4 sm:p-8 border border-gray-200 flex-shrink-0">
+                <p className="text-gray-500">₹{selectedEvent.ticket_fee} x {noOfTickets} {noOfTickets>1 ? "Tickets" : "Ticket"} = ₹{selectedEvent.ticket_fee * noOfTickets}</p>
+                <p className="text-gray-500">Available Tickets = {availableTickets} Tickets</p>
+              </div>
+            
+              <div className="bg-white rounded-b-3xl flex justify-end items-center p-4 border-t border-gray-200 space-x-4 flex-shrink-0">
+                <button
+                  onClick={()=>{setIsTicketModalOpen(false); setIsModalOpen(true);}}
+                  className="px-6 py-3 rounded-full font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors"
+                >
+                  Close
+                </button>
+                {( availableTickets <= 0 ? 
+                  <button 
+                  className="px-6 py-3 rounded-full font-semibold text-black bg-gray-300 border border-black"
+                  disabled
+                  >Sold Out!</button>
+                :
+                <RazorPayButton
+                  amount={selectedEvent.ticket_fee * noOfTickets}
+                  eventName={selectedEvent.name}
+                  buyer_name = {user?.name}
+                  buyer_email = {user?.email}
+                  onSuccess={(paymentDetails)=>{issueTicket(paymentDetails)}}
+                  />
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Popup for Participant Payment */}
       {isParticipantModalOpen && selectedEvent && (
@@ -384,17 +473,17 @@ const Events: React.FC = () => {
                 onChange={(e) => setParticipantData({ ...participantData, name: e.target.value })}
                 /><User className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" /></div>
                 <div className="relative"><input type="number" min={0} placeholder="Age" name="age" required className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" 
-                value={participantData.age}
+                value={participantData.age === 0 ? '' : participantData.age}
                 onChange={(e) => setParticipantData({ ...participantData, age: Number(e.target.value) })}
                 /><Cake className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" /></div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="relative"><input type="number" min={0} placeholder="Height(cm)" name="height" required className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" 
-                value={participantData.height}
+                value={participantData.height === 0 ? '' : participantData.height}
                 onChange={(e) => setParticipantData({ ...participantData, height: Number(e.target.value) })}
                 /><Ruler className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" /></div>
                 <div className="relative"><input type="number" min={0} placeholder="Weight(kg)" name="weight" required className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" 
-                value={participantData.weight}
+                value={participantData.weight === 0 ? '' : participantData.weight}
                 onChange={(e) => setParticipantData({ ...participantData, weight: Number(e.target.value) })}
                 /><Weight className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" /></div>
               </div>
@@ -418,7 +507,7 @@ const Events: React.FC = () => {
                 Close
               </button>
               <RazorPayButton
-                amount={selectedEvent.registration_fee * noOfTickets}
+                amount={selectedEvent.registration_fee}
                 eventName={selectedEvent.name}
                 onSuccess={(paymentDetails) => handleParticipantPaymentSuccess(paymentDetails)}
                 disabled={!isParticipantFormComplete()}
