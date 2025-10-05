@@ -17,7 +17,7 @@ const PORT = process.env.BACKEND_PORT || 5000;
 app.use(express.json());
 
 const corsOptions = {
-  origin: [ `http://localhost:${process.env.FRONTEND_PORT}`,  'https://dicipl-alpha-build.netlify.app', 'https://discipl-web-frontend-deployed-by-hami.onrender.com'], // Local Host URL // Your Netlify URL // Beta deployment URL
+  origin: [ `http://localhost:${process.env.FRONTEND_PORT}`,  'https://dicipl-alpha-build.netlify.app', 'https://discipl-web-frontend-beta.onrender.com'], // Local Host URL // Your Netlify URL // Beta deployment URL
   optionsSuccessStatus: 200 
 };
 
