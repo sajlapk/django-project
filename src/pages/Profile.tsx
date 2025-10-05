@@ -36,9 +36,9 @@ const Profile: React.FC = () => {
         if (!user) return;
         setLoading(true);
         try {
-            // const response = await axios.get(`https://discipl-server.onrender.com/api/users/profile/${user.id}`); // This is used when running from github repo  
-            const response = await axios.get(`http://localhost:8172/api/users/profile/${user.id}`); // This is used when running on localhost
-            console.log("Profile Data: ", response.data) // DEBUG
+            const response = await axios.get(`https://discipl-server.onrender.com/api/users/profile/${user.id}`); // This is used when running from github repo  
+            // const response = await axios.get(`http://localhost:8172/api/users/profile/${user.id}`); // This is used when running on localhost
+            // console.log("Profile Data: ", response.data) // DEBUG
             setBookings(response.data);
         } catch (error) {
             console.error("Failed to fetch profile data", error);
@@ -54,16 +54,16 @@ const Profile: React.FC = () => {
     const handleCancelTicket = async (ticketId: string) => {
         if (!window.confirm("Are you sure you want to cancel this ticket? This action cannot be undone.")) return;
         if (!window.confirm("NOTE: YOU WILL NOT BE REFUNDED.")) return;
-        // await axios.delete(`https://discipl-server.onrender.com/${ticketId}`); // This is used when running from github repo  
-        await axios.delete(`http://localhost:8172/api/tickets/${ticketId}`); // This is used when running on localhost
+        await axios.delete(`https://discipl-server.onrender.com/api/tickets/${ticketId}`); // This is used when running from github repo  
+        // await axios.delete(`http://localhost:8172/api/tickets/${ticketId}`); // This is used when running on localhost
         await fetchProfileData(); // Refetch data after cancellation
     };
 
     const handleCancelRegistration = async (registrationId: string) => {
         if (!window.confirm("Are you sure you want to cancel your registration? This action cannot be undone.")) return;
         if (!window.confirm("NOTE: YOU WILL NOT BE REFUNDED.")) return;
-        // await axios.delete(`https://discipl-server.onrender.com/${registrationId}`); // This is used when running from github repo  
-        await axios.delete(`http://localhost:8172/api/participants/${registrationId}`); // This is used when running on localhost
+        await axios.delete(`https://discipl-server.onrender.com/api/participants/${registrationId}`); // This is used when running from github repo  
+        // await axios.delete(`http://localhost:8172/api/participants/${registrationId}`); // This is used when running on localhost
         await fetchProfileData(); // Refetch data after cancellation
     };
 

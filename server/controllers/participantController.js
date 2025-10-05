@@ -1,5 +1,50 @@
 const Participant = require('../models/participantModel');
 const Event = require('../models/eventModel');
+const { Parser } = require('json2csv'); 
+
+// Logic for exporting participant list for an event as .csv file
+const getParticipantsList = async (req, res) => {
+    try{
+        const { eventId } = req.params;
+
+       // 1. Fetch all participant data from the database.
+        // .lean() makes the query faster as it returns plain JavaScript objects.
+        const participants = await Participant.find({ eventId: eventId }).lean();
+
+        if (participants.length === 0) {
+            return res.status(404).json({ message: 'No participants found to export.' });
+        }
+
+        // 2. Define the columns (fields) for your CSV file.
+        // We can rename them using 'label' for better readability in the spreadsheet.
+        const fields = [
+            { label: 'Participant Name', value: 'name' },
+            { label: 'Age', value: 'age' },
+            { label: 'Height (cm)', value: 'height' },
+            { label: 'Weight (kg)', value: 'weight' },
+            { label: 'Event ID', value: 'eventId' },
+            { label: 'Payment ID', value: 'paymentId' },
+            { label: 'User ID', value: 'userId' },
+        ];
+
+        // 3. Create a new CSV parser with the defined fields.
+        const json2csvParser = new Parser({ fields });
+        const csv = json2csvParser.parse(participants);
+
+        // 4. Set the HTTP headers to tell the browser to download the file.
+        const date = new Date().toISOString().slice(0, 10); // e.g., "2025-09-30"
+        const filename = `participants-export-${date}.csv`;
+
+        res.header('Content-Type', 'text/csv');
+        res.header('Content-Disposition', `attachment; filename="${filename}"`);
+
+        // 5. Send the CSV data as the response.
+        res.status(200).send(csv);
+    }catch(error){
+        console.error("Error exporting participant list: ", error);
+        res.status(500).json({ message: "Server error while exporting participant list." });
+    }
+}
 
 // Logic for adding participants after participant has payed for registration
 const addParticipant = async (req, res) => {
@@ -76,5 +121,6 @@ const deleteRegistrationForUser = async (req, res) => {
 
 module.exports = {
     addParticipant,
-    deleteRegistrationForUser
+    deleteRegistrationForUser,
+    getParticipantsList
 };

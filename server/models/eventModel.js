@@ -24,6 +24,7 @@ const eventSchema = new mongoose.Schema({
   org_phone_no: { type: String, default: 'Not Provided' },
   org_email: { type: String, default: 'Not Provided' },
   social_media: { type: [socialMediaSchema], default: [] },
+  status: { type: String, enum: [ "ONGOING", "PASSED" ], default: "ONGOING" }
 }, {
   timestamps: true,
 });

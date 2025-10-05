@@ -10,6 +10,7 @@ interface SocialMediaLink {
 
 // Define the main structure for an event
 interface EventDetails {
+  _id: string;
   name: string;
   date: string;
   time: string;
@@ -20,6 +21,7 @@ interface EventDetails {
   total_tickets: number,
   image: File | null;
   category: string;
+  status: 'ONGOING' | 'PASSED';
   max_participants: number;
   judging_criteria: string[];
   prize_sponsorship: string;
@@ -28,13 +30,43 @@ interface EventDetails {
   social_media: SocialMediaLink[];
 }
 
+interface IEvent {
+  _id: string;
+  name: string;
+  description: string;
+  judging_criteria: string[];
+  org_email: string;
+  org_phone_no: string;
+  social_media: { platform: string; handle: string }[];
+  date: string;
+  time: string;
+  location: string;
+  category: string;
+  status: 'ONGOING' | 'PASSED';
+  registration_fee: number;
+  ticket_fee: number;
+  total_tickets: number;
+  registered_participants_count: number;
+  max_participants: number;
+  image_url?: string;
+  prize_sponsorship: string;
+  issued_tickets_count: number;
+}
+
 const AdminPanel = () => {
   const [isModalOpen, setIsModalOpen] = useState(false); // Popup that is used to add event
   const [isUploading, setIsUploading] = useState(false);
   const [successModal, setSuccessModal] = useState(false); // Popup that triggers on adding event
   const [successMessage, setSuccessMessage] = useState('') // This will contain the message that wil show up in the success modal
+  const [isStatusModalOpen, setIsStatusModalOpen] = useState(false); // Popup that is used to edit status of event
+  const [selectedEvent, setSelectedEvent] = useState<IEvent | null>(null);
+
+  const [events, setEvents] = useState<IEvent[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    fetchEvents();
+
     // Check if the modal is currently showing
     if (successModal) {
       // If it is, set a timer to hide it after 3 seconds
@@ -48,10 +80,32 @@ const AdminPanel = () => {
     }
   }, [successModal]); // The dependency array ensures this effect runs only when `successModal` changes.
 
+  // Fetch events stored in backend
+  const fetchEvents = async () => {
+    try {
+      const response = await axios.get('https://discipl-server.onrender.com/api/events'); // This is used when running from github repo
+      // const response = await axios.get('http://localhost:8172/api/events'); // This is used when running on localhost
+      // console.log("Events Fetched: ", response.data); // DEBUG
+
+      if (Array.isArray(response.data)) {
+        setEvents(response.data);
+      } else if (Array.isArray(response.data.events)) {
+        setEvents(response.data.events);
+      } else {
+        setEvents([]);
+      }
+    } catch (err) {
+      console.error("Error fetching events:", err);
+      setEvents([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Initialize state with all the new fields
   const [eventDetails, setEventDetails] = useState<EventDetails>({
-    name: '', date: '', time: '', location: '', description: '', registration_fee: 0, ticket_fee: 0, total_tickets: 0, image: null,
-    category: '', max_participants: 0, judging_criteria: [''], prize_sponsorship: '',
+    _id: '', name: '', date: '', time: '', location: '', description: '', registration_fee: 0, ticket_fee: 0, total_tickets: 0, image: null,
+    category: '', status: 'ONGOING', max_participants: 0, judging_criteria: [''], prize_sponsorship: '',
     org_phone_no: '', org_email: '', social_media: [{ platform: 'Instagram', handle: '' }],
   });
 
@@ -118,8 +172,8 @@ const AdminPanel = () => {
       const eventData = { ...dataWithoutImage, image_url: imageUrl, judging_criteria: finalCriteria, social_media: finalSocials };
       // console.log("Posting event data:", eventData); // DEBUG
 
-      // const response = await axios.post('https://discipl-server.onrender.com/api/events', eventData); // This is used when running from github repo
-      const response = await axios.post('http://localhost:8172/api/events', eventData); // This is used when running on localhost
+      const response = await axios.post('https://discipl-server.onrender.com/api/events', eventData); // This is used when running from github repo
+      // const response = await axios.post('http://localhost:8172/api/events', eventData); // This is used when running on localhost
       // console.log(response.data); // DEBUG
       // alert("Event created successfully!"); // DEBUG
 
@@ -127,8 +181,8 @@ const AdminPanel = () => {
 
       setIsModalOpen(false);
       setEventDetails({
-        name: '', date: '', time: '', location: '', description: '', registration_fee: 0, ticket_fee: 0, total_tickets: 0,image: null,
-        category: 'General', max_participants: 50, judging_criteria: [''], prize_sponsorship: '',
+        _id: '', name: '', date: '', time: '', location: '', description: '', registration_fee: 0, ticket_fee: 0, total_tickets: 0,image: null,
+        category: 'General', status: 'ONGOING', max_participants: 50, judging_criteria: [''], prize_sponsorship: '',
         org_phone_no: '', org_email: '', social_media: [{ platform: 'Instagram', handle: '' }],
       });
     } catch (error) {
@@ -153,6 +207,41 @@ const AdminPanel = () => {
     setSuccessModal(true); // Showing the modal
   };
 
+  // Helper function to format date to a string format
+  const formatDate = (dateStr: string) =>
+    new Date(dateStr).toLocaleDateString("en-IN", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+
+
+  // helper function to format time to 12 hour
+  const formatTime = (timeStr: string): string => {
+    // 1. Basic validation to prevent errors
+    if (!timeStr || typeof timeStr !== 'string' || !timeStr.match(/^\d{2}:\d{2}$/)) {
+      return ''; // Return an empty string for invalid input
+    }
+
+    // 2. Create a dummy date object, specifying the time is in UTC.
+    const date = new Date(`1970-01-01T${timeStr}:00Z`);
+    
+    // 3. Check if the created date is valid, in case of input like "99:99"
+    if (isNaN(date.getTime())) {
+      return '';
+    }
+
+    // 4. Create a formatter that formats time specifically in the UTC timezone.
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      hour: 'numeric',
+      minute: '2-digit', // Use '2-digit' to ensure minutes are like '05'
+      hour12: true,
+      timeZone: 'UTC' // THIS IS THE CRUCIAL FIX
+    });
+
+    return formatter.format(date);
+  };
+
   // Helper function to check if all important fields in event form are filled
   const formIncompleteCheck = (eventDetails: any) => {
     if(
@@ -174,6 +263,105 @@ const AdminPanel = () => {
       return true
     else 
       return false
+  };
+
+  // Function to set the status of the event in AdminPanel
+  const setStatus = async (status: String) => {
+    try{
+      if(status == "PASSED"){
+        const response = await axios.patch(`https://discipl-server.onrender.com/api/events/${selectedEvent?._id}`, { status: "ONGOING" }); // This is used when running from github repo    
+        // const response = await axios.patch(`http://localhost:8172/api/events/${selectedEvent?._id}`, { status: "ONGOING" });
+        console.log("Changed status to passed: ", response);
+      }else if(status == "ONGOING"){
+        const response = await axios.patch(`https://discipl-server.onrender.com/api/events/${selectedEvent?._id}`, { status: "PASSED" }); // This is used when running from github repo    
+        // const response = await axios.patch(`http://localhost:8172/api/events/${selectedEvent?._id}`, { status: "PASSED" });
+        console.log("Changed status to ongoing: ", response);
+      }else{
+        console.log("Some error occurred while changing status.");
+      }
+
+      // Refetch the events so the issued_tickets_count and registered_participants_count can refresh 
+      const post_payment_response = await axios.get('https://discipl-server.onrender.com/api/events'); // This is used when running from github repo      
+      // const post_payment_response = await axios.get('http://localhost:8172/api/events'); // This is used when running on localhost
+      // console.log("Fetched events after payment", post_payment_response) // DEBUG
+
+      setEvents(post_payment_response.data);
+      setIsStatusModalOpen(false);
+    }catch(error){
+      console.log("Some error occurred while changing status."); // DEBUG
+    }
+  }
+
+  // Function to delete an event
+  const deleteEvent = async (event: IEvent | null) => {
+    try{
+      if (!window.confirm("Are you sure you want to delete this event? This action cannot be undone.")) return;
+      if (!window.confirm("NOTE: YOU ARE ABOUT TO DELETE AN EVENT.")) return;
+      if (!window.confirm("NOTE: THIS WILL CANCEL ALL ASSOCIATED TICKETS AND REGISTERED PARTICIPANTS(NO REFUND WILL BE DONE).")) return;
+      await axios.delete(`https://discipl-server.onrender.com/api/events/${selectedEvent?._id}`); // This is used when running from github repo
+      // const response = await axios.delete(`http://localhost:8172/api/events/${event?._id}`); // This is used when running on localhost
+      // console.log("Deleted event: ", response); // DEBUG
+
+      // Refetch the events so the issued_tickets_count and registered_participants_count can refresh 
+      const post_payment_response = await axios.get('https://discipl-server.onrender.com/api/events'); // This is used when running from github repo      
+      // const post_payment_response = await axios.get('http://localhost:8172/api/events'); // This is used when running on localhost
+      // console.log("Fetched events after payment", post_payment_response) // DEBUG
+
+      setSelectedEvent(null);
+      setEvents(post_payment_response.data);
+      setIsStatusModalOpen(false);
+    }catch(error){
+      console.log("Some error occurred while deleting event."); // DEBUG
+    }
+  }
+
+  // Function to export participant list
+  const exportParticipantList = async (eventId: string | undefined) => {
+    if (!eventId) {
+      alert("Cannot export: Event ID is missing.");
+      return;
+    }
+
+    try {
+      const exportUrl = `https://discipl-server.onrender.com/api/participants/export/${eventId}`; // This is used when running from github repo   
+      // const exportUrl = `http://localhost:8172/api/participants/export/${eventId}`; // This is used when running on localhost
+
+      // 1. Make the request with axios, expecting a 'blob' (file data) in response
+      const response = await axios.get(exportUrl, {
+        responseType: 'blob',
+      });
+
+      // 2. Create a Blob from the response data
+      const blob = new Blob([response.data], { type: 'text/csv' });
+
+      // 3. Create a temporary URL for the Blob
+      const url = window.URL.createObjectURL(blob);
+
+      // 4. Create a temporary link element to trigger the download
+      const link = document.createElement('a');
+      link.href = url;
+
+      // Set the download filename (you can set a default or try to get it from headers)
+      const date = new Date().toISOString().slice(0, 10);
+      link.setAttribute('download', `participants-export-${date}.csv`);
+
+      // 5. Trigger the download and clean up
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+    } catch (error) {
+      // 6. Handle errors gracefully with alerts
+      if (axios.isAxiosError(error) && error.response?.status === 404) {
+        // This is the specific "Not Found" error from your backend
+        alert("No participants found for this event.");
+      } else {
+        // For any other error (e.g., server down)
+        alert("An error occurred while exporting the list. Please try again.");
+        console.error("Error exporting participant list:", error);
+      }
+    }
   };
 
   return (
@@ -207,15 +395,118 @@ const AdminPanel = () => {
         </header>
         <main>
           <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-            <div className="px-4 py-6 sm:px-0">
-              <div className="border-4 border-dashed border-gray-200 rounded-lg h-96 flex items-center justify-center text-center p-4">
-                <p className="text-gray-500">Your event management dashboard will be displayed here.</p>
+            <div className="px-4 py-6 sm:px-0 flex flex-col justify-evenly">
+              {/* For ongoing events */}
+              <h1 className="text-4xl mb-5"><b>Ongoing Events</b></h1>
+              <div className="border-4 border-dashed border-gray-200 rounded-lg min-h-96 flex items-center justify-center text-center p-4">
+                {events.length === 0 || events.filter(event => event.status === "ONGOING").length === 0 ? 
+                  <div>
+                    <p>No ongoing events.</p>
+                  </div>
+                :
+                  <div className="grid w-full gap-8 md:grid-cols-1 lg:grid-cols-1">
+                    {events.filter(event => event.status === "ONGOING").map((event)=>
+                        <div
+                        key={event._id}
+                        className="w-full cursor-pointer bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 overflow-hidden flex flex-row"
+                        >
+                          <div 
+                          className="flex flex-row w-full"
+                          onClick={() => {setSelectedEvent(event); setIsStatusModalOpen(true);}}
+                        >
+                            <div>
+                              <img 
+                              src={event.image_url}
+                              className="p-1 w-48 h-48 object-cover border border-black border-2 rounded-l-2xl"  
+                              />
+                            </div>
+                            <div className="p-4 w-full border-t-2 border-red-500 border-b-2 border-red-500 flex-1 flex-col justify-start">
+                              <div className="flex flex-row"> 
+                                <h1 className="text-2xl"><b>{event.name}</b></h1>
+                              </div>
+                              <div className="flex flex-row items-center">
+                                <Clock className="fixed w-4 h-4 text-gray-500"/><p className="text-gray-500 ml-6">{formatDate(event.date)}</p>
+                              </div>
+                              <div className="flex flex-row items-center">
+                                <Calendar className="fixed w-4 h-4 text-gray-500"/><p className="text-gray-500 ml-6">{formatTime(event.time)}</p>
+                              </div>
+                              <div className="flex flex-row items-center">
+                                <MapPin className="fixed w-4 h-4 text-gray-500"/><p className="text-gray-500 ml-6">{event.location}</p>
+                              </div>
+                            </div> 
+                          </div>
+                          <div> 
+                            <button 
+                            className="p-2 bg-red-500 border-t-2 border-b-2 border-r-2 border-red-500 rounded-r-2xl pl-8 pr-8 text-gray-400 hover:bg-red-600 hover:border-red-600 transition-colors h-full"
+                            onClick={(e) => { e.stopPropagation(); deleteEvent(event);}}
+                            >
+                              <Trash2 className="w-6 h-6 text-white"/>
+                            </button> 
+                          </div>         
+                        </div>
+                    )}
+                  </div>
+                }
+              </div>
+
+              {/* For past events */}
+              <h1 className="text-4xl mb-5"><b>Past Events</b></h1>
+              <div className="border-4 border-dashed border-gray-200 rounded-lg min-h-96 flex items-center justify-center text-center p-4">
+                {events.length === 0 || events.filter(event => event.status === "PASSED").length === 0 ? 
+                  <div>
+                    <p>No past events to display.</p>
+                  </div>
+                :
+                  <div className="grid w-full gap-8 md:grid-cols-1 lg:grid-cols-1">
+                    {events.filter(event => event.status === "PASSED").map((event)=>
+                      <div 
+                      key={event._id}
+                      className="w-full cursor-pointer bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 overflow-hidden flex flex-row"
+                      >
+                        <div
+                          onClick={() => {setSelectedEvent(event); setIsStatusModalOpen(true);}}
+                          className="flex flex-row w-full">
+                          <div>
+                            <img 
+                            src={event.image_url}
+                            className="p-1 w-48 h-48 object-cover border border-black border-2 rounded-l-2xl"  
+                            />
+                          </div>
+                          <div className="p-4 w-full border-t-2 border-red-500 border-b-2 border-red-500 flex-1 flex-col justify-start">
+                            <div className="flex flex-row"> 
+                              <h1 className="text-2xl"><b>{event.name}</b></h1>
+                            </div>
+                            <div className="flex flex-row items-center">
+                              <Clock className="fixed w-4 h-4 text-gray-500"/><p className="text-gray-500 ml-6">{formatDate(event.date)}</p>
+                            </div>
+                            <div className="flex flex-row items-center">
+                              <Calendar className="fixed w-4 h-4 text-gray-500"/><p className="text-gray-500 ml-6">{formatTime(event.time)}</p>
+                            </div>
+                            <div className="flex flex-row items-center">
+                              <MapPin className="fixed w-4 h-4 text-gray-500"/><p className="text-gray-500 ml-6">{event.location}</p>
+                            </div>
+                          </div>
+                        </div>
+                        <div> 
+                          <button 
+                          className="p-2 bg-red-500 border-t-2 border-b-2 border-r-2 border-red-500 rounded-r-2xl pl-8 pr-8 text-gray-400 hover:bg-red-600 hover:border-red-600 transition-colors h-full"
+                          onClick={(e) => { e.stopPropagation; deleteEvent(event)}}
+                          >
+                            <Trash2 className="w-6 h-6 text-white"
+                            />
+                          </button> 
+                        </div>     
+                      </div>
+                    )}
+                  </div>
+                }
               </div>
             </div>
           </div>
         </main>
       </div>
 
+      {/* Popup model that pops up when creating an event */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
@@ -296,9 +587,136 @@ const AdminPanel = () => {
                 :
                   <button type="submit" disabled={isUploading} className="px-6 py-3 rounded-full font-semibold text-white bg-red-500 hover:bg-red-600 transition-colors flex items-center disabled:bg-red-400">{isUploading && <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>}{isUploading ? 'Creating...' : 'Create Event'}</button>
                 )}
-                
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Popup Modal to set status of events */}
+      {isStatusModalOpen && selectedEvent && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+            <div className="flex justify-between items-center bg-red-500 p-4 sm:p-6 border-b border-gray-200 flex-shrink-0 rounded-t-2xl">
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Set Status</h2>
+              <button onClick={() => setIsStatusModalOpen(false)} className="p-2 rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="p-4 sm:p-8 overflow-y-auto space-y-6">
+              <img
+                src={
+                  selectedEvent.image_url ||
+                  "https://placehold.co/600x400/f87171/white?text=Event"
+                }
+                alt={selectedEvent.name}
+                className="w-full h-56 object-cover rounded-lg"
+              />
+              
+              <div className="space-y-1">
+                <p className="text-medium text-black mb-0">Description:</p>
+                <div className="border p-4 pt-1 pl-3 rounded-lg bg-gray-50">
+                  <p className="text-gray-700">{selectedEvent.description}</p>
+                </div>
+              </div>
+
+              <div className="space-y-2 mb-4">
+                <div className="flex items-center text-gray-700">
+                  <p className="text-medium"><span className="text-black">Category:</span> {selectedEvent.category}</p>
+                </div>
+                <div className="flex items-center text-gray-700">
+                  <p className="text-medium"><span className="text-black">Date:</span> {formatDate(selectedEvent.date)}</p>
+                </div>
+                <div className="flex items-center text-gray-700">
+                  <p className="text-medium"><span className="text-black">Time:</span> {formatTime(selectedEvent.time)}</p>
+                </div>
+                <div className="flex items-center text-gray-700">
+                  <p className="text-medium"><span className="text-black">Location:</span> {selectedEvent.location}</p>
+                </div>
+                <div className="flex items-center text-gray-700">
+                  <p className="text-medium"><span className="text-black">Participation Fee:</span> {selectedEvent.registration_fee}</p>
+                </div>
+                <div className="flex items-center text-gray-700">
+                  <p className="text-medium"><span className="text-black">Ticket Fee:</span> {selectedEvent.ticket_fee}</p>
+                </div>
+                <div className="flex items-center text-gray-700">
+                  <p className="text-medium"><span className="text-black">Participants:</span> {selectedEvent.registered_participants_count}/{selectedEvent.max_participants}</p>
+                </div>
+                <div className="flex items-center text-gray-700">
+                  <p className="text-medium"><span className="text-black">Total Tickets Available:</span>{selectedEvent.total_tickets}</p>
+                </div>
+                <div className="flex items-center text-gray-700 pb-5">
+                  <p className="text-medium"><span className="text-black">Prize:</span> {selectedEvent.prize_sponsorship}</p>
+                </div>
+
+                {/*Organizer Details*/}
+                <div className="border rounded-lg bg-gray-50">
+                  <h3 className="font-semibold text-gray-900 mb-2 p-4 pt-1 pl-3 pb-0">Organizer Details</h3>
+
+                  <div className="flex flex-row text-gray-700 gap-6 p-5 pt-1 pb-3">
+                    <div className="flex flex-col gap-2 mb-2 pt-2">
+                      <p className="text-black text-lg">Email:</p> 
+                      <p className="text-black text-lg">Phone Number:</p>    
+                    </div>
+                    <div className="flex flex-col gap-2 mb-2">
+                      <div className="bg-white border rounded-lg border-black p-4 pl-2 pt-1 pb-1">{selectedEvent.org_phone_no}</div>
+                      <div className="bg-white border rounded-lg border-black p-4 pl-2 pt-1 pb-1">{selectedEvent.org_email}</div>
+                    </div>
+                  </div>
+
+                  <div className="text-medium">
+                    {selectedEvent.social_media && selectedEvent.social_media.length > 0 && (
+                      <div className="flex flex-row gap-4 mb-2 p-4 pt-1 pl-3 pb-0 justify-space-between">
+                        {selectedEvent.social_media.map((link, index) => (
+                          <div className="flex flex-row gap-1" key={index}>
+                            <h4>{link.platform}: </h4>
+                            <p>{link.handle}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}                  
+                  </div>
+                </div>
+              </div>
+
+              {selectedEvent.judging_criteria &&
+                selectedEvent.judging_criteria.length > 0 && (
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-2 flex items-center">Judging Criteria</h3>
+                    <ul className="list-disc list-inside text-gray-700 space-y-1">
+                      {selectedEvent.judging_criteria.map((c, i) => (
+                        <li key={i}>{c}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}              
+            </div>
+
+            <div className="rounded-b-2xl bg-black flex justify-end items-center p-4 border-t border-gray-200 space-x-4 flex-shrink-0">
+              <button
+                onClick={() => {exportParticipantList(selectedEvent._id)}}
+                className="px-6 py-3 rounded-full font-semibold text-white bg-blue-500 hover:bg-white hover:text-blue-500 transition-colors"
+                >
+                Export Participant List
+              </button>
+              
+              {( selectedEvent.status === "PASSED" ?
+              <button
+                onClick={() => {setStatus(selectedEvent.status)}}
+                className="px-6 py-3 rounded-full font-semibold text-white bg-red-500 hover:bg-red-600 transition-colors"
+                >
+                Mark as ONGOING
+              </button>
+              :
+              <button
+                onClick={() => {setStatus(selectedEvent.status)}}
+                className="px-6 py-3 rounded-full font-semibold text-white bg-red-500 hover:bg-red-600 transition-colors"
+                >
+                Mark as PASSED
+              </button>
+              )}
+            </div>
           </div>
         </div>
       )}

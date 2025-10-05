@@ -1,5 +1,8 @@
 const Event = require('../models/eventModel');
+const Ticket = require('../models/ticketsModel');
+const Participant = require('../models/participantModel');
 
+// Logic to create a new event with all the additional fields
 const createEvent = async (req, res) => {
   try {
     // Destructure all new fields from the request body
@@ -37,6 +40,7 @@ const createEvent = async (req, res) => {
   }
 };
 
+// Logic to fetch all events while also calculating available tickets for the event and the participant seats that are left
 const getAllEvents = async (req, res) => {
   try {
     
@@ -79,7 +83,72 @@ const getAllEvents = async (req, res) => {
   }
 };
 
+// Logic to update status of events from admin panel
+const updateEventStatus = async (req, res) => {
+  try {
+      const { id } = req.params; // Get the event ID from the URL
+      const { status } = req.body; // Get the new status from the request body
+
+      // Validate the incoming status
+      if (!status || !['ONGOING', 'PASSED'].includes(status)) {
+          return res.status(400).json({ message: 'Invalid status provided.' });
+      }
+
+      const updatedEvent = await Event.findByIdAndUpdate(
+          id,
+          { status: status }, // The update to be made
+          { new: true, runValidators: true } // Options: return the new version, run schema validators
+      );
+
+      if (!updatedEvent) {
+          return res.status(404).json({ message: 'Event not found.' });
+      }
+
+      res.status(200).json(updatedEvent);
+
+  } catch (error) {
+      console.error("Error updating event status:", error);
+      res.status(500).json({ message: "Server error while updating event status" });
+  }
+};
+
+// Logic to delete an event and associated participant and tickets from respective collections from admin panel
+const deleteEvent = async (req, res) => {
+  try{
+     const { id: eventId } = req.params;
+
+    // 1. Find the event document BEFORE deleting it.
+    // We need to access its 'tickets' and 'participants' arrays.
+    const eventToDelete = await Event.findById(eventId);
+
+    if (!eventToDelete) {
+      return res.status(404).json({ message: "Event not found." });
+    }
+
+    // 2. Delete all associated Ticket documents.
+    // The $in operator finds all documents where the _id is "in" the provided array.
+    if (eventToDelete.tickets && eventToDelete.tickets.length > 0) {
+      await Ticket.deleteMany({ _id: { $in: eventToDelete.tickets } });
+    }
+
+    // 3. Delete all associated Participant documents.
+    if (eventToDelete.participants && eventToDelete.participants.length > 0) {
+      await Participant.deleteMany({ _id: { $in: eventToDelete.participants } });
+    }
+
+    // 4. Finally, delete the Event document itself.
+    await Event.findByIdAndDelete(eventId);
+
+    res.status(200).json({ message: "Event and all associated tickets and participants deleted successfully." });
+  } catch (error) {
+    console.error("Error deleting event:", error);
+    res.status(500).json({ message: "Server error while deleting event" });
+  }
+}
+
 module.exports = {
   createEvent,
   getAllEvents,
+  updateEventStatus,
+  deleteEvent
 };

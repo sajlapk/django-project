@@ -16,6 +16,7 @@ interface IEvent {
   time: string;
   location: string;
   category: string;
+  status: 'ONGOING' | 'PASSED';
   registration_fee: number;
   ticket_fee: number;
   total_tickets: number;
@@ -59,8 +60,8 @@ const Events: React.FC = () => {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        // const response = await axios.get('https://discipl-server.onrender.com/api/events'); // This is used when running from github repo
-        const response = await axios.get('http://localhost:8172/api/events'); // This is used when running on localhost
+        const response = await axios.get('https://discipl-server.onrender.com/api/events'); // This is used when running from github repo
+        // const response = await axios.get('http://localhost:8172/api/events'); // This is used when running on localhost
         // console.log(response.data); // DEBUG
 
         if (Array.isArray(response.data)) {
@@ -115,18 +116,18 @@ const Events: React.FC = () => {
         paymentId: paymentDetails.response.razorpay_payment_id
       };
 
-      // await axios.post('https://discipl-server.onrender.com/api/participants/add', payload); // This is used when running from github repo
-      const pre_payment_response = await axios.post("http://localhost:8172/api/participants/add", payload); // This is used when running on localhost
-      console.log("Participant registered successfully", pre_payment_response); //DEBUG
+      await axios.post('https://discipl-server.onrender.com/api/participants/add', payload); // This is used when running from github repo
+      // const pre_payment_response = await axios.post("http://localhost:8172/api/participants/add", payload); // This is used when running on localhost
+      // console.log("Participant registered successfully", pre_payment_response); //DEBUG
       
       // Close all modals
       setIsParticipantModalOpen(false)
       setIsModalOpen(false);
 
       // Refetch the events so the issued_tickets_count and registered_participants_count can refresh 
-      // const post_payment_response = await axios.get('https://discipl-server.onrender.com/api/events'); // This is used when running from github repo      
-      const post_payment_response = await axios.get('http://localhost:8172/api/events'); // This is used when running on localhost
-      console.log("Fetched events after payment", post_payment_response) // DEBUG
+      const post_payment_response = await axios.get('https://discipl-server.onrender.com/api/events'); // This is used when running from github repo      
+      // const post_payment_response = await axios.get('http://localhost:8172/api/events'); // This is used when running on localhost
+      // console.log("Fetched events after payment", post_payment_response) // DEBUG
 
       setEvents(post_payment_response.data);
     } catch (error) {
@@ -161,9 +162,9 @@ const Events: React.FC = () => {
       }
       // console.log(payload) // DEBUG
       
-      // await axios.post('https://discipl-server.onrender.com/api/tickets/issueTicket', payload); // This is used when running from github repo
-      const pre_payment_response = await axios.post("http://localhost:8172/api/tickets/issueTicket", payload); // This is used when running on localhost
-      console.log("Issued Ticket", pre_payment_response); //DEBUG
+      await axios.post('https://discipl-server.onrender.com/api/tickets/issueTicket', payload); // This is used when running from github repo
+      // const pre_payment_response = await axios.post("http://localhost:8172/api/tickets/issueTicket", payload); // This is used when running on localhost
+      // console.log("Issued Ticket", pre_payment_response); //DEBUG
       
       // Close the modal and reset state
       setIsTicketModalOpen(false);
@@ -171,9 +172,9 @@ const Events: React.FC = () => {
       setIsModalOpen(false);
 
       // Refetch the events so the issued_tickets_count and registered_participants_count can refresh 
-      // const post_payment_response = await axios.get('https://discipl-server.onrender.com/api/events'); // This is used when running from github repo      
-      const post_payment_response = await axios.get('http://localhost:8172/api/events'); // This is used when running on localhost
-      console.log("Fetched events after payment", post_payment_response) // DEBUG
+      const post_payment_response = await axios.get('https://discipl-server.onrender.com/api/events'); // This is used when running from github repo      
+      // const post_payment_response = await axios.get('http://localhost:8172/api/events'); // This is used when running on localhost
+      // console.log("Fetched events after payment", post_payment_response) // DEBUG
 
       setEvents(post_payment_response.data);
     }catch(error){
@@ -183,15 +184,18 @@ const Events: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-10">
-      <h1 className="text-4xl font-bold mb-10 text-center text-gray-800">
+    <div className="container mx-auto px-4 py-10 rounded-b-2xl">
+      <h1 className="text-4xl font-bold mb-10 text-center text-black">
         Upcoming Events
       </h1>
-      {events.length === 0 ? (
+      {events.length === 0 || events.filter(event => event.status === "ONGOING").length === 0 ? 
+      (
         <p className="text-center text-gray-600">No events available</p>
-      ) : (
+      ) 
+      : 
+      (
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-          {events.map((event) => (
+          {events.filter(event => event.status === "ONGOING").map((event) => (
             <div
               key={event._id}
               onClick={() => openModal(event)}
@@ -209,24 +213,6 @@ const Events: React.FC = () => {
                 <h2 className="text-2xl font-bold mb-2 text-gray-900">
                   {event.name}
                 </h2>
-
-                {/* Judging Criteria on card
-                {event.judgingCriteria && event.judgingCriteria.length > 0 && (
-                  // </div>
-                  <div className="mb-4">
-                    <div className="flex items-center text-sm font-bold text-gray-800 mb-2">
-                        <Award className="w-4 h-4 mr-2 text-red-500" />
-                        <span>Judging Criteria</span>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {event.judgingCriteria.map((criterion, index) => (
-                        <span key={index} className="bg-red-100 text-red-800 text-xs font-medium px-3 py-1 rounded-full">
-                          {criterion}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )} */}
 
                 <span>
                   <span className={`px-3 py-1 rounded-full text-sm font-medium ${getCategoryColor(event.category)}`}>
@@ -271,6 +257,83 @@ const Events: React.FC = () => {
           ))}
         </div>
       )}
+
+      <div className="container mx-auto py-10 rounded-b-2xl">
+        <h1 className="text-4xl p-4 font-bold mt-10 text-white bg-gray-800 rounded-t-2xl">
+          Past Events
+        </h1>
+        <div className="container mx-auto px-4 py-10 bg-gray-800 rounded-b-2xl shadow-lg">
+          {events.length === 0 || events.filter(event => event.status === "PASSED").length === 0 ? 
+          (
+            <p className="text-center text-gray-600">No past events.</p>
+          ) 
+          : 
+          (
+            <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+              {events.filter(event => event.status === "PASSED").map((event) => (
+                <div
+                  key={event._id}
+                  onClick={() => openModal(event)}
+                  className="cursor-pointer bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 overflow-hidden flex flex-col"
+                >
+                  <img
+                    src={
+                      event.image_url ||
+                      "https://placehold.co/600x400/f87171/white?text=Event"
+                    }
+                    alt={event.name}
+                    className="w-full h-48 object-cover border border-b-gray-200 border-4"
+                  />
+                  <div className="p-6 flex-1 flex flex-col">
+                    <h2 className="text-2xl font-bold mb-2 text-gray-900">
+                      {event.name}
+                    </h2>
+
+                    <span>
+                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${getCategoryColor(event.category)}`}>
+                        {event.category}
+                      </span>
+                    </span>
+
+                    <div className="mt-4 space-y-1 text-gray-500 text-sm">
+                      <span className="flex items-center">
+                        <Calendar className="w-4 h-4 mr-2 text-red-500" />{formatDate(event.date)}
+                      </span>
+                      
+                      <span className="flex items-center">
+                        <Clock className="w-4 h-4 mr-2 text-red-500" />{event.time}
+                      </span>
+                      
+                      <span className="flex items-center">
+                        <MapPin className="w-4 h-4 mr-2 text-red-500" />{event.location}
+                      </span>
+                      
+                      <div className="mt-5 space-y-2 pb-4 pt-5">
+                        <div className="flex items-center text-gray-700">
+                          <Users className="w-4 h-4 mr-2 text-red-500" />
+                          <span className="text-sm">{event.registered_participants_count}/{event.max_participants} participants</span>
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                          <div className="w-full bg-gray-200 rounded-full h-2 mr-4">
+                            <div
+                              className="bg-red-500 h-2 rounded-full"
+                              style={{ width: `${(event.registered_participants_count / event.max_participants) * 100}%` }}
+                            ></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-center w-full bg-red-500 text-white py-4 px-4 font-semibold hover:bg-red-600 transition-colors">
+                    View Details
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
   
       {/* Popup for view event details */}
       {isModalOpen && selectedEvent && (
@@ -332,6 +395,9 @@ const Events: React.FC = () => {
                 <div className="flex items-center text-gray-700">
                   <p className="text-medium"><span className="text-black">Participants:</span> {selectedEvent.registered_participants_count}/{selectedEvent.max_participants}</p>
                 </div>
+                <div className="flex items-center text-gray-700">
+                  <p className="text-medium"><span className="text-black">Total Tickets Available:</span> {selectedEvent.total_tickets}</p>
+                </div>
                 <div className="flex items-center text-gray-700 pb-5">
                   <p className="text-medium"><span className="text-black">Prize:</span> {selectedEvent.prize_sponsorship}</p>
                 </div>
@@ -378,33 +444,33 @@ const Events: React.FC = () => {
                   </div>
                 )}              
             </div>
+            
+            { selectedEvent.status === "PASSED" ?
+              <div className="bg-white flex justify-end items-center p-4 border-t border-gray-200 space-x-4 flex-shrink-0">
 
-            <div className="rounded-b-3xl bg-black flex justify-end items-center p-4 border-t border-gray-200 space-x-4 flex-shrink-0">
-              {/* <button
-                onClick={closeModal}
-                className="px-6 py-3 rounded-full font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors"
-              >
-                Close
-              </button> */}
-              <button 
-                onClick={()=>{setIsTicketModalOpen(true); setIsModalOpen(false);}}
-                className=" px-6 py-3 rounded-full font-semibold text-black bg-white border-2 border-black hover:bg-black hover:text-white transition-colors">
-                Buy Ticket
-              </button>
-              {( selectedEvent.registered_participants_count >= selectedEvent.max_participants ?
-              <button
-                className="px-6 py-3 rounded-full font-semibold text-red-500 bg-white border border-red-500"
-                disabled>
-                Maximum participants registered.
-              </button>
-              :
-              <button
-                onClick={()=>{setIsParticipantModalOpen(true); setIsModalOpen(false);}}
-                className="px-6 py-3 rounded-full font-semibold text-white bg-red-500 hover:bg-red-600 transition-colors">
-                Register for Event
-              </button>
-              )}
-            </div>
+              </div>            
+            :
+              <div className="rounded-b-3xl bg-black flex justify-end items-center p-4 border-t border-gray-200 space-x-4 flex-shrink-0">
+                <button 
+                  onClick={()=>{setIsTicketModalOpen(true); setIsModalOpen(false);}}
+                  className=" px-6 py-3 rounded-full font-semibold text-black bg-white border-2 border-black hover:bg-black hover:text-white transition-colors">
+                  Buy Ticket
+                </button>
+                {( selectedEvent.registered_participants_count >= selectedEvent.max_participants ?
+                <button
+                  className="px-6 py-3 rounded-full font-semibold text-red-500 bg-white border border-red-500"
+                  disabled>
+                  Maximum participants registered.
+                </button>
+                :
+                <button
+                  onClick={()=>{setIsParticipantModalOpen(true); setIsModalOpen(false);}}
+                  className="px-6 py-3 rounded-full font-semibold text-white bg-red-500 hover:bg-red-600 transition-colors">
+                  Register for Event
+                </button>
+                )}
+              </div>
+            }
           </div>
         </div>
       )}
@@ -465,6 +531,7 @@ const Events: React.FC = () => {
                   buyer_name = {user?.name}
                   buyer_email = {user?.email}
                   onSuccess={(paymentDetails)=>{issueTicket(paymentDetails)}}
+                  disabled={noOfTickets<=0 || noOfTickets>availableTickets}
                   />
                 )}
               </div>
