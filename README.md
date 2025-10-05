@@ -1,31 +1,15 @@
 # DISCIPL
 
-This is an an event and competition management site where users can join fitness events.
+This is the public-facing platform for Discipl.
 
-## THINGS THAT I WILL BE LEARNING FROM THS PROJECT:
-
-- Exploring cloudinary cloud service and how it is used to store media files
-- Working with MongoDB
-- Working with MVC Architecture
-- Working with Lucide React
-- Learning how a event management system works
-- Managing roles with Firebase Authentication 
-- Integrating Razorpay payment gateway to accept payments.
-
-## FRAMEWORKS AND OTHER RESOURCES USED IN THIS PROJECT:
+## TECHNOLOGIES USED:
 
 - NodeJS - https://nodejs.org/en/download  
 - Vite - https://v3.vitejs.dev/guide/  
 - Netlify - https://www.netlify.com/  
 - TailwindCSS - https://tailwindcss.com/
 - Lucide React - https://lucide.dev/guide/packages/lucide-react
-- Firebase Authentication - https://firebase.google.com/docs/auth
-- Firebase Firestore Database - https://firebase.google.com/docs/firestore
-- MongoDB - https://www.mongodb.com/
-- Razorpay - https://razorpay.com/payment-gateway/
-
-### DEPLOYMENT
-
-This app has been deployed at https://dicipl-alpha-build.netlify.app/
-
-You can check it out there. Enjoy :)
+- Render - https://render.com/
+- RazorPay - https://razorpay.com/
+- Axios - https://axios-http.com/docs/intro
+- ExpressJs - https://expressjs.com/
