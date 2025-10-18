@@ -24,7 +24,8 @@ const Contact = () => {
     setIsSubmitting(true);
 
     try {
-      const response = await axios.post('http://localhost:8172/api/contacts/sendMessage', formData);
+      const response = await axios.post('https://discipl-web-frontend-1.onrender.com/api/contacts/sendMessage', formData); // This is used when running from github repo
+      // const response = await axios.post('http://localhost:8172/api/contacts/sendMessage', formData);
       
       if (response.data.success) {
         setIsSubmitted(true);
@@ -253,54 +254,6 @@ const Contact = () => {
                   </div>
                 </div>
               </div>
-
-              {/* <div className="space-y-6">
-                <div>
-                  <h3 className="text-xl font-bold text-black mb-4">
-                    Our Advantages
-                  </h3>
-                  <ul className="space-y-3 text-gray-700">
-                    <li className="flex items-start">
-                      <div className="w-2 h-2 bg-red-500 rounded-full mt-2 mr-3 flex-shrink-0"></div>
-                      <span>Comprehensive fitness center management platform</span>
-                    </li>
-                    <li className="flex items-start">
-                      <div className="w-2 h-2 bg-red-500 rounded-full mt-2 mr-3 flex-shrink-0"></div>
-                      <span>Innovative event organization and management tools</span>
-                    </li>
-                    <li className="flex items-start">
-                      <div className="w-2 h-2 bg-red-500 rounded-full mt-2 mr-3 flex-shrink-0"></div>
-                      <span>24/7 customer support and assistance</span>
-                    </li>
-                    <li className="flex items-start">
-                      <div className="w-2 h-2 bg-red-500 rounded-full mt-2 mr-3 flex-shrink-0"></div>
-                      <span>Growing community of fitness professionals</span>
-                    </li>
-                  </ul>
-                </div>
-
-                <div className="bg-red-50 p-6 rounded-lg">
-                  <h4 className="font-bold text-black mb-2">Need Immediate Help?</h4>
-                  <p className="text-gray-700 mb-4">
-                    For urgent matters, please call our support hotline or send us an email. 
-                    We typically respond within 2-4 hours during business hours.
-                  </p>
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <a
-                      href="tel:+15551234567"
-                      className="bg-red-500 text-white px-4 py-2 rounded-full hover:bg-red-600 transition-colors duration-200 text-center"
-                    >
-                      Call Now
-                    </a>
-                    <a
-                      href="mailto: info@discipl.com"
-                      className="border border-red-500 text-red-500 px-4 py-2 rounded-full hover:bg-red-500 hover:text-white transition-colors duration-200 text-center"
-                    >
-                      Email Support
-                    </a>
-                  </div>
-                </div>
-              </div> */}
             </div>
           </div>
         </div>

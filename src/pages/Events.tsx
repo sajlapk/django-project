@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import axios from "axios";
-import { Calendar, MapPin, Users, Clock, Weight, Ruler, User, Cake } from "lucide-react";
+import { Calendar, MapPin, Users, Clock } from "lucide-react";
 import RazorPayButton from "../components/RazorPayButton";
 
 interface IEvent {
@@ -61,8 +61,8 @@ const Events: React.FC = () => {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        // const response = await axios.get('https://discipl-server.onrender.com/api/events'); // This is used when running from github repo
-        const response = await axios.get('http://localhost:8172/api/events'); // This is used when running on localhost
+        const response = await axios.get('https://discipl-web-frontend-1.onrender.com/api/events'); // This is used when running from github repo
+        // const response = await axios.get('http://localhost:8172/api/events'); // This is used when running on localhost
         // console.log(response.data); // DEBUG
 
         if (Array.isArray(response.data)) {
@@ -110,14 +110,6 @@ const Events: React.FC = () => {
     if (!selectedEvent) return;
 
     try {
-      // Payload for when participant details are collected
-      // const payload = {
-      //   eventId: selectedEvent._id,
-      //   userId: user?.id,
-      //   ...participantData, // make sure participantData is from state
-      //   paymentId: paymentDetails.response.razorpay_payment_id
-      // };
-
       // Payload for when participant details are NOT collected
       const payload = {
         eventId: selectedEvent._id,
@@ -126,18 +118,18 @@ const Events: React.FC = () => {
         name: user?.name,
       };
 
-      // await axios.post('https://discipl-server.onrender.com/api/participants/add', payload); // This is used when running from github repo
-      const pre_payment_response = await axios.post("http://localhost:8172/api/participants/add", payload); // This is used when running on localhost
-      console.log("Participant registered successfully", pre_payment_response); //DEBUG
+      await axios.post('https://discipl-web-frontend-1.onrender.com/api/participants/add', payload); // This is used when running from github repo
+      // const pre_payment_response = await axios.post("http://localhost:8172/api/participants/add", payload); // This is used when running on localhost
+      // console.log("Participant registered successfully", pre_payment_response); //DEBUG
       
       // Close all modals
       setIsParticipantModalOpen(false)
       setIsModalOpen(false);
 
       // Refetch the events so the issued_tickets_count and registered_participants_count can refresh 
-      // const post_payment_response = await axios.get('https://discipl-server.onrender.com/api/events'); // This is used when running from github repo      
-      const post_payment_response = await axios.get('http://localhost:8172/api/events'); // This is used when running on localhost
-      console.log("Fetched events after payment", post_payment_response) // DEBUG
+      const post_payment_response = await axios.get('https://discipl-web-frontend-1.onrender.com/api/events'); // This is used when running from github repo      
+      // const post_payment_response = await axios.get('http://localhost:8172/api/events'); // This is used when running on localhost
+      // console.log("Fetched events after payment", post_payment_response) // DEBUG
 
       setEvents(post_payment_response.data);
       window.location.href = "/"; // redirect to home page
@@ -146,16 +138,6 @@ const Events: React.FC = () => {
       alert("Payment succeeded but failed to save participant data."); //DEBUG
     }
   };
-
-  // Helper function to check if participant form is complete
-  // const isParticipantFormComplete = () => {
-  //   return (
-  //     participantData.name.trim() !== "" &&
-  //     participantData.age > 0 &&
-  //     participantData.height > 0 &&
-  //     participantData.weight > 0
-  //   );
-  // };
 
   // // Function to issue a ticket on successful payment for ticket purchase
   const issueTicket = async(paymentDetails: any) =>{
@@ -173,8 +155,8 @@ const Events: React.FC = () => {
       }
       // console.log(payload) // DEBUG
       
-      // await axios.post('https://discipl-server.onrender.com/api/tickets/issueTicket', payload); // This is used when running from github repo
-      const pre_payment_response = await axios.post("http://localhost:8172/api/tickets/issueTicket", payload); // This is used when running on localhost
+      const pre_payment_response = await axios.post('https://discipl-web-frontend-1.onrender.com/api/tickets/issueTicket', payload); // This is used when running from github repo
+      // const pre_payment_response = await axios.post("http://localhost:8172/api/tickets/issueTicket", payload); // This is used when running on localhost
       console.log("Issued Ticket", pre_payment_response); //DEBUG
       
       // Close the modal and reset state
@@ -183,9 +165,9 @@ const Events: React.FC = () => {
       setIsModalOpen(false);
 
       // Refetch the events so the issued_tickets_count and registered_participants_count can refresh 
-      // const post_payment_response = await axios.get('https://discipl-server.onrender.com/api/events'); // This is used when running from github repo      
-      const post_payment_response = await axios.get('http://localhost:8172/api/events'); // This is used when running on localhost
-      console.log("Fetched events after payment", post_payment_response) // DEBUG
+      const post_payment_response = await axios.get('https://discipl-web-frontend-1.onrender.com/api/events'); // This is used when running from github repo      
+      // const post_payment_response = await axios.get('http://localhost:8172/api/events'); // This is used when running on localhost
+      // console.log("Fetched events after payment", post_payment_response) // DEBUG
 
       setEvents(post_payment_response.data);
       window.location.href = "/"; // redirect to home page
@@ -585,41 +567,12 @@ const Events: React.FC = () => {
               </h2>
             </div>
 
-            {/* Participant Details */}
-            {/* <div className="space-y-2 p-8 overflow-y-auto flex-1">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="relative"><input type="text" placeholder="Name" name="name" required className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors"
-                value={participantData.name}
-                onChange={(e) => setParticipantData({ ...participantData, name: e.target.value })}
-                /><User className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" /></div>
-                <div className="relative"><input type="number" min={0} placeholder="Age" name="age" required className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" 
-                value={participantData.age === 0 ? '' : participantData.age}
-                onChange={(e) => setParticipantData({ ...participantData, age: Number(e.target.value) })}
-                /><Cake className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" /></div>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="relative"><input type="number" min={0} placeholder="Height(cm)" name="height" required className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" 
-                value={participantData.height === 0 ? '' : participantData.height}
-                onChange={(e) => setParticipantData({ ...participantData, height: Number(e.target.value) })}
-                /><Ruler className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" /></div>
-                <div className="relative"><input type="number" min={0} placeholder="Weight(kg)" name="weight" required className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" 
-                value={participantData.weight === 0 ? '' : participantData.weight}
-                onChange={(e) => setParticipantData({ ...participantData, weight: Number(e.target.value) })}
-                /><Weight className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" /></div>
-              </div>
-            </div> */}
-
             {/* Payment Summary */}
             <div className="p-4 sm:p-8 border border-gray-200 flex-shrink-0">
               <p className="text-gray-500">₹{selectedEvent.registration_fee} x {noOfTickets} {noOfTickets>1 ? "Tickets" : "Ticket"} = ₹{selectedEvent.registration_fee * noOfTickets}</p>
               <p className="text-gray-500">GST: 14%</p>
               <p className="text-gray-500">(14 x ₹{selectedEvent.registration_fee * noOfTickets})/100 = ₹{(14 * selectedEvent.registration_fee * noOfTickets)/100} GST</p>
               <p className="text-black text-lg font-semibold mt-4 pt-2 border-t">Total(₹{selectedEvent.registration_fee * noOfTickets} + ₹{(14 * selectedEvent.registration_fee * noOfTickets)/100} GST): ₹{(selectedEvent.registration_fee * noOfTickets) + ((14 * selectedEvent.registration_fee * noOfTickets)/100)}</p>
-              {/* {!isParticipantFormComplete() ?
-                <p className="text-red-500">Please fill all fields before proceeding to payment.</p>
-                :
-                <p>&nbsp;</p>
-              } */}
             </div>
 
             <div className="bg-white rounded-b-3xl flex justify-end items-center p-4 border-t border-gray-200 space-x-4 flex-shrink-0">
@@ -633,7 +586,6 @@ const Events: React.FC = () => {
                 amount={(selectedEvent.registration_fee * noOfTickets) + ((14 * selectedEvent.registration_fee * noOfTickets)/100)}
                 eventName={selectedEvent.name}
                 onSuccess={(paymentDetails) => handleParticipantPaymentSuccess(paymentDetails)}
-                // disabled={!isParticipantFormComplete()}
                 />
             </div>
           </div>

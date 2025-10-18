@@ -65,12 +65,6 @@ const Register = () => {
       return;
     }
     
-    // if (success) {
-    //   setSuccess('Account created successfully! Redirecting...');
-    //   navigate("/", { replace: true });
-    // } else {
-    //   setError('Failed to create account. Please try again.');
-    // }
     try {
       const success = await register(formData.name, formData.email, formData.password);
 

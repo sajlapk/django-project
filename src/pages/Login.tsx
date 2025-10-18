@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -12,9 +12,6 @@ const Login = () => {
   const [error, setError] = useState('');
   const { login, isLoading } = useAuth();
   const navigate = useNavigate();
-  // const location = useLocation();
-
-  // const from = location.state?.from?.pathname || '/';
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -23,24 +20,6 @@ const Login = () => {
     });
     if (error) setError('');
   };
-
-  // const handleSubmit = async (e: React.FormEvent) => {
-  //   e.preventDefault();
-  //   setError('');
-
-  //   if (!formData.email || !formData.password) {
-  //     setError('Please fill in all fields');
-  //     return;
-  //   }
-
-  //   const success = await login(formData.email, formData.password);
-    
-  //   if (success) {
-  //     navigate("/", { replace: true });
-  //   } else {
-  //     setError('Invalid email or password');
-  //   }
-  // };
 
   const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
@@ -62,7 +41,6 @@ const Login = () => {
       setError("Something went wrong while logging in.");
     }
   };
-
 
   return (
     <div className="min-h-screen pt-16 bg-gray-50 flex items-center justify-center py-12 pt-20">
@@ -120,26 +98,6 @@ const Login = () => {
               </div>
             </div>
 
-            <div className="flex items-center justify-between">
-              {/* <div className="flex items-center">
-                <input
-                  id="remember-me"
-                  name="remember-me"
-                  type="checkbox"
-                  className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
-                />
-                <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
-                  Remember me
-                </label>
-              </div> */}
-
-              {/* <div className="text-sm">
-                <a href="#" className="font-medium text-red-500 hover:text-red-400 transition-colors duration-200">
-                  Forgot password?
-                </a>
-              </div> */}
-            </div>
-
             {/* Error Dialog */}
             {error && (
               <div className="mb-6 p-4 bg-red-100 border border-red-300 rounded-lg flex items-center">
@@ -168,15 +126,6 @@ const Login = () => {
               </Link>
             </p>
           </div>
-
-          {/* Demo Credentials */}
-          {/* <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-            <h3 className="text-sm font-medium text-gray-700 mb-2">Demo Credentials:</h3>
-            <div className="space-y-1 text-xs text-gray-600">
-              <p><strong>Admin:</strong> admin@apex.com / admin123</p>
-              <p><strong>User:</strong> john@example.com / password</p>
-            </div>
-          </div> */}
         </div>
       </div>
     </div>
