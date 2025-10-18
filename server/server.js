@@ -7,8 +7,9 @@ const mongoose = require('mongoose');
 const eventRoutes = require('./routes/eventRoutes');
 const paymentRoutes = require("./routes/paymentRoutes.js");
 const participantRoutes = require("./routes/participantRoute.js");
-const ticketRoutes = require('./routes/ticketRoutes.js')
-const userRoutes = require('./routes/userRoutes.js')
+const ticketRoutes = require('./routes/ticketRoutes.js');
+const userRoutes = require('./routes/userRoutes.js');
+const contactRoutes = require('./routes/contactRoutes.js');
 
 const app = express();
 const PORT = process.env.BACKEND_PORT || 5000;
@@ -38,6 +39,7 @@ app.use("/api/payments", paymentRoutes);
 app.use("/api/participants", participantRoutes);
 app.use("/api/tickets", ticketRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/contacts", contactRoutes);
 
 // 4. START THE SERVER (ONLY ONCE, AT THE END)
 app.listen(PORT, () => {

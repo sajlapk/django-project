@@ -64,19 +64,29 @@ const Register = () => {
     if (!validateForm()) {
       return;
     }
-
-    const success = await register(formData.name, formData.email, formData.password);
     
-    if (success) {
-      setSuccess('Account created successfully! Redirecting...');
-      navigate("/", { replace: true });
-    } else {
-      setError('Failed to create account. Please try again.');
+    // if (success) {
+    //   setSuccess('Account created successfully! Redirecting...');
+    //   navigate("/", { replace: true });
+    // } else {
+    //   setError('Failed to create account. Please try again.');
+    // }
+    try {
+      const success = await register(formData.name, formData.email, formData.password);
+
+      if (success) {
+        setSuccess('Account created successfully! Redirecting...');
+        setTimeout(() => {
+          navigate("/", { replace: true });
+        }, 1500);
+      }
+    } catch (err: any) {
+      setError(err.message);
     }
   };
 
   return (
-    <div className="min-h-screen pt-16 bg-gray-50 flex items-center justify-center py-12">
+    <div className="min-h-screen pt-16 bg-gray-50 flex items-center justify-center py-12 pt-20">
       <div className="max-w-md w-full space-y-8 px-4">
         <div>
           <div className="text-center">
@@ -86,20 +96,6 @@ const Register = () => {
         </div>
 
         <div className="bg-white rounded-lg shadow-lg p-8">
-          {error && (
-            <div className="mb-6 p-4 bg-red-100 border border-red-300 rounded-lg flex items-center">
-              <AlertCircle className="w-5 h-5 text-red-600 mr-2" />
-              <span className="text-red-800 text-sm">{error}</span>
-            </div>
-          )}
-
-          {success && (
-            <div className="mb-6 p-4 bg-green-100 border border-green-300 rounded-lg flex items-center">
-              <CheckCircle className="w-5 h-5 text-green-600 mr-2" />
-              <span className="text-green-800 text-sm">{success}</span>
-            </div>
-          )}
-
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
@@ -209,6 +205,22 @@ const Register = () => {
                 </a>
               </label>
             </div>
+
+            {/* Success dialog */}
+            {success && (
+              <div className="mb-6 p-4 bg-green-100 border border-green-300 rounded-lg flex items-center">
+                <CheckCircle className="w-5 h-5 text-green-600 mr-2" />
+                <span className="text-green-800 text-sm">{success}</span>
+              </div>
+            )}
+
+          {/* Error dialog */}
+          {error && (
+            <div className="mb-6 p-4 bg-red-100 border border-red-300 rounded-lg flex items-center">
+              <AlertCircle className="w-5 h-5 text-red-600 mr-2" />
+              <span className="text-red-800 text-sm">{error}</span>
+            </div>
+          )}
 
             <button
               type="submit"

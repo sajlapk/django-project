@@ -24,26 +24,48 @@ const Login = () => {
     if (error) setError('');
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
+  // const handleSubmit = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   setError('');
 
-    if (!formData.email || !formData.password) {
-      setError('Please fill in all fields');
-      return;
-    }
+  //   if (!formData.email || !formData.password) {
+  //     setError('Please fill in all fields');
+  //     return;
+  //   }
 
-    const success = await login(formData.email, formData.password);
+  //   const success = await login(formData.email, formData.password);
     
-    if (success) {
-      navigate("/", { replace: true });
-    } else {
-      setError('Invalid email or password');
+  //   if (success) {
+  //     navigate("/", { replace: true });
+  //   } else {
+  //     setError('Invalid email or password');
+  //   }
+  // };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setError("");
+
+    try {
+      const success = await login(formData.email, formData.password);
+
+      if (success) {
+        // Give React a tick to finish state updates
+        setTimeout(() => {
+          navigate("/", { replace: true });
+        }, 100);
+      } else {
+        setError("Invalid email or password");
+      }
+    } catch (err) {
+      console.error("Login error:", err);
+      setError("Something went wrong while logging in.");
     }
   };
 
+
   return (
-    <div className="min-h-screen pt-16 bg-gray-50 flex items-center justify-center py-12">
+    <div className="min-h-screen pt-16 bg-gray-50 flex items-center justify-center py-12 pt-20">
       <div className="max-w-md w-full space-y-8 px-4">
         <div>
           <div className="text-center">
@@ -53,12 +75,6 @@ const Login = () => {
         </div>
 
         <div className="bg-white rounded-lg shadow-lg p-8">
-          {error && (
-            <div className="mb-6 p-4 bg-red-100 border border-red-300 rounded-lg flex items-center">
-              <AlertCircle className="w-5 h-5 text-red-600 mr-2" />
-              <span className="text-red-800 text-sm">{error}</span>
-            </div>
-          )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
@@ -123,6 +139,14 @@ const Login = () => {
                 </a>
               </div> */}
             </div>
+
+            {/* Error Dialog */}
+            {error && (
+              <div className="mb-6 p-4 bg-red-100 border border-red-300 rounded-lg flex items-center">
+                <AlertCircle className="w-5 h-5 text-red-600 mr-2" />
+                <span className="text-red-800 text-sm">{error}</span>
+              </div>
+            )}
 
             <button
               type="submit"

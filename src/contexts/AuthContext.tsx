@@ -76,30 +76,51 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   
   // **SIMPLIFIED LOGIN FUNCTION**
   const login = async (email: string, password: string): Promise<boolean> => {
-    setIsLoading(true);
+    // setIsLoading(true);
     try {
       // Just perform the sign-in. onAuthStateChanged will handle the state update.
       await doSignInWithEmailAndPassword(email, password);
       return true;
     } catch (error) {
       console.error("Login failed:", error);
-      setIsLoading(false);
+      // setIsLoading(false);
       return false;
     }
   };
 
-  // **SIMPLIFIED REGISTER FUNCTION**
+  // // **SIMPLIFIED REGISTER FUNCTION**
+  // const register = async (name: string, email: string, password: string): Promise<boolean> => {
+  //   // setIsLoading(true);
+  //   try {
+  //     // Just perform the registration. onAuthStateChanged will handle the rest.
+  //     const userCredential = await doCreateUserWithEmailAndPassword(email, password);
+  //     await updateProfile(userCredential.user, { displayName: name });
+  //     return true;
+  //   } catch (error) {
+  //     console.error("Registration failed:", error);
+  //     // setIsLoading(false);
+  //     return false;
+  //   }
+  // };
+
   const register = async (name: string, email: string, password: string): Promise<boolean> => {
-    setIsLoading(true);
     try {
-      // Just perform the registration. onAuthStateChanged will handle the rest.
       const userCredential = await doCreateUserWithEmailAndPassword(email, password);
       await updateProfile(userCredential.user, { displayName: name });
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Registration failed:", error);
-      setIsLoading(false);
-      return false;
+
+      // You can inspect Firebase error codes here:
+      if (error.code === "auth/email-already-in-use") {
+        throw new Error("This email is already registered. Please use a different one.");
+      } else if (error.code === "auth/invalid-email") {
+        throw new Error("Please enter a valid email address.");
+      } else if (error.code === "auth/weak-password") {
+        throw new Error("Password must be at least 6 characters long.");
+      } else {
+        throw new Error("Failed to create account. Please try again later.");
+      }
     }
   };
 

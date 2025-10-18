@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Mail, Phone, MapPin, Youtube, Send, CheckCircle, Instagram, Facebook } from 'lucide-react';
+import axios from 'axios';
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -21,25 +22,28 @@ const Contact = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
-    // Simulate form submission
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    setIsSubmitted(true);
-    setIsSubmitting(false);
-    setFormData({ name: '', email: '', subject: '', message: '' });
-    
-    // Reset success message after 3 seconds
-    setTimeout(() => {
-      setIsSubmitted(false);
-    }, 3000);
+
+    try {
+      const response = await axios.post('http://localhost:8172/api/contacts/sendMessage', formData);
+      
+      if (response.data.success) {
+        setIsSubmitted(true);
+        setFormData({ name: '', email: '', subject: '', message: '' });
+        setTimeout(() => setIsSubmitted(false), 3000);
+      }
+    } catch (error) {
+      console.error('Email sending failed:', error);
+      alert('Failed to send message. Please try again later.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const contactInfo = [
     {
       icon: <Mail className="w-6 h-6 text-red-500" />,
       title: "Email",
-      details: ["info@discipl.com"],
+      details: ["info@thediscipl.com"],
       description: "Get in touch via email for general inquiries or partnerships",
       link: ""
     },
@@ -233,7 +237,7 @@ const Contact = () => {
               
               <div className="flex flex-col justify-evenly">
                 <div className="bg-gray-100 rounded-lg h-64 mb-1 flex flex-col items-center justify-center">
-                  <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15650.102154382917!2d75.77022258715822!3d11.296246400000005!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x6d918e9583142b25%3A0x7b712d6b87310149!2sDiscipl!5e0!3m2!1sen!2sin!4v1754909444381!5m2!1sen!2sin" 
+                  <iframe src="https://www.google.com/maps/embed?pb=!1m17!1m12!1m3!1d3910.3652616191944!2d75.81836507505187!3d11.453539988739433!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m2!1m1!2zMTHCsDI3JzEyLjciTiA3NcKwNDknMTUuNCJF!5e0!3m2!1sen!2sin!4v1760762840091!5m2!1sen!2sin" 
                     width="100%" 
                     height="100%" 
                     style={{border:0}} 
@@ -245,12 +249,12 @@ const Contact = () => {
                 <div className="bg-gray-100 rounded-lg h-10 mb-8 flex items-center justify-center">
                   <div className="text-center text-gray-600 flex flex-row">
                     <MapPin className="w-5 h-5 mx-auto mr-4" />
-                    <p className="text-sm">Room no - L-15, AUWM, Thadampattuthazham, Kozhikode, Kerala 673010</p>
+                    <p className="text-sm">Vankannayullathil, Near Block Office, Balussery, Kozhikode, Kerala - 673613</p>
                   </div>
                 </div>
               </div>
 
-              <div className="space-y-6">
+              {/* <div className="space-y-6">
                 <div>
                   <h3 className="text-xl font-bold text-black mb-4">
                     Our Advantages
@@ -296,7 +300,7 @@ const Contact = () => {
                     </a>
                   </div>
                 </div>
-              </div>
+              </div> */}
             </div>
           </div>
         </div>

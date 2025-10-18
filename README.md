@@ -13,3 +13,11 @@ This is the public-facing platform for Discipl.
 - RazorPay - https://razorpay.com/
 - Axios - https://axios-http.com/docs/intro
 - ExpressJs - https://expressjs.com/
+- Firebase - https://firebase.google.com/
+- Nodemailer - https://nodemailer.com/
+
+### DEPLOYMENT
+
+This app has been deployed at https://discipl-web-frontend-beta.onrender.com/
+
+You can check it out there. Enjoy :)

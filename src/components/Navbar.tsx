@@ -1,16 +1,92 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { User, LogOut, Settings, Home, Info, MapPin, Calendar, Mail } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 const Navbar = () => {
   const { userLoggedIn } = useAuth();
-
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState('home');
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+
+  const tickingRef = useRef(false);
+
+  // Smooth scroll to section accounting for navbar height
+  const scrollToSection = (id: string) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const navbarHeight = document.querySelector('nav')?.clientHeight ?? 0;
+    const y = el.getBoundingClientRect().top + window.scrollY - navbarHeight - 8; // small gap
+    window.scrollTo({ top: y, behavior: 'smooth' });
+  };
+
+  const handleNavClick = (e: React.MouseEvent, href: string) => {
+    e.preventDefault();
+    const targetId = href.replace('#', '');
+
+    if (location.pathname === '/') {
+      // already on main page -> just scroll
+      scrollToSection(targetId);
+    } else {
+      // navigate to main page and pass target section via state
+      navigate('/', { state: { scrollTo: targetId } });
+    }
+  };
+
+  // New robust logic: select section whose top is closest to navbar bottom (works regardless of order)
+  useEffect(() => {
+    // If not on homepage, clear highlight and skip
+    if (location.pathname !== '/') {
+      setActiveSection(''); // reset highlight
+      return;
+    }
+
+    const getNavbarHeight = () => document.querySelector('nav')?.clientHeight ?? 0;
+
+    const updateActiveSection = () => {
+      const sections = Array.from(document.querySelectorAll('section[id]')) as HTMLElement[];
+      if (!sections || sections.length === 0) return;
+
+      const navbarHeight = getNavbarHeight();
+      let closestId = sections[0].id;
+      let minDistance = Number.POSITIVE_INFINITY;
+
+      for (const s of sections) {
+        const rect = s.getBoundingClientRect();
+        // compute distance from section top to navbar bottom (so the section under the navbar is considered)
+        const distance = Math.abs(rect.top - (navbarHeight + 8));
+        if (distance < minDistance) {
+          minDistance = distance;
+          closestId = s.id;
+        }
+      }
+
+      setActiveSection(closestId);
+    };
+
+    const onScroll = () => {
+      if (tickingRef.current) return;
+      tickingRef.current = true;
+      window.requestAnimationFrame(() => {
+        updateActiveSection();
+        tickingRef.current = false;
+      });
+    };
+
+    // initial calculation
+    updateActiveSection();
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+    };
+  }, [location.pathname]);
 
   const handleLogout = () => {
     logout();
@@ -18,43 +94,46 @@ const Navbar = () => {
     navigate('/');
   };
 
-  const isActive = (path: string) => location.pathname === path;
-
+  // navLinks remain hash paths that map to section IDs
   const navLinks = [
-    { path: '/', label: 'Home', icon: <Home size={20} /> },
-    { path: '/about', label: 'About', icon: <Info size={20} /> },
-    { path: '/fitness-directory', label: 'Fitness Centers', icon: <MapPin size={20} /> },
-    { path: '/events', label: 'Events', icon: <Calendar size={20} /> },
-    { path: '/contact', label: 'Contact', icon: <Mail size={20} /> },
+    { path: '#home', label: 'Home', icon: <Home size={20} /> },
+    { path: '#about', label: 'About', icon: <Info size={20} /> },
+    { path: '#events', label: 'Events', icon: <Calendar size={20} /> },
+    { path: '#contact', label: 'Contact', icon: <Mail size={20} /> },
   ];
 
   return (
     <>
       {/* Desktop Navbar */}
-      <nav className="hidden md:block bg-white shadow-sm border-b border-gray-100 relative z-50">
+      <nav className="hidden md:block fixed top-0 left-0 right-0 bg-white shadow-sm border-b border-gray-100 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
               <Link to="/" className="flex items-center">
-                <span className="text-2xl font-bold text-black"><img className="h-[1.5  rem] w-[8rem]" src="logo_white_bg.png"/></span>
+                <span className="text-2xl font-bold text-black"><img className="h-[1.5rem] w-[8rem]" src="logo_white_bg.png" alt="logo" /></span>
               </Link>
             </div>
 
             {/* Desktop Navigation */}
             <div className="flex items-center space-x-8">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.path}
-                  to={link.path}
-                  className={`px-3 py-2 text-sm font-medium transition-colors duration-200 ${
-                    isActive(link.path)
-                      ? 'text-red-500 border-b-2 border-red-500'
-                      : 'text-gray-700 hover:text-red-500'
-                  }`}
-                >
-                  {link.label}
-                </Link>
-              ))}
+              {navLinks.map((link) => {
+                const sectionId = link.path.substring(1);
+                const isActive =
+                  (location.pathname === '/' && activeSection === sectionId) ||
+                  (location.pathname === `/${sectionId}`); // also mark active when route is /about etc.
+
+                return (
+                  <button
+                    key={link.path}
+                    onClick={(e) => handleNavClick(e, link.path)}
+                    className={`px-3 py-2 text-sm font-medium transition-colors duration-200 ${
+                      isActive ? 'text-red-500 border-b-2 border-red-500' : 'text-gray-700 hover:text-red-500'
+                    }`}
+                  >
+                    {link.label}
+                  </button>
+                );
+              })}
             </div>
 
             {/* User Menu */}
@@ -177,20 +256,20 @@ const Navbar = () => {
         <div className="bg-white/95 backdrop-blur-sm border-t border-gray-200 shadow-lg rounded-t-2xl mx-4 mb-4">
           <div className="flex justify-around items-center py-2">
             {navLinks.map((link) => (
-              <Link
+              <button
                 key={link.path}
-                to={link.path}
+                onClick={(e) => handleNavClick(e, link.path)}
                 className={`flex flex-col items-center py-2 px-1 rounded-lg transition-all duration-200 ${
-                  isActive(link.path)
-                    ? 'text-red-500 bg-red-50'
-                    : 'text-gray-600 hover:text-red-500 hover:bg-gray-50'
+                  location.pathname === '/' && activeSection === link.path.substring(1)
+                    ? 'text-red-500 border-b-2 border-red-500'
+                    : 'text-gray-700 hover:text-red-500'
                 }`}
               >
-                {link.icon}
-                <span className="text-xs mt-1 font-medium">
-                  {link.label === 'Fitness Centers' ? 'Centers' : link.label}
-                </span>
-              </Link>
+                <div className='flex flex-col items-center'>
+                  {link.icon}
+                  {link.label}
+                </div>
+              </button>
             ))}
             {!user && (
               <Link
@@ -204,38 +283,6 @@ const Navbar = () => {
           </div>
         </div>
       </div>
-
-      {/* Mobile Auth Pages Bottom Navigation (when not logged in) */}
-      {!user && (location.pathname === '/login' || location.pathname === '/register') && (
-        <div className="md:hidden fixed bottom-0 left-0 right-0 z-40">
-          <div className="bg-white/95 backdrop-blur-sm border-t border-gray-200 shadow-lg rounded-t-2xl mx-4 mb-4">
-            <div className="flex justify-center items-center py-3">
-              <div className="flex gap-4">
-                <Link
-                  to="/login"
-                  className={`px-6 py-2 rounded-lg font-medium transition-colors duration-200 ${
-                    location.pathname === '/login'
-                      ? 'bg-red-500 text-white'
-                      : 'border border-red-500 text-red-500 hover:bg-red-500 hover:text-white'
-                  }`}
-                >
-                  Login
-                </Link>
-                <Link
-                  to="/register"
-                  className={`px-6 py-2 rounded-lg font-medium transition-colors duration-200 ${
-                    location.pathname === '/register'
-                      ? 'bg-red-500 text-white'
-                      : 'border border-red-500 text-red-500 hover:bg-red-500 hover:text-white'
-                  }`}
-                >
-                  Get Started
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </>
   );
 };

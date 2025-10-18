@@ -35,12 +35,13 @@ const Events: React.FC = () => {
   const [events, setEvents] = useState<IEvent[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const [participantData, setParticipantData] = useState({
-    name: "",
-    age: 0,
-    height: 0,
-    weight: 0
-  });
+  // Used when participant details are collected
+  // const [participantData, setParticipantData] = useState({
+  //   name: "",
+  //   age: 0,
+  //   height: 0,
+  //   weight: 0
+  // });
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
@@ -60,8 +61,8 @@ const Events: React.FC = () => {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const response = await axios.get('https://discipl-web-frontend-1.onrender.com/api/events'); // This is used when running from github repo
-        // const response = await axios.get('http://localhost:8172/api/events'); // This is used when running on localhost
+        // const response = await axios.get('https://discipl-server.onrender.com/api/events'); // This is used when running from github repo
+        const response = await axios.get('http://localhost:8172/api/events'); // This is used when running on localhost
         // console.log(response.data); // DEBUG
 
         if (Array.isArray(response.data)) {
@@ -109,27 +110,37 @@ const Events: React.FC = () => {
     if (!selectedEvent) return;
 
     try {
+      // Payload for when participant details are collected
+      // const payload = {
+      //   eventId: selectedEvent._id,
+      //   userId: user?.id,
+      //   ...participantData, // make sure participantData is from state
+      //   paymentId: paymentDetails.response.razorpay_payment_id
+      // };
+
+      // Payload for when participant details are NOT collected
       const payload = {
         eventId: selectedEvent._id,
         userId: user?.id,
-        ...participantData, // make sure participantData is from state
-        paymentId: paymentDetails.response.razorpay_payment_id
+        paymentId: paymentDetails.response.razorpay_payment_id,
+        name: user?.name,
       };
 
-      await axios.post('https://discipl-web-frontend-1.onrender.com/api/participants/add', payload); // This is used when running from github repo
-      // const pre_payment_response = await axios.post("http://localhost:8172/api/participants/add", payload); // This is used when running on localhost
-      // console.log("Participant registered successfully", pre_payment_response); //DEBUG
+      // await axios.post('https://discipl-server.onrender.com/api/participants/add', payload); // This is used when running from github repo
+      const pre_payment_response = await axios.post("http://localhost:8172/api/participants/add", payload); // This is used when running on localhost
+      console.log("Participant registered successfully", pre_payment_response); //DEBUG
       
       // Close all modals
       setIsParticipantModalOpen(false)
       setIsModalOpen(false);
 
       // Refetch the events so the issued_tickets_count and registered_participants_count can refresh 
-      const post_payment_response = await axios.get('https://discipl-web-frontend-1.onrender.com/api/events'); // This is used when running from github repo      
-      // const post_payment_response = await axios.get('http://localhost:8172/api/events'); // This is used when running on localhost
-      // console.log("Fetched events after payment", post_payment_response) // DEBUG
+      // const post_payment_response = await axios.get('https://discipl-server.onrender.com/api/events'); // This is used when running from github repo      
+      const post_payment_response = await axios.get('http://localhost:8172/api/events'); // This is used when running on localhost
+      console.log("Fetched events after payment", post_payment_response) // DEBUG
 
       setEvents(post_payment_response.data);
+      window.location.href = "/"; // redirect to home page
     } catch (error) {
       console.error("Error saving participant data:", error); // DEBUG
       alert("Payment succeeded but failed to save participant data."); //DEBUG
@@ -137,14 +148,14 @@ const Events: React.FC = () => {
   };
 
   // Helper function to check if participant form is complete
-  const isParticipantFormComplete = () => {
-    return (
-      participantData.name.trim() !== "" &&
-      participantData.age > 0 &&
-      participantData.height > 0 &&
-      participantData.weight > 0
-    );
-  };
+  // const isParticipantFormComplete = () => {
+  //   return (
+  //     participantData.name.trim() !== "" &&
+  //     participantData.age > 0 &&
+  //     participantData.height > 0 &&
+  //     participantData.weight > 0
+  //   );
+  // };
 
   // // Function to issue a ticket on successful payment for ticket purchase
   const issueTicket = async(paymentDetails: any) =>{
@@ -162,9 +173,9 @@ const Events: React.FC = () => {
       }
       // console.log(payload) // DEBUG
       
-      await axios.post('https://discipl-web-frontend-1.onrender.com/api/tickets/issueTicket', payload); // This is used when running from github repo
-      // const pre_payment_response = await axios.post("http://localhost:8172/api/tickets/issueTicket", payload); // This is used when running on localhost
-      // console.log("Issued Ticket", pre_payment_response); //DEBUG
+      // await axios.post('https://discipl-server.onrender.com/api/tickets/issueTicket', payload); // This is used when running from github repo
+      const pre_payment_response = await axios.post("http://localhost:8172/api/tickets/issueTicket", payload); // This is used when running on localhost
+      console.log("Issued Ticket", pre_payment_response); //DEBUG
       
       // Close the modal and reset state
       setIsTicketModalOpen(false);
@@ -172,11 +183,12 @@ const Events: React.FC = () => {
       setIsModalOpen(false);
 
       // Refetch the events so the issued_tickets_count and registered_participants_count can refresh 
-      const post_payment_response = await axios.get('https://discipl-web-frontend-1.onrender.com/api/events'); // This is used when running from github repo      
-      // const post_payment_response = await axios.get('http://localhost:8172/api/events'); // This is used when running on localhost
-      // console.log("Fetched events after payment", post_payment_response) // DEBUG
+      // const post_payment_response = await axios.get('https://discipl-server.onrender.com/api/events'); // This is used when running from github repo      
+      const post_payment_response = await axios.get('http://localhost:8172/api/events'); // This is used when running on localhost
+      console.log("Fetched events after payment", post_payment_response) // DEBUG
 
       setEvents(post_payment_response.data);
+      window.location.href = "/"; // redirect to home page
     }catch(error){
       console.error("Error issuing ticket for payment", error); // DEBUG
       alert("Payment succeeded but failed to issue ticket for payment."); //DEBUG
@@ -360,7 +372,7 @@ const Events: React.FC = () => {
                   "https://placehold.co/600x400/f87171/white?text=Event"
                 }
                 alt={selectedEvent.name}
-                className="w-full h-56 object-cover rounded-lg"
+                className="w-full h-full object-cover rounded-lg"
               />
 
               <div>
@@ -396,7 +408,7 @@ const Events: React.FC = () => {
                   <p className="text-medium"><span className="text-black">Participants:</span> {selectedEvent.registered_participants_count}/{selectedEvent.max_participants}</p>
                 </div>
                 <div className="flex items-center text-gray-700">
-                  <p className="text-medium"><span className="text-black">Total Tickets Available:</span> {selectedEvent.total_tickets}</p>
+                  <p className="text-medium"><span className="text-black">Total Tickets:</span> {selectedEvent.total_tickets}</p>
                 </div>
                 <div className="flex items-center text-gray-700 pb-5">
                   <p className="text-medium"><span className="text-black">Prize:</span> {selectedEvent.prize_sponsorship}</p>
@@ -446,10 +458,22 @@ const Events: React.FC = () => {
             </div>
             
             { selectedEvent.status === "PASSED" ?
-              <div className="bg-white flex justify-end items-center p-4 border-t border-gray-200 space-x-4 flex-shrink-0">
+              <div>
 
               </div>            
             :
+              (!user ?
+                <div
+                className="rounded-b-3xl bg-black flex justify-center items-center p-4 border-t border-gray-200 space-x-4 flex-shrink-0"
+                >
+                  <button
+                  className=" px-6 py-3 rounded-full font-semibold text-white bg-red-500 border-2 border-red-500 hover:bg-white hover:text-red-500 hover:border-white transition-colors"
+                  onClick={()=>{window.location.href="/login"}}
+                  >
+                    Please Login to buy tickets or Register for an event
+                  </button>
+                </div>  
+              :
               <div className="rounded-b-3xl bg-black flex justify-end items-center p-4 border-t border-gray-200 space-x-4 flex-shrink-0">
                 <button 
                   onClick={()=>{setIsTicketModalOpen(true); setIsModalOpen(false);}}
@@ -470,6 +494,7 @@ const Events: React.FC = () => {
                 </button>
                 )}
               </div>
+              )
             }
           </div>
         </div>
@@ -507,10 +532,19 @@ const Events: React.FC = () => {
               )}
 
               {/* Payment Summary */}
-              <div className="p-4 sm:p-8 border border-gray-200 flex-shrink-0">
-                <p className="text-gray-500">₹{selectedEvent.ticket_fee} x {noOfTickets} {noOfTickets>1 ? "Tickets" : "Ticket"} = ₹{selectedEvent.ticket_fee * noOfTickets}</p>
-                <p className="text-gray-500">Available Tickets = {availableTickets} Tickets</p>
-              </div>
+              {(availableTickets>0 ?
+                <div className="p-4 sm:p-8 border border-gray-200 flex-shrink-0">
+                  <p className="text-gray-500">Available Tickets = {availableTickets} Tickets</p>
+                  <p className="text-gray-500">₹{selectedEvent.ticket_fee} x {noOfTickets} {noOfTickets>1 ? "Tickets" : "Ticket"} = ₹{selectedEvent.ticket_fee * noOfTickets}</p>
+                  <p className="text-gray-500">GST: 14%</p>
+                  <p className="text-gray-500">(14 x ₹{selectedEvent.ticket_fee * noOfTickets})/100 = ₹{(14 * selectedEvent.ticket_fee * noOfTickets)/100} GST</p>
+                  <p className="text-black text-lg font-semibold mt-4 pt-2 border-t">Total(₹{selectedEvent.ticket_fee * noOfTickets} + ₹{(14 * selectedEvent.ticket_fee * noOfTickets)/100} GST): ₹{(selectedEvent.ticket_fee * noOfTickets) + ((14 * selectedEvent.ticket_fee * noOfTickets)/100)}</p>
+                </div>
+              :
+                <div className="p-4 sm:p-8 border border-gray-200 flex-shrink-0">
+                  <p className="text-gray-500">No tickets are available.</p>
+                </div>
+              )}
             
               <div className="bg-white rounded-b-3xl flex justify-end items-center p-4 border-t border-gray-200 space-x-4 flex-shrink-0">
                 <button
@@ -526,7 +560,7 @@ const Events: React.FC = () => {
                   >Sold Out!</button>
                 :
                 <RazorPayButton
-                  amount={selectedEvent.ticket_fee * noOfTickets}
+                  amount={(selectedEvent.ticket_fee * noOfTickets) + ((14 * selectedEvent.ticket_fee * noOfTickets)/100)}
                   eventName={selectedEvent.name}
                   buyer_name = {user?.name}
                   buyer_email = {user?.email}
@@ -552,7 +586,7 @@ const Events: React.FC = () => {
             </div>
 
             {/* Participant Details */}
-            <div className="space-y-2 p-8 overflow-y-auto flex-1">
+            {/* <div className="space-y-2 p-8 overflow-y-auto flex-1">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="relative"><input type="text" placeholder="Name" name="name" required className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors"
                 value={participantData.name}
@@ -573,16 +607,19 @@ const Events: React.FC = () => {
                 onChange={(e) => setParticipantData({ ...participantData, weight: Number(e.target.value) })}
                 /><Weight className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" /></div>
               </div>
-            </div>
+            </div> */}
 
             {/* Payment Summary */}
             <div className="p-4 sm:p-8 border border-gray-200 flex-shrink-0">
               <p className="text-gray-500">₹{selectedEvent.registration_fee} x {noOfTickets} {noOfTickets>1 ? "Tickets" : "Ticket"} = ₹{selectedEvent.registration_fee * noOfTickets}</p>
-              {!isParticipantFormComplete() ?
+              <p className="text-gray-500">GST: 14%</p>
+              <p className="text-gray-500">(14 x ₹{selectedEvent.registration_fee * noOfTickets})/100 = ₹{(14 * selectedEvent.registration_fee * noOfTickets)/100} GST</p>
+              <p className="text-black text-lg font-semibold mt-4 pt-2 border-t">Total(₹{selectedEvent.registration_fee * noOfTickets} + ₹{(14 * selectedEvent.registration_fee * noOfTickets)/100} GST): ₹{(selectedEvent.registration_fee * noOfTickets) + ((14 * selectedEvent.registration_fee * noOfTickets)/100)}</p>
+              {/* {!isParticipantFormComplete() ?
                 <p className="text-red-500">Please fill all fields before proceeding to payment.</p>
                 :
                 <p>&nbsp;</p>
-              }
+              } */}
             </div>
 
             <div className="bg-white rounded-b-3xl flex justify-end items-center p-4 border-t border-gray-200 space-x-4 flex-shrink-0">
@@ -593,10 +630,10 @@ const Events: React.FC = () => {
                 Close
               </button>
               <RazorPayButton
-                amount={selectedEvent.registration_fee}
+                amount={(selectedEvent.registration_fee * noOfTickets) + ((14 * selectedEvent.registration_fee * noOfTickets)/100)}
                 eventName={selectedEvent.name}
                 onSuccess={(paymentDetails) => handleParticipantPaymentSuccess(paymentDetails)}
-                disabled={!isParticipantFormComplete()}
+                // disabled={!isParticipantFormComplete()}
                 />
             </div>
           </div>

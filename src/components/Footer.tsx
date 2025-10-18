@@ -36,29 +36,29 @@ const Footer: React.FC = () => {
             <h3 className="font-semibold text-lg mb-4">Quick Links</h3>
             <ul className="space-y-3">
               <li>
-                <Link to="/" className="text-neutral-400 hover:text-primary-500 transition-colors">
+                <a href="../#home" className="text-neutral-400 hover:text-primary-500 transition-colors">
                   Home
-                </Link>
+                </a>
               </li>
               <li>
-                <Link to="/about" className="text-neutral-400 hover:text-primary-500 transition-colors">
-                  About Us
-                </Link>
+                <a href="../#about" className="text-neutral-400 hover:text-primary-500 transition-colors">
+                  About
+                </a>
               </li>
-              <li>
+              {/* <li>
                 <Link to="/fitness-directory" className="text-neutral-400 hover:text-primary-500 transition-colors">
                   Fitness Directory
                 </Link>
-              </li>
+              </li> */}
               <li>
-                <Link to="/events" className="text-neutral-400 hover:text-primary-500 transition-colors">
+                <a href="../#events" className="text-neutral-400 hover:text-primary-500 transition-colors">
                   Events
-                </Link>
+                </a>
               </li>
               <li>
-                <Link to="/contact" className="text-neutral-400 hover:text-primary-500 transition-colors">
+                <a href="../#contact" className="text-neutral-400 hover:text-primary-500 transition-colors">
                   Contact
-                </Link>
+                </a>
               </li>
             </ul>
           </div>
@@ -69,7 +69,7 @@ const Footer: React.FC = () => {
             <div className="space-y-3">
               <div className="flex items-center space-x-3 text-neutral-400">
                   <Mail className="h-4 w-4 flex-shrink-0" />
-                  <a href="mailto: info@discipl.com" className="text-sm">info@discipl.com</a>
+                  <a href="mailto: info@discipl.com" className="text-sm">info@thediscipl.com</a>
               </div>
               <div className="flex items-center space-x-3 text-neutral-400">
                 <Phone className="h-4 w-4 flex-shrink-0" />
@@ -77,7 +77,7 @@ const Footer: React.FC = () => {
               </div>
               <div className="flex items-center space-x-3 text-neutral-400">
                 <MapPin className="h-4 w-4 flex-shrink-0" />
-                <span className="text-[12px]">Room no - L-15, AUWM, Thadambattuthazham, Vengeri, Kozhikode-673010</span>
+                <span className="text-[12px]">Vankannayullathil, Near Block Office, Balussery, Kozhikode, Kerala - 673613</span>
               </div>
             </div>
           </div>

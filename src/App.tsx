@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+import Main from './pages/Main';
 import Home from './pages/Home';
 import About from './pages/About';
 import FitnessDirectory from './pages/FitnessDirectory';
@@ -20,7 +20,8 @@ function AppContent() {
       <Navbar />
       <div className="flex-1">
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<Main />} />
+          <Route path="/home" element={<Home />} />
           <Route path="/about" element={<About />} />
           <Route path="/fitness-directory" element={<FitnessDirectory />} />
           <Route path="/events" element={<Events />} />

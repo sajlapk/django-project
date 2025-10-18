@@ -5,9 +5,10 @@ const participantSchema = new mongoose.Schema({
     eventId: { type: mongoose.Schema.Types.ObjectId, ref: 'Event' },
     paymentId: { type: String, required: true },
     name: { type: String },
-    age: { type: Number },
-    height: { type: Number },
-    weight: { type: Number }
+    age: { type: Number, default: null },
+    height: { type: Number, default: null },
+    weight: { type: Number, default: null },
+    gender: { type: String, enum: ['Male', 'Female'], default: null },
 })
 
 const Participant = mongoose.model('Participant', participantSchema);
