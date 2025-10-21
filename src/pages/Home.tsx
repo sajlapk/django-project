@@ -1,8 +1,8 @@
 const Home = () => {
   return (
-    <div className="flex flex-col md:flex-row h-full w-full">
+    <div className="flex flex-col lg:flex-row h-full w-full">
       {/* Left Section */}
-      <section className="relative min-h-screen w-full md:w-[60%] text-black overflow-hidden flex flex-col justify-center">
+      <section className="relative min-h-screen w-full lg:w-[60%] text-black overflow-hidden flex flex-col justify-center">
         {/* Background Image */}
         <div 
           className="absolute inset-0 bg-cover bg-center"
@@ -39,7 +39,7 @@ const Home = () => {
       </section>
 
       {/* Right Section */}
-      <section className="relative min-h-screen w-full md:w-[40%] bg-gradient-to-br from-gray-50 to-red-50 text-black overflow-hidden flex flex-col justify-end items-center mt-8 md:mt-0">
+      <section className="relative min-h-screen w-full lg:w-[40%] bg-gradient-to-br from-gray-50 to-red-50 text-black overflow-hidden flex flex-col justify-end items-center mt-8 md:mt-0">
         {/* Geometric Shapes */}
         <div className="absolute top-20 left-10 w-20 h-20 bg-red-200 rounded-full opacity-60"></div>
         <div className="absolute top-40 right-20 md:right-80 w-16 h-16 bg-red-300 transform rotate-45 opacity-40"></div>

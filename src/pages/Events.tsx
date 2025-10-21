@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { Calendar, MapPin, Users, Clock } from "lucide-react";
 import RazorPayButton from "../components/RazorPayButton";
@@ -22,12 +23,13 @@ interface IEvent {
   total_tickets: number;
   registered_participants_count: number;
   max_participants: number;
-  image_url?: string;
+  banner_image_url?: string;
   prize_sponsorship: string;
   issued_tickets_count: number;
 }
 
 const Events: React.FC = () => {
+  const navigate = useNavigate();
   const { user } = useAuth(); // Get the logged-in user from context
 
   const [noOfTickets, setNoOfTickets] = useState(1)
@@ -73,7 +75,7 @@ const Events: React.FC = () => {
           setEvents([]);
         }
       } catch (err) {
-        console.error("Error fetching events:", err);
+        console.error("Error fetching events:", err); // DEBUG
         setEvents([]);
       } finally {
         setLoading(false);
@@ -132,7 +134,8 @@ const Events: React.FC = () => {
       // console.log("Fetched events after payment", post_payment_response) // DEBUG
 
       setEvents(post_payment_response.data);
-      window.location.href = "/"; // redirect to home page
+      // window.location.href = "/events"; // redirect to home page
+      setTimeout(() => navigate("/events"), 1000);
     } catch (error) {
       console.error("Error saving participant data:", error); // DEBUG
       alert("Payment succeeded but failed to save participant data."); //DEBUG
@@ -155,9 +158,9 @@ const Events: React.FC = () => {
       }
       // console.log(payload) // DEBUG
       
-      const pre_payment_response = await axios.post('https://discipl-web-frontend-1.onrender.com/api/tickets/issueTicket', payload); // This is used when running from github repo
+      await axios.post('https://discipl-web-frontend-1.onrender.com/api/tickets/issueTicket', payload); // This is used when running from github repo
       // const pre_payment_response = await axios.post("http://localhost:8172/api/tickets/issueTicket", payload); // This is used when running on localhost
-      console.log("Issued Ticket", pre_payment_response); //DEBUG
+      // console.log("Issued Ticket", pre_payment_response); //DEBUG
       
       // Close the modal and reset state
       setIsTicketModalOpen(false);
@@ -167,10 +170,11 @@ const Events: React.FC = () => {
       // Refetch the events so the issued_tickets_count and registered_participants_count can refresh 
       const post_payment_response = await axios.get('https://discipl-web-frontend-1.onrender.com/api/events'); // This is used when running from github repo      
       // const post_payment_response = await axios.get('http://localhost:8172/api/events'); // This is used when running on localhost
-      // console.log("Fetched events after payment", post_payment_response) // DEBUG
+      console.log("Fetched events after payment", post_payment_response) // DEBUG
 
       setEvents(post_payment_response.data);
-      window.location.href = "/"; // redirect to home page
+      // window.location.href = "/events"; // redirect to home page
+      setTimeout(() => navigate("/events"), 1000);
     }catch(error){
       console.error("Error issuing ticket for payment", error); // DEBUG
       alert("Payment succeeded but failed to issue ticket for payment."); //DEBUG
@@ -197,8 +201,8 @@ const Events: React.FC = () => {
             >
               <img
                 src={
-                  event.image_url ||
-                  "https://placehold.co/600x400/f87171/white?text=Event"
+                  event.banner_image_url ||
+                  "https://res.cloudinary.com/dgfvk6ouy/image/upload/v1758466128/placeholder_banner_lwgiqn.png"
                 }
                 alt={event.name}
                 className="w-full h-48 object-cover"
@@ -272,8 +276,8 @@ const Events: React.FC = () => {
                 >
                   <img
                     src={
-                      event.image_url ||
-                      "https://placehold.co/600x400/f87171/white?text=Event"
+                      event.banner_image_url ||
+                      "https://res.cloudinary.com/dgfvk6ouy/image/upload/v1758466128/placeholder_banner_lwgiqn.png"
                     }
                     alt={event.name}
                     className="w-full h-48 object-cover border border-b-gray-200 border-4"
@@ -350,12 +354,31 @@ const Events: React.FC = () => {
             <div className="p-4 sm:p-8 overflow-y-auto space-y-6">
               <img
                 src={
-                  selectedEvent.image_url ||
-                  "https://placehold.co/600x400/f87171/white?text=Event"
+                  selectedEvent.banner_image_url ||
+                  "https://res.cloudinary.com/dgfvk6ouy/image/upload/v1758466128/placeholder_banner_lwgiqn.png"
                 }
                 alt={selectedEvent.name}
                 className="w-full h-full object-cover rounded-lg"
               />
+
+              {/* Event Gallery */}
+              {selectedEvent.additional_images && selectedEvent.additional_images.length > 0 && (
+                <div className="mt-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Gallery</h3>
+                  <div className="relative w-full overflow-hidden rounded-xl">
+                    <div className="flex overflow-x-auto space-x-3 scrollbar-hide snap-x snap-mandatory">
+                      {selectedEvent.additional_images.map((img, i) => (
+                        <img
+                          key={i}
+                          src={img}
+                          alt={`Event image ${i + 1}`}
+                          className="w-full h-64 object-cover rounded-lg snap-center flex-shrink-0"
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div>
                 <span className={`px-3 py-1 rounded-full text-sm font-medium ${getCategoryColor(selectedEvent.category)}`}>

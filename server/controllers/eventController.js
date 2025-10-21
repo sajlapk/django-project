@@ -7,7 +7,7 @@ const createEvent = async (req, res) => {
   try {
     // Destructure all new fields from the request body
     const { 
-      name, date, time, location, description, registration_fee, ticket_fee, total_tickets, image_url, 
+      name, date, time, location, description, registration_fee, ticket_fee, total_tickets, banner_image_url, additional_images,
       category, max_participants, judging_criteria, prize_sponsorship, 
       org_phone_no, org_email, social_media 
     } = req.body;
@@ -21,7 +21,8 @@ const createEvent = async (req, res) => {
       registration_fee: Number(registration_fee),
       ticket_fee: Number(ticket_fee),
       total_tickets: Number(total_tickets),
-      image_url: image_url || 'https://res.cloudinary.com/dgfvk6ouy/image/upload/v1758466128/placeholder_banner_lwgiqn.png',
+      banner_image_url: banner_image_url || 'https://res.cloudinary.com/dgfvk6ouy/image/upload/v1758466128/placeholder_banner_lwgiqn.png',
+      additional_images: additional_images,
       category,
       max_participants: Number(max_participants),
       judging_criteria,

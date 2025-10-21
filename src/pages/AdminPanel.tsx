@@ -19,7 +19,7 @@ interface EventDetails {
   registration_fee: number;
   ticket_fee: number;
   total_tickets: number,
-  image: File | null;
+  banner_image: File | null;
   category: string;
   status: 'ONGOING' | 'PASSED';
   max_participants: number;
@@ -48,7 +48,7 @@ interface IEvent {
   total_tickets: number;
   registered_participants_count: number;
   max_participants: number;
-  image_url?: string;
+  banner_image_url?: string;
   prize_sponsorship: string;
   issued_tickets_count: number;
 }
@@ -60,7 +60,7 @@ const AdminPanel = () => {
   const [successMessage, setSuccessMessage] = useState('') // This will contain the message that wil show up in the success modal
   const [isStatusModalOpen, setIsStatusModalOpen] = useState(false); // Popup that is used to edit status of event
   const [selectedEvent, setSelectedEvent] = useState<IEvent | null>(null);
-
+  const [extraImages, setExtraImages] = useState<File[]>([]);
   const [events, setEvents] = useState<IEvent[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -85,7 +85,7 @@ const AdminPanel = () => {
     try {
       const response = await axios.get('https://discipl-web-frontend-1.onrender.com/api/events'); // This is used when running from github repo
       // const response = await axios.get('http://localhost:8172/api/events'); // This is used when running on localhost
-      console.log("Events Fetched: ", response.data); // DEBUG
+      // console.log("Events Fetched: ", response.data); // DEBUG
 
       if (Array.isArray(response.data)) {
         setEvents(response.data);
@@ -95,7 +95,7 @@ const AdminPanel = () => {
         setEvents([]);
       }
     } catch (err) {
-      console.error("Error fetching events:", err);
+      // console.error("Error fetching events:", err);
       setEvents([]);
     } finally {
       setLoading(false);
@@ -104,7 +104,7 @@ const AdminPanel = () => {
 
   // Initialize state with all the new fields
   const [eventDetails, setEventDetails] = useState<EventDetails>({
-    _id: '', name: '', date: '', time: '', location: '', description: '', registration_fee: 0, ticket_fee: 0, total_tickets: 0, image: null,
+    _id: '', name: '', date: '', time: '', location: '', description: '', registration_fee: 0, ticket_fee: 0, total_tickets: 0, banner_image: null,
     category: '', status: 'ONGOING', max_participants: 0, judging_criteria: [''], prize_sponsorship: '',
     org_phone_no: '', org_email: '', social_media: [{ platform: 'Instagram', handle: '' }],
   });
@@ -117,9 +117,17 @@ const AdminPanel = () => {
     setEventDetails(prev => ({ ...prev, [name]: type === "number" ? Number(value) : value }));
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // --- Handler for Banner Image ---
+  const handleBannerImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      setEventDetails(prev => ({ ...prev, image: e.target.files[0] }));
+      setEventDetails(prev => ({ ...prev, banner_image: e.target.files[0] }));
+    }
+  };
+
+  // --- Handlers for Optional Images ---
+  const handleExtraImagesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setExtraImages(Array.from(e.target.files));
     }
   };
 
@@ -154,22 +162,41 @@ const AdminPanel = () => {
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsUploading(true);
+
     try {
-      let imageUrl = '';
-      if (eventDetails.image) {
+      let bannerUrl = '';
+      let galleryUrls: string[] = [];
+
+      // Upload banner image
+      if (eventDetails.banner_image) {
         const formData = new FormData();
-        formData.append('file', eventDetails.image);
+        formData.append('file', eventDetails.banner_image);
         formData.append('upload_preset', uploadPreset);
         const cloudinaryResponse = await axios.post(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, formData);
-        imageUrl = cloudinaryResponse.data.secure_url;
+        bannerUrl = cloudinaryResponse.data.secure_url;
       }
+
+      // Upload additional images
+      if (extraImages.length > 0) {
+        for (const img of extraImages) {
+          const formData = new FormData();
+          formData.append("file", img);
+          formData.append("upload_preset", uploadPreset);
+          const res = await axios.post(
+            `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+            formData
+          );
+          galleryUrls.push(res.data.secure_url);
+        }
+      }
+
 
       const finalCriteria = eventDetails.judging_criteria.filter(c => c.trim() !== '');
       const finalSocials = eventDetails.social_media.filter(s => s.handle.trim() !== '');
 
-      const { image, ...dataWithoutImage } = eventDetails;
+      const { banner_image, ...dataWithoutImage } = eventDetails;
 
-      const eventData = { ...dataWithoutImage, image_url: imageUrl, judging_criteria: finalCriteria, social_media: finalSocials };
+      const eventData = { ...dataWithoutImage, banner_image_url: bannerUrl, additional_images: galleryUrls, judging_criteria: finalCriteria, social_media: finalSocials };
       // console.log("Posting event data:", eventData); // DEBUG
 
       const response = await axios.post('https://discipl-web-frontend-1.onrender.com/api/events', eventData); // This is used when running from github repo
@@ -180,8 +207,9 @@ const AdminPanel = () => {
       determineSuccessModal(response);
 
       setIsModalOpen(false);
+      setExtraImages([]);
       setEventDetails({
-        _id: '', name: '', date: '', time: '', location: '', description: '', registration_fee: 0, ticket_fee: 0, total_tickets: 0,image: null,
+        _id: '', name: '', date: '', time: '', location: '', description: '', registration_fee: 0, ticket_fee: 0, total_tickets: 0, banner_image: null,
         category: 'General', status: 'ONGOING', max_participants: 50, judging_criteria: [''], prize_sponsorship: '',
         org_phone_no: '', org_email: '', social_media: [{ platform: 'Instagram', handle: '' }],
       });
@@ -269,15 +297,15 @@ const AdminPanel = () => {
   const setStatus = async (status: String) => {
     try{
       if(status == "PASSED"){
-        await axios.patch(`https://discipl-web-frontend-1.onrender.com/api/events/${selectedEvent?._id}`, { status: "ONGOING"}); // This is used when running from github repo    
-        // const response = await axios.patch(`http://localhost:8172/api/events/${selectedEvent?._id}`, { status: "ONGOING" });
-        // console.log("Changed status to passed: ", response);
+        await axios.patch(`https://discipl-web-frontend-1.onrender.com/api/events/${selectedEvent?._id}`, { status: "ONGOING" }); // This is used when running from github repo    
+        // const response = await axios.patch(`http://localhost:8172/api/events/${selectedEvent?._id}`, { status: "ONGOING" }); // This is used when running on localhost
+        // console.log("Changed status to passed: ", response); // DEBUG
       }else if(status == "ONGOING"){
         await axios.patch(`https://discipl-web-frontend-1.onrender.com/api/events/${selectedEvent?._id}`, { status: "PASSED" }); // This is used when running from github repo    
-        // const response = await axios.patch(`http://localhost:8172/api/events/${selectedEvent?._id}`, { status: "PASSED" });
-        // console.log("Changed status to ongoing: ", response);
+        // const response = await axios.patch(`http://localhost:8172/api/events/${selectedEvent?._id}`, { status: "PASSED" }); // This is used when running on localhost
+        // console.log("Changed status to ongoing: ", response); // DEBUG
       }else{
-        console.log("Some error occurred while changing status.");
+        // console.log("Some error occurred while changing status."); // DEBUG
       }
 
       // Refetch the events so the issued_tickets_count and registered_participants_count can refresh 
@@ -288,7 +316,7 @@ const AdminPanel = () => {
       setEvents(post_payment_response.data);
       setIsStatusModalOpen(false);
     }catch(error){
-      console.log("Some error occurred while changing status."); // DEBUG
+      // console.log("Some error occurred while changing status."); // DEBUG
     }
   }
 
@@ -311,14 +339,14 @@ const AdminPanel = () => {
       setEvents(post_payment_response.data);
       setIsStatusModalOpen(false);
     }catch(error){
-      console.log("Some error occurred while deleting event."); // DEBUG
+      // console.log("Some error occurred while deleting event."); // DEBUG
     }
   }
 
   // Function to export participant list
   const exportParticipantList = async (eventId: string | undefined) => {
     if (!eventId) {
-      alert("Cannot export: Event ID is missing.");
+      alert("Cannot export: Event ID is missing."); 
       return;
     }
 
@@ -416,7 +444,7 @@ const AdminPanel = () => {
                         >
                             <div>
                               <img 
-                              src={event.image_url}
+                              src={event.banner_image_url}
                               className="p-1 w-48 h-48 object-cover border border-black border-2 rounded-l-2xl"  
                               />
                             </div>
@@ -468,7 +496,7 @@ const AdminPanel = () => {
                           className="flex flex-row w-full">
                           <div>
                             <img 
-                            src={event.image_url}
+                            src={event.banner_image_url}
                             className="p-1 w-48 h-48 object-cover border border-black border-2 rounded-l-2xl"  
                             />
                           </div>
@@ -573,10 +601,45 @@ const AdminPanel = () => {
                 <button type="button" onClick={addSocialMediaField} className="mt-2 flex items-center text-sm font-medium text-red-600 hover:text-red-800"><Plus className="w-4 h-4 mr-1" />Add Social Media</button>
               </div>
               
-              {/* Image Upload */}
+              {/* Banner Image Upload */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Event Banner</label>
-                <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md"><div className="space-y-1 text-center"><ImageIcon className="mx-auto h-12 w-12 text-gray-400" /><div className="flex text-sm text-gray-600"><label htmlFor="file-upload" className="relative cursor-pointer bg-white rounded-md font-medium text-red-600 hover:text-red-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-red-500"><span>Upload a file</span><input id="file-upload" name="image" type="file" className="sr-only" onChange={handleImageChange} accept="image/*" /></label><p className="pl-1">or drag and drop</p></div><p className="text-xs text-gray-500">PNG, JPG up to 10MB (768px x 512px)</p>{eventDetails.image && <p className="text-sm text-green-600 mt-2">Selected: {eventDetails.image.name}</p>}</div></div>
+                <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md"><div className="space-y-1 text-center"><ImageIcon className="mx-auto h-12 w-12 text-gray-400" /><div className="flex text-sm text-gray-600"><label htmlFor="file-upload" className="relative cursor-pointer bg-white rounded-md font-medium text-red-600 hover:text-red-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-red-500"><span>Upload a file</span><input id="file-upload" name="image" type="file" className="sr-only" onChange={handleBannerImageChange} accept="image/*" /></label><p className="pl-1">or drag and drop</p></div><p className="text-xs text-gray-500">PNG, JPG up to 10MB (768px x 512px)</p>{eventDetails.banner_image && <p className="text-sm text-green-600 mt-2">Selected: {eventDetails.banner_image.name}</p>}</div></div>
+              </div>
+
+              {/* Optional Image Upload */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Optional Extra Images
+                </label>
+                <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
+                  <div className="space-y-1 text-center">
+                    <ImageIcon className="mx-auto h-12 w-12 text-gray-400" />
+                    <div className="flex text-sm text-gray-600">
+                      <label
+                        htmlFor="extra-images"
+                        className="relative cursor-pointer bg-white rounded-md font-medium text-red-600 hover:text-red-500"
+                      >
+                        <span>Upload images</span>
+                        <input
+                          id="extra-images"
+                          type="file"
+                          multiple
+                          accept="image/*"
+                          onChange={handleExtraImagesChange}
+                          className="sr-only"
+                        />
+                      </label>
+                      <p className="pl-1">or drag and drop</p>
+                    </div>
+                    <p className="text-xs text-gray-500">Up to 10 images (PNG, JPG)</p>
+                    {extraImages.length > 0 && (
+                      <p className="text-green-600 text-sm mt-2">
+                        Selected {extraImages.length} image(s)
+                      </p>
+                    )}
+                  </div>
+                </div>
               </div>
 
               {/* Form Actions */}
@@ -607,13 +670,32 @@ const AdminPanel = () => {
             <div className="p-4 sm:p-8 overflow-y-auto space-y-6">
               <img
                 src={
-                  selectedEvent.image_url ||
+                  selectedEvent.banner_image_url ||
                   "https://placehold.co/600x400/f87171/white?text=Event"
                 }
                 alt={selectedEvent.name}
                 className="w-full h-56 object-cover rounded-lg"
               />
               
+              {/* Event Gallery */}
+              {selectedEvent.additional_images && selectedEvent.additional_images.length > 0 && (
+                <div className="mt-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Gallery</h3>
+                  <div className="relative w-full overflow-hidden rounded-xl">
+                    <div className="flex overflow-x-auto space-x-3 scrollbar-hide snap-x snap-mandatory">
+                      {selectedEvent.additional_images.map((img, i) => (
+                        <img
+                          key={i}
+                          src={img}
+                          alt={`Event image ${i + 1}`}
+                          className="w-full h-64 object-cover rounded-lg snap-center flex-shrink-0"
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div className="space-y-1">
                 <p className="text-medium text-black mb-0">Description:</p>
                 <div className="border p-4 pt-1 pl-3 rounded-lg bg-gray-50">

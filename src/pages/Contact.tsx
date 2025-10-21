@@ -25,7 +25,7 @@ const Contact = () => {
 
     try {
       const response = await axios.post('https://discipl-web-frontend-1.onrender.com/api/contacts/sendMessage', formData); // This is used when running from github repo
-      // const response = await axios.post('http://localhost:8172/api/contacts/sendMessage', formData);
+      // const response = await axios.post('http://localhost:8172/api/contacts/sendMessage', formData); // This is used when running on localhost
       
       if (response.data.success) {
         setIsSubmitted(true);
@@ -230,10 +230,10 @@ const Contact = () => {
               </form>
             </div>
 
-            {/* Map/Additional Info */}
+            {/* Map Info */}
             <div>
               <h2 className="text-3xl font-bold text-black mb-8">
-                Why Choose Discipl?
+                Our Office
               </h2>
               
               <div className="flex flex-col justify-evenly">

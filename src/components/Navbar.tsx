@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { User, LogOut, Settings, Home, Info, MapPin, Calendar, Mail } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { doc } from 'firebase/firestore';
 
 const Navbar = () => {
   const { userLoggedIn } = useAuth();
@@ -12,15 +13,15 @@ const Navbar = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
 
-  const tickingRef = useRef(false);
-
   // Smooth scroll to section accounting for navbar height
   const scrollToSection = (id: string) => {
+    window.scrollTo({ top: 500, behavior: "smooth" })
     const el = document.getElementById(id);
-    if (!el) return;
+    if (!el)return
     const navbarHeight = document.querySelector('nav')?.clientHeight ?? 0;
-    const y = el.getBoundingClientRect().top + window.scrollY - navbarHeight - 8; // small gap
+    const y = el.getBoundingClientRect().top + window.scrollY - navbarHeight + 8; // small gap
     window.scrollTo({ top: y, behavior: 'smooth' });
+    setActiveSection(id);
   };
 
   const handleNavClick = (e: React.MouseEvent, href: string) => {
@@ -31,67 +32,44 @@ const Navbar = () => {
       // already on main page -> just scroll
       scrollToSection(targetId);
     } else {
+      console.log("HHHHHEe")
       // navigate to main page and pass target section via state
       navigate('/', { state: { scrollTo: targetId } });
     }
   };
 
-  // New robust logic: select section whose top is closest to navbar bottom (works regardless of order)
-  useEffect(() => {
-    // If not on homepage, clear highlight and skip
-    if (location.pathname !== '/') {
-      setActiveSection(''); // reset highlight
-      return;
-    }
-
-    const getNavbarHeight = () => document.querySelector('nav')?.clientHeight ?? 0;
-
-    const updateActiveSection = () => {
-      const sections = Array.from(document.querySelectorAll('section[id]')) as HTMLElement[];
-      if (!sections || sections.length === 0) return;
-
-      const navbarHeight = getNavbarHeight();
-      let closestId = sections[0].id;
-      let minDistance = Number.POSITIVE_INFINITY;
-
-      for (const s of sections) {
-        const rect = s.getBoundingClientRect();
-        // compute distance from section top to navbar bottom (so the section under the navbar is considered)
-        const distance = Math.abs(rect.top - (navbarHeight + 8));
-        if (distance < minDistance) {
-          minDistance = distance;
-          closestId = s.id;
-        }
-      }
-
-      setActiveSection(closestId);
-    };
-
-    const onScroll = () => {
-      if (tickingRef.current) return;
-      tickingRef.current = true;
-      window.requestAnimationFrame(() => {
-        updateActiveSection();
-        tickingRef.current = false;
-      });
-    };
-
-    // initial calculation
-    updateActiveSection();
-
-    window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', onScroll);
-
-    return () => {
-      window.removeEventListener('scroll', onScroll);
-      window.removeEventListener('resize', onScroll);
-    };
-  }, [location.pathname]);
-
   const handleLogout = () => {
     logout();
     setIsUserMenuOpen(false);
     navigate('/');
+  };
+
+  // Helper function for observer
+  const isOverlapping = (div1: HTMLDivElement, div2: HTMLDivElement) => {
+    const rect1 = div1.getBoundingClientRect();
+    const rect2 = div2.getBoundingClientRect();
+
+    return !(
+      rect1.right < rect2.left ||
+      rect1.left > rect2.right ||
+      rect1.bottom < rect2.top ||
+      rect1.top > rect2.bottom
+    );
+  }
+
+  // Runs on scroll to detect which section overlaps observer
+  const handleObserver = () => {
+    const observer = document.getElementById('observer');
+    if (!observer) return;
+
+    const sections = ['home', 'about', 'events', 'contact'];
+    for (const id of sections) {
+      const el = document.getElementById(id);
+      if (el && isOverlapping(observer, el)) {
+        setActiveSection(id);
+        return; // stop after first match
+      }
+    }
   };
 
   // navLinks remain hash paths that map to section IDs
@@ -102,10 +80,20 @@ const Navbar = () => {
     { path: '#contact', label: 'Contact', icon: <Mail size={20} /> },
   ];
 
+  useEffect(() => {
+    const onScroll = () => handleObserver();
+    window.addEventListener('scroll', onScroll, { passive: true });
+
+    // initial check
+    handleObserver();
+
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
   return (
     <>
       {/* Desktop Navbar */}
-      <nav className="hidden md:block fixed top-0 left-0 right-0 bg-white shadow-sm border-b border-gray-100 z-50">
+      <nav className="hidden lg:block fixed top-0 left-0 right-0 bg-white shadow-sm border-b border-gray-100 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
@@ -119,8 +107,7 @@ const Navbar = () => {
               {navLinks.map((link) => {
                 const sectionId = link.path.substring(1);
                 const isActive =
-                  (location.pathname === '/' && activeSection === sectionId) ||
-                  (location.pathname === `/${sectionId}`); // also mark active when route is /about etc.
+                  (activeSection === sectionId)// also mark active when route is /about etc.
 
                 return (
                   <button
@@ -196,10 +183,13 @@ const Navbar = () => {
             </div>
           </div>
         </div>
+        <div id="observer" className="bg-green-200">
+
+        </div>
       </nav>
 
       {/* Mobile Top Bar */}
-      <div className="md:hidden bg-white shadow-sm border-b border-gray-100 relative z-50">
+      <div className="lg:hidden bg-white shadow-sm border-b border-gray-100 relative z-50">
         <div className="px-4 py-3">
           <div className="flex justify-between items-center">
             <Link to="/" className="flex items-center">
@@ -252,7 +242,7 @@ const Navbar = () => {
       </div>
 
       {/* Mobile Bottom Navigation */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50">
+      <div className="lg:hidden w-screen fixed bottom-0 left-0 right-0 z-50">
         <div className="bg-white/95 backdrop-blur-sm border-t border-gray-200 shadow-lg rounded-t-2xl mx-4 mb-4">
           <div className="flex justify-around items-center py-2">
             {navLinks.map((link) => (
