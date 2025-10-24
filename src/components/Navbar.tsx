@@ -32,7 +32,6 @@ const Navbar = () => {
       // already on main page -> just scroll
       scrollToSection(targetId);
     } else {
-      console.log("HHHHHEe")
       // navigate to main page and pass target section via state
       navigate('/', { state: { scrollTo: targetId } });
     }

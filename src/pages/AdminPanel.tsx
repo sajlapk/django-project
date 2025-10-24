@@ -316,7 +316,7 @@ const AdminPanel = () => {
       setEvents(post_payment_response.data);
       setIsStatusModalOpen(false);
     }catch(error){
-      // console.log("Some error occurred while changing status."); // DEBUG
+      console.log("Some error occurred while changing status."); // DEBUG
     }
   }
 
@@ -339,7 +339,7 @@ const AdminPanel = () => {
       setEvents(post_payment_response.data);
       setIsStatusModalOpen(false);
     }catch(error){
-      // console.log("Some error occurred while deleting event."); // DEBUG
+      console.log("Some error occurred while deleting event."); // DEBUG
     }
   }
 

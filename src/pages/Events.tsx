@@ -170,14 +170,14 @@ const Events: React.FC = () => {
       // Refetch the events so the issued_tickets_count and registered_participants_count can refresh 
       const post_payment_response = await axios.get('https://discipl-web-frontend-1.onrender.com/api/events'); // This is used when running from github repo      
       // const post_payment_response = await axios.get('http://localhost:8172/api/events'); // This is used when running on localhost
-      console.log("Fetched events after payment", post_payment_response) // DEBUG
+      // console.log("Fetched events after payment", post_payment_response) // DEBUG
 
       setEvents(post_payment_response.data);
       // window.location.href = "/events"; // redirect to home page
       setTimeout(() => navigate("/events"), 1000);
     }catch(error){
-      console.error("Error issuing ticket for payment", error); // DEBUG
-      alert("Payment succeeded but failed to issue ticket for payment."); //DEBUG
+      // console.error("Error issuing ticket for payment", error); // DEBUG
+      // alert("Payment succeeded but failed to issue ticket for payment."); //DEBUG
     }
   }
 
