@@ -97,7 +97,7 @@ const Navbar = () => {
           <div className="flex justify-between h-16">
             <div className="flex items-center">
               <Link to="/" className="flex items-center">
-                <span className="text-2xl font-bold text-black"><img className="h-[1.5rem] w-[8rem]" src="logo_white_bg.png" alt="logo" /></span>
+                <span className="text-2xl font-bold text-black"><img className="h-8" src="logo_white_bg.png" alt="logo" /></span>
               </Link>
             </div>
 
@@ -192,7 +192,7 @@ const Navbar = () => {
         <div className="px-4 py-3">
           <div className="flex justify-between items-center">
             <Link to="/" className="flex items-center">
-              <span className="text-2xl font-bold text-black">Discipl</span>
+              <img src="logo_white_bg.png" className="h-6"/>
             </Link>
             {user && (
               <button

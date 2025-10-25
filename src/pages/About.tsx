@@ -502,7 +502,7 @@ const About = () => {
               </div>
             </div> 
 
-            <div className="border-t border-gray-700 w-[35rem] mx-auto mt-[8rem] mb-[8rem]"></div>
+            <div className="border-t border-gray-700 w-[35rem] mx-auto mt-[4rem] mb-[4rem]"></div>
 
             {/* Ecosystem Container 2 */}
             <div className="flex flex-col justify-center items-center"> 
@@ -575,7 +575,7 @@ const About = () => {
               </div>
             </div> 
 
-            <div className="border-t border-gray-700 w-[35rem] mx-auto mt-[8rem] mb-[8rem]"></div>
+            <div className="border-t border-gray-700 w-[35rem] mx-auto mt-[4rem] mb-[4rem]"></div>
             
             {/* Ecosystem Container 3 */}
             <div className="flex flex-col justify-center items-center"> 
@@ -728,7 +728,7 @@ const About = () => {
               </div>
             </div> 
 
-            <div className="border-t border-white w-[35rem] mx-auto mt-[8rem] mb-[8rem]"></div>
+            <div className="border-t border-white w-[35rem] mx-auto mt-[4rem] mb-[4rem]"></div>
 
             {/* Services Container 2 */}
             <div className="flex flex-col justify-center items-center"> 
@@ -801,7 +801,7 @@ const About = () => {
               </div>
             </div> 
 
-            <div className="border-t border-white w-[35rem] mx-auto mt-[8rem] mb-[8rem]"></div>
+            <div className="border-t border-white w-[35rem] mx-auto mt-[4rem] mb-[4rem]"></div>
 
             {/* Services Container 3 */}
             <div className="flex flex-col justify-center items-center"> 
