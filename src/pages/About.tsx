@@ -244,7 +244,7 @@ const About = () => {
                 {/* Row 1 */}
                 <div className="flex gap-4">
                   <div className="bg-[#FFDAD9] lg:w-[40%] p-6 rounded-2xl shadow-md flex items-center justify-between">
-                    <img src="about_page_elements/discipl_logo_sing.png" className="h-24 object-contain" />
+                    <img src="about_page_elements/tv_ads.png" className="h-24 object-contain" />
                     <div>
                       <img src="logo_white_bg.png" className="h-10 object-contain"/>
                       <p className="text-black font-bold text-2xl">TV Ads</p>

@@ -18,6 +18,6 @@ This is the public-facing platform for Discipl.
 
 ### DEPLOYMENT
 
-This app has been deployed at https://discipl-web-frontend-beta.onrender.com/
+This app has been deployed at https://thediscipl.com/
 
 You can check it out there. Enjoy :)
