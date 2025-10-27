@@ -80,7 +80,7 @@ const About = () => {
                   </div>
                   <div className="bg-[#E9E9E9] lg:w-[50%] p-6 rounded-2xl shadow-md flex flex-col justify-center gap-4">
                     <p className="text-black font-bold text-xl">For Who?</p>
-                    <p className="text-black font-bold text-xl">...</p>
+                    <p className="text-black font-bold text-lg">For fitness lovers and gym-goers.</p>
                   </div>
                 </div>
               </div>
@@ -150,7 +150,7 @@ const About = () => {
 
                   <div className="bg-[#E9E9E9] lg:w-[50%] p-6 rounded-2xl shadow-md flex flex-col justify-center gap-4">
                     <p className="text-black font-bold text-xl">For Who?</p>
-                    <p className="text-black font-bold text-xl">...</p>
+                    <p className="text-black font-bold text-lg">For fitness centers and trainers.</p>
                   </div>
                 </div>
               </div>
@@ -207,7 +207,7 @@ const About = () => {
 
                   <div className="bg-[#E9E9E9] lg:w-[50%] p-6 rounded-2xl shadow-md flex flex-col justify-center gap-4">
                     <p className="text-black font-bold text-xl">For Who?</p>
-                    <p className="text-black font-bold text-xl">...</p>
+                    <p className="text-black font-bold text-lg">For brands promoting health and fitness.</p>
                   </div>
                 </div>
               </div>
@@ -284,7 +284,7 @@ const About = () => {
                   </div>
                   <div className="bg-[#E9E9E9] lg:w-[50%] p-6 rounded-2xl shadow-md flex flex-col justify-center gap-4">
                     <p className="text-black font-bold text-xl">For Who?</p>
-                    <p className="text-black font-bold text-xl">...</p>
+                    <p className="text-black font-bold text-lg">For brands targeting active audiences.</p>
                   </div>
                 </div>
               </div>
@@ -342,7 +342,7 @@ const About = () => {
 
                   <div className="bg-[#E9E9E9] lg:w-[50%] p-6 rounded-2xl shadow-md flex flex-col justify-center gap-4">
                     <p className="text-black font-bold text-xl">For Who?</p>
-                    <p className="text-black font-bold text-xl">...</p>
+                    <p className="text-black font-bold text-lg">For gyms seeking online growth.</p>
                   </div>
                 </div>
               </div>
@@ -411,7 +411,7 @@ const About = () => {
 
                   <div className="bg-[#E9E9E9] lg:w-[50%] p-6 rounded-2xl shadow-md flex flex-col justify-center gap-4">
                     <p className="text-black font-bold text-xl">For Who?</p>
-                    <p className="text-black font-bold text-xl">...</p>
+                    <p className="text-black font-bold text-lg">For communities driving fitness impact.</p>
                   </div>
                 </div>
               </div>
@@ -420,8 +420,6 @@ const About = () => {
           </div>
         </div>
       </section>
-
-
 
       {/* ================= MOBILE VIEW ================= */}
       <section className="block lg:hidden w-full">
@@ -474,7 +472,7 @@ const About = () => {
                       <img src="about_page_elements/locate.png" className="h-[5rem] w-[20rem]object-cover"/>
                     </div>
                     <div>
-                      <p className="text-[0.58rem] font-bold">Discover Fitness centers near you.</p>
+                      <p className="text-[60%] font-bold">Discover Fitness centers near you.</p>
                     </div>
                   </div>
                 </div>
@@ -495,7 +493,7 @@ const About = () => {
                       <p className="text-[0.8rem] font-bold">For Who?</p>
                     </div>
                     <div>
-                      <p className="text-[0.8rem] font-bold">..</p>
+                      <p className="text-[60%] font-bold">For fitness lovers and gym-goers.</p>
                     </div>
                   </div>
                 </div>
@@ -547,7 +545,7 @@ const About = () => {
                       <img src="about_page_elements/client.png" className="w-[7rem] object-cover"/>
                     </div>
                     <div>
-                      <p className="text-[0.47rem] font-bold">Manage Clients, Memberships <br/>& Renewals.</p>
+                      <p className="text-[47%] font-bold">Manage Clients, Memberships <br/>& Renewals.</p>
                     </div>
                   </div>
                 </div>
@@ -568,7 +566,7 @@ const About = () => {
                       <p className="text-[0.8rem] font-bold">For Who?</p>
                     </div>
                     <div>
-                      <p className="text-[0.8rem] font-bold">..</p>
+                      <p className="text-[60%] font-bold">For fitness centers and trainers.</p>
                     </div>
                   </div>
                 </div>
@@ -641,7 +639,7 @@ const About = () => {
                       <p className="text-[0.8rem] font-bold">For Who?</p>
                     </div>
                     <div>
-                      <p className="text-[0.8rem] font-bold">..</p>
+                      <p className="text-[60%] font-bold">For brands promoting health and fitness.</p>
                     </div>
                   </div>
                 </div>
@@ -721,7 +719,7 @@ const About = () => {
                       <p className="text-[0.8rem] font-bold">For Who?</p>
                     </div>
                     <div>
-                      <p className="text-[0.8rem] font-bold">..</p>
+                      <p className="text-[60%] font-bold">For brands targeting active audiences.</p>
                     </div>
                   </div>
                 </div>
@@ -794,7 +792,7 @@ const About = () => {
                       <p className="text-[0.8rem] font-bold">For Who?</p>
                     </div>
                     <div>
-                      <p className="text-[0.8rem] font-bold">..</p>
+                      <p className="text-[60%] font-bold">For gyms seeking online growth.</p>
                     </div>
                   </div>
                 </div>
@@ -867,7 +865,7 @@ const About = () => {
                       <p className="text-[0.8rem] font-bold">For Who?</p>
                     </div>
                     <div>
-                      <p className="text-[0.8rem] font-bold">..</p>
+                      <p className="text-[60%] font-bold">For communities driving fitness impact.</p>
                     </div>
                   </div>
                 </div>
