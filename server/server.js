@@ -18,7 +18,7 @@ const PORT = process.env.BACKEND_PORT || 5000;
 app.use(express.json());
 
 const corsOptions = {
-  origin: [ `http://localhost:${process.env.FRONTEND_PORT}`,  'https://dicipl-alpha-build.netlify.app', 'https://discipl-web-frontend-beta.onrender.com', 'https://thediscipl.com/'], 
+  origin: [ `http://localhost:${process.env.FRONTEND_PORT}`,  'https://dicipl-alpha-build.netlify.app', 'https://discipl-web-frontend-beta.onrender.com', 'https://thediscipl.com'], 
   optionsSuccessStatus: 200 
 };
 
