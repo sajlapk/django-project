@@ -9,7 +9,7 @@ const participantSchema = new mongoose.Schema({
     height: { type: Number, default: null },
     weight: { type: Number, default: null },
     gender: { type: String, enum: ['Male', 'Female'], default: null },
-})
+}, { timestamps: true })
 
 const Participant = mongoose.model('Participant', participantSchema);
 
