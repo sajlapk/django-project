@@ -9,7 +9,7 @@ interface IEventStub {
     name: string;
     date: string;
     location: string;
-    image_url?: string;
+    banner_image_url?: string;
 }
 
 interface IBooking {
@@ -96,7 +96,7 @@ const Profile: React.FC = () => {
                         <div className="space-y-4">
                             {bookings.tickets.map(ticket => (
                                 <div key={ticket._id} className="bg-white rounded-lg shadow p-4 flex items-start justify-between gap-4">
-                                    <img src={ticket.eventId.image_url || "https://placehold.co/150x100"} alt={ticket.eventId.name} className="w-32 h-20 object-cover rounded-md"/>
+                                    <img src={ticket.eventId.banner_image_url || "https://placehold.co/150x100"} alt={ticket.eventId.name} className="w-32 h-20 object-cover rounded-md"/>
                                     <div className="flex-grow">
                                         <h3 className="font-bold text-lg text-gray-900">{ticket.eventId.name}</h3>
                                         <p className="text-sm text-gray-500 flex items-center mt-1"><Calendar className="w-4 h-4 mr-2"/>{formatDate(ticket.eventId.date)}</p>
@@ -121,7 +121,7 @@ const Profile: React.FC = () => {
                         <div className="space-y-4">
                             {bookings.registrations.map(reg => (
                                 <div key={reg._id} className="bg-white rounded-lg shadow p-4 flex items-start justify-between gap-4">
-                                    <img src={reg.eventId.image_url || "https://placehold.co/150x100"} alt={reg.eventId.name} className="w-32 h-20 object-cover rounded-md"/>
+                                    <img src={reg.eventId.banner_image_url || "https://placehold.co/150x100"} alt={reg.eventId.name} className="w-32 h-20 object-cover rounded-md"/>
                                     <div className="flex-grow">
                                         <h3 className="font-bold text-lg text-gray-900">{reg.eventId.name}</h3>
                                         <p className="text-sm text-gray-500 flex items-center mt-1"><Calendar className="w-4 h-4 mr-2"/>{formatDate(reg.eventId.date)}</p>
