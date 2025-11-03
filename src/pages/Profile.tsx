@@ -38,10 +38,10 @@ const Profile: React.FC = () => {
         try {
             const response = await axios.get(`https://discipl-web-frontend-1.onrender.com/api/users/profile/${user.id}`); // This is used when running from github repo  
             // const response = await axios.get(`http://localhost:8172/api/users/profile/${user.id}`); // This is used when running on localhost
-            console.log("Profile Data: ", response.data) // DEBUG
+            // console.log("Profile Data: ", response.data) // DEBUG
             setBookings(response.data);
         } catch (error) {
-            console.error("Failed to fetch profile data", error); // DEBUG
+            // console.error("Failed to fetch profile data", error); // DEBUG
         } finally {
             setLoading(false);
         }

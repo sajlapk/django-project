@@ -1,6 +1,7 @@
 const Participant = require('../models/participantModel');
 const Event = require('../models/eventModel');
 const { Parser } = require('json2csv'); 
+// const { processRefund } = require('../utils/refundHelper');
 
 // Logic for exporting participant list for an event as .csv file
 const getParticipantsList = async (req, res) => {
@@ -138,17 +139,19 @@ const deleteRegistrationForUser = async (req, res) => {
         // Find the participant document to get its eventId.
         const participant = await Participant.findById(registrationId);
 
-
         if (!participant) {
             return res.status(404).json({ message: 'Participant registration not found.' });
         }
 
-        // Update the parent Event to remove the reference.
+        // // Fetch corresponding ticket/payment if needed
+        // const refund = await processRefund(participant.paymentId,  participant.registration_fee || 100); 
+        // // Replace '100' with your stored registration fee if available
 
-        // Use $pull to remove the participantId from the 'participants' array.
-        await Event.findByIdAndUpdate(participant.eventId, {
-            $pull: { participants: registrationId }
-        });
+        // // Update the parent Event to remove the reference.
+        // // Use $pull to remove the participantId from the 'participants' array.
+        // await Event.findByIdAndUpdate(participant.eventId, {
+        //     $pull: { participants: registrationId }
+        // });
 
         // 3. Delete the actual participant document.
         await Participant.findByIdAndDelete(registrationId);

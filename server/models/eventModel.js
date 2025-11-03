@@ -11,7 +11,7 @@ const eventSchema = new mongoose.Schema({
   time: { type: String, default: 'To be announced' },
   location: { type: String, default: 'To be announced' },
   description: { type: String, default: 'No description provided.' },
-  registration_fee: { type: Number, default: 1000 },
+  registration_fee: { type: Number, default: 0 },
   ticket_fee: {type: Number, default: 500},
   total_tickets: { type: Number },
   tickets: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Tickets' }],
@@ -19,13 +19,14 @@ const eventSchema = new mongoose.Schema({
   additional_images: [String],
   category: { type: String, default: 'General' },
   participants: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Participant' }],
-  max_participants: { type: Number, default: 50 },
+  max_participants: { type: Number, default: 0 },
   judging_criteria: { type: [String], default: ['Overall Physique'] },
   prize_sponsorship: { type: String, default: 'Not Sponsored' },
   org_phone_no: { type: String, default: 'Not Provided' },
   org_email: { type: String, default: 'Not Provided' },
   social_media: { type: [socialMediaSchema], default: [] },
-  status: { type: String, enum: [ "ONGOING", "PASSED" ], default: "ONGOING" }
+  status: { type: String, enum: [ "ONGOING", "PASSED" ], default: "ONGOING" },
+  is_audience_only: { type: Boolean, default: false },
 }, {
   timestamps: true,
 });

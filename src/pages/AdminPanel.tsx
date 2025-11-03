@@ -28,6 +28,7 @@ interface EventDetails {
   org_phone_no: string;
   org_email: string;
   social_media: SocialMediaLink[];
+  is_audience_only: boolean
 }
 
 interface IEvent {
@@ -51,16 +52,18 @@ interface IEvent {
   banner_image_url?: string;
   prize_sponsorship: string;
   issued_tickets_count: number;
+  is_audience_only: boolean;
 }
 
 const AdminPanel = () => {
   const [isModalOpen, setIsModalOpen] = useState(false); // Popup that is used to add event
+  const [audienceOnly, setAudienceOnly] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [successModal, setSuccessModal] = useState(false); // Popup that triggers on adding event
   const [successMessage, setSuccessMessage] = useState('') // This will contain the message that wil show up in the success modal
   const [isStatusModalOpen, setIsStatusModalOpen] = useState(false); // Popup that is used to edit status of event
   const [selectedEvent, setSelectedEvent] = useState<IEvent | null>(null);
-  const [extraImages, setExtraImages] = useState<File[]>([]);
+  const [extraImages, setExtraImages] = useState<(File | null)[]>([null]);
   const [events, setEvents] = useState<IEvent[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -95,7 +98,7 @@ const AdminPanel = () => {
         setEvents([]);
       }
     } catch (err) {
-      // console.error("Error fetching events:", err);
+      console.error("Error fetching events:", err);
       setEvents([]);
     } finally {
       setLoading(false);
@@ -106,7 +109,7 @@ const AdminPanel = () => {
   const [eventDetails, setEventDetails] = useState<EventDetails>({
     _id: '', name: '', date: '', time: '', location: '', description: '', registration_fee: 0, ticket_fee: 0, total_tickets: 0, banner_image: null,
     category: '', status: 'ONGOING', max_participants: 0, judging_criteria: [''], prize_sponsorship: '',
-    org_phone_no: '', org_email: '', social_media: [{ platform: 'Instagram', handle: '' }],
+    org_phone_no: '', org_email: '', social_media: [{ platform: 'Instagram', handle: ''}], is_audience_only: false
   });
 
   const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
@@ -125,10 +128,20 @@ const AdminPanel = () => {
   };
 
   // --- Handlers for Optional Images ---
-  const handleExtraImagesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setExtraImages(Array.from(e.target.files));
-    }
+  const handleExtraImagesChange = (index: number, file: File | null) => {
+    setExtraImages(prev => {
+      const updated = [...prev];
+      updated[index] = file;
+      return updated;
+    });
+  };
+
+  const addExtraImageField = () => {
+    setExtraImages(prev => [...prev, null]);
+  };
+
+  const removeExtraImageField = (index: number) => {
+    setExtraImages(prev => prev.filter((_, i) => i !== index));
   };
 
   // --- Handlers for Judging Criteria ---
@@ -179,14 +192,16 @@ const AdminPanel = () => {
       // Upload additional images
       if (extraImages.length > 0) {
         for (const img of extraImages) {
-          const formData = new FormData();
-          formData.append("file", img);
-          formData.append("upload_preset", uploadPreset);
-          const res = await axios.post(
-            `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
-            formData
-          );
-          galleryUrls.push(res.data.secure_url);
+          if (img) {
+            const formData = new FormData();
+            formData.append("file", img);
+            formData.append("upload_preset", uploadPreset);
+            const res = await axios.post(
+              `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+              formData
+            );
+            galleryUrls.push(res.data.secure_url);
+          }
         }
       }
 
@@ -196,7 +211,18 @@ const AdminPanel = () => {
 
       const { banner_image, ...dataWithoutImage } = eventDetails;
 
-      const eventData = { ...dataWithoutImage, banner_image_url: bannerUrl, additional_images: galleryUrls, judging_criteria: finalCriteria, social_media: finalSocials };
+      const eventData = {
+        ...dataWithoutImage,
+        registration_fee: Number(eventDetails.registration_fee) || 0,
+        ticket_fee: Number(eventDetails.ticket_fee) || 0,
+        total_tickets: Number(eventDetails.total_tickets) || 0,
+        max_participants: Number(eventDetails.max_participants) || 0,
+        banner_image_url: bannerUrl,
+        additional_images: galleryUrls,
+        judging_criteria: finalCriteria,
+        social_media: finalSocials,
+        is_audience_only: audienceOnly
+      };
       // console.log("Posting event data:", eventData); // DEBUG
 
       const response = await axios.post('https://discipl-web-frontend-1.onrender.com/api/events', eventData); // This is used when running from github repo
@@ -211,7 +237,7 @@ const AdminPanel = () => {
       setEventDetails({
         _id: '', name: '', date: '', time: '', location: '', description: '', registration_fee: 0, ticket_fee: 0, total_tickets: 0, banner_image: null,
         category: 'General', status: 'ONGOING', max_participants: 50, judging_criteria: [''], prize_sponsorship: '',
-        org_phone_no: '', org_email: '', social_media: [{ platform: 'Instagram', handle: '' }],
+        org_phone_no: '', org_email: '', social_media: [{ platform: 'Instagram', handle: '' }], is_audience_only: false
       });
     } catch (error) {
       // console.error("Failed to create event:", error); //  DEBUG
@@ -277,14 +303,10 @@ const AdminPanel = () => {
       eventDetails.date  === '' || 
       eventDetails.time === '' || 
       eventDetails.location === '' ||
-      eventDetails.registration_fee  === 0 ||
       eventDetails.category === '' ||
-      eventDetails.max_participants === 0 ||
       eventDetails.ticket_fee === 0 ||
       eventDetails.total_tickets === 0 ||
       eventDetails.description === '' ||
-      eventDetails.judging_criteria.length === 0 ||
-      eventDetails.prize_sponsorship === '' ||
       eventDetails.org_phone_no === '' || 
       eventDetails.org_email === '' 
     )
@@ -316,7 +338,7 @@ const AdminPanel = () => {
       setEvents(post_payment_response.data);
       setIsStatusModalOpen(false);
     }catch(error){
-      console.log("Some error occurred while changing status."); // DEBUG
+      // console.log("Some error occurred while changing status."); // DEBUG
     }
   }
 
@@ -339,7 +361,7 @@ const AdminPanel = () => {
       setEvents(post_payment_response.data);
       setIsStatusModalOpen(false);
     }catch(error){
-      console.log("Some error occurred while deleting event."); // DEBUG
+      // console.log("Some error occurred while deleting event."); // DEBUG
     }
   }
 
@@ -461,6 +483,18 @@ const AdminPanel = () => {
                               <div className="flex flex-row items-center">
                                 <MapPin className="fixed w-4 h-4 text-gray-500"/><p className="text-gray-500 ml-6">{event.location}</p>
                               </div>
+                              {event.is_audience_only ?
+                              (
+                                <span className="flex items-center text-gray-700 mt-2 bg-black w-28 p-1 rounded-full justify-center">
+                                  <p className="text-xs font-bold"><span className="text-white">AUDIENCE </span><span className="text-red-500">ONLY</span></p>
+                                </span>
+                              )
+                              :
+                              (
+                                <div className="flex items-center text-gray-700">
+                                </div>
+                              )
+                              }
                             </div> 
                           </div>
                           <div> 
@@ -513,6 +547,18 @@ const AdminPanel = () => {
                             <div className="flex flex-row items-center">
                               <MapPin className="fixed w-4 h-4 text-gray-500"/><p className="text-gray-500 ml-6">{event.location}</p>
                             </div>
+                            {event.is_audience_only ?
+                            (
+                              <span className="flex items-center text-gray-700 mt-2 bg-black w-28 p-1 rounded-full justify-center">
+                                <p className="text-xs font-bold"><span className="text-white">AUDIENCE </span><span className="text-red-500">ONLY</span></p>
+                              </span>
+                            )
+                            :
+                            (
+                              <div className="flex items-center text-gray-700">
+                              </div>
+                            )
+                            }
                           </div>
                         </div>
                         <div> 
@@ -534,8 +580,8 @@ const AdminPanel = () => {
         </main>
       </div>
 
-      {/* Popup model that pops up when creating an event */}
-      {isModalOpen && (
+      {/* Popup model that pops up when creating an event for normal events*/}
+      {isModalOpen && !audienceOnly && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
             <div className="flex justify-between items-center p-4 sm:p-6 border-b border-gray-200 flex-shrink-0">
@@ -546,6 +592,13 @@ const AdminPanel = () => {
             </div>
 
             <form onSubmit={handleFormSubmit} className="p-4 sm:p-8 space-y-6 overflow-y-auto">
+              {/* Check for audience only event */}
+              <div className="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                <input type="checkbox" name="toggle" id="toggle" onChange={() => setAudienceOnly(!audienceOnly)} className="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
+                <label htmlFor="toggle" className="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+              </div>
+              <label htmlFor="toggle" className="text-xs lg:text-sm text-gray-700">Is this an Audience Only Event? (No Registrations)</label>
+
               {/* Event Name, Date, Time, Location, Fee, Category, Max Participants... */}
               <div className="relative">
                 <input type="text" name="name" placeholder="Event Name" required onChange={handleInputChange} value={eventDetails.name} className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" />
@@ -555,12 +608,27 @@ const AdminPanel = () => {
                 <div className="relative"><label htmlFor="date">Date of Event</label><input type="date" name="date" required onChange={handleInputChange} value={eventDetails.date} className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" /><Calendar className="absolute left-4 top-12 -translate-y-1/2 h-5 w-5 text-gray-400" /></div>
                 <div className="relative"><label htmlFor="time">Time of Event</label><input type="time" name="time" required onChange={handleInputChange} value={eventDetails.time} className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" /><Clock className="absolute left-4 top-12 -translate-y-1/2 h-5 w-5 text-gray-400" /></div>
               </div>
+              
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="relative"><input type="text" name="location" placeholder="Location or Venue" required onChange={handleInputChange} value={eventDetails.location} className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" /><MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" /></div>
                 <div className="relative"><input type="number" name="registration_fee" placeholder="Registration Fee" required onChange={handleInputChange} value={eventDetails.registration_fee === 0 ? '' : eventDetails.registration_fee} className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" /><IndianRupee className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" /></div>
               </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="relative"><input type="text" name="category" placeholder="Category" required onChange={handleInputChange} value={eventDetails.category} className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" /><FileText className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" /></div>
+                {/* <div className="relative"><input type="text" name="category" placeholder="Category" required onChange={handleInputChange} value={eventDetails.category} className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" /><FileText className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" /></div> */}
+                <div className="relative">
+                  <select name="category" required value={eventDetails.category} onChange={(e) => setEventDetails(prev => ({ ...prev, category: e.target.value }))} className="w-full pl-12 pr-4 py-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors">
+                    <option value="General">General</option>
+                    <option value="Power Lifting">Power Lifting</option>
+                    <option value="Wrestling">Wrestling</option>
+                    <option value="Cardio">Cardio</option>
+                    <option value="Calisthenics">Calisthenics</option>
+                    <option value="Training">Training</option>
+                    <option value="Physique">Physique</option>
+                    <option value="Seminar">Seminar</option>
+                  </select>
+                  <FileText className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                </div>
                 <div className="relative"><input type="number" name="max_participants" placeholder="Max Participants" required onChange={handleInputChange} value={eventDetails.max_participants === 0 ?  '' : eventDetails.max_participants} className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" /><Users className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" /></div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -607,39 +675,185 @@ const AdminPanel = () => {
                 <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md"><div className="space-y-1 text-center"><ImageIcon className="mx-auto h-12 w-12 text-gray-400" /><div className="flex text-sm text-gray-600"><label htmlFor="file-upload" className="relative cursor-pointer bg-white rounded-md font-medium text-red-600 hover:text-red-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-red-500"><span>Upload a file</span><input id="file-upload" name="image" type="file" className="sr-only" onChange={handleBannerImageChange} accept="image/*" /></label><p className="pl-1">or drag and drop</p></div><p className="text-xs text-gray-500">PNG, JPG up to 10MB (768px x 512px)</p>{eventDetails.banner_image && <p className="text-sm text-green-600 mt-2">Selected: {eventDetails.banner_image.name}</p>}</div></div>
               </div>
 
-              {/* Optional Image Upload */}
+              {/* Optional Extra Images Upload */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Optional Extra Images
                 </label>
-                <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
-                  <div className="space-y-1 text-center">
-                    <ImageIcon className="mx-auto h-12 w-12 text-gray-400" />
-                    <div className="flex text-sm text-gray-600">
-                      <label
-                        htmlFor="extra-images"
-                        className="relative cursor-pointer bg-white rounded-md font-medium text-red-600 hover:text-red-500"
-                      >
-                        <span>Upload images</span>
-                        <input
-                          id="extra-images"
-                          type="file"
-                          multiple
-                          accept="image/*"
-                          onChange={handleExtraImagesChange}
-                          className="sr-only"
-                        />
-                      </label>
-                      <p className="pl-1">or drag and drop</p>
-                    </div>
-                    <p className="text-xs text-gray-500">Up to 10 images (PNG, JPG)</p>
-                    {extraImages.length > 0 && (
-                      <p className="text-green-600 text-sm mt-2">
-                        Selected {extraImages.length} image(s)
+
+                {extraImages.map((img, index) => (
+                  <div key={index} className="flex items-center gap-3 mb-3 border border-gray-300 p-3 rounded-lg">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) =>
+                        handleExtraImagesChange(index, e.target.files?.[0] || null)
+                      }
+                      className="block w-full text-sm text-gray-600"
+                    />
+                    {img && (
+                      <p className="text-green-600 text-sm">
+                        Selected: {img.name}
                       </p>
                     )}
+                    {extraImages.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removeExtraImageField(index)}
+                        className="p-2 text-gray-500 hover:text-red-600"
+                      >
+                        <Trash2 className="w-5 h-5" />
+                      </button>
+                    )}
                   </div>
+                ))}
+
+                <button
+                  type="button"
+                  onClick={addExtraImageField}
+                  className="mt-2 flex items-center text-sm font-medium text-red-600 hover:text-red-800"
+                >
+                  <Plus className="w-4 h-4 mr-1" />
+                  Add Image
+                </button>
+              </div>
+
+              {/* Form Actions */}
+              <div className="flex justify-end items-center pt-6 border-t border-gray-200 space-x-4 flex-shrink-0">
+                <button type="button" onClick={() => setIsModalOpen(false)} disabled={isUploading} className="px-6 py-3 rounded-full font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors disabled:opacity-50">Cancel</button>
+                {(formIncompleteCheck(eventDetails) ?
+                  <button type="submit" disabled className="px-6 py-3 rounded-full font-semibold text-gray-500 bg-gray-200 transition-colors flex items-center border border-gray-500">Please fill all fields</button>
+                :
+                  <button type="submit" disabled={isUploading} className="px-6 py-3 rounded-full font-semibold text-white bg-red-500 hover:bg-red-600 transition-colors flex items-center disabled:bg-red-400">{isUploading && <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>}{isUploading ? 'Creating...' : 'Create Event'}</button>
+                )}
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Popup model that pops up when creating an event for audience only events*/}
+      {audienceOnly && isModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+            <div className="flex justify-between items-center p-4 sm:p-6 border-b border-gray-200 flex-shrink-0">
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Create New Event</h2>
+              <button onClick={() => setIsModalOpen(false)} className="p-2 rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <form onSubmit={handleFormSubmit} className="p-4 sm:p-8 space-y-6 overflow-y-auto">
+              {/* Check for audience only event */}
+              <div className="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                <input type="checkbox" name="toggle" id="toggle" onChange={() => {setAudienceOnly(!audienceOnly)}} checked={true} className="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
+                <label htmlFor="toggle" className="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+              </div>
+              <label htmlFor="toggle" className="text-xs lg:text-sm text-gray-700">Is this an Audience Only Event? (No Registrations)</label>
+
+              {/* Event Name, Date, Time, Location, Fee, Category, Max Participants... */}
+              <div className="relative">
+                <input type="text" name="name" placeholder="Event Name" required onChange={handleInputChange} value={eventDetails.name} className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" />
+                <FileText className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="relative"><label htmlFor="date">Date of Event</label><input type="date" name="date" required onChange={handleInputChange} value={eventDetails.date} className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" /><Calendar className="absolute left-4 top-12 -translate-y-1/2 h-5 w-5 text-gray-400" /></div>
+                <div className="relative"><label htmlFor="time">Time of Event</label><input type="time" name="time" required onChange={handleInputChange} value={eventDetails.time} className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" /><Clock className="absolute left-4 top-12 -translate-y-1/2 h-5 w-5 text-gray-400" /></div>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="relative"><input type="text" name="location" placeholder="Location or Venue" required onChange={handleInputChange} value={eventDetails.location} className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" /><MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" /></div>
+                {/* <div className="relative"><input type="text" name="category" placeholder="Category" required onChange={handleInputChange} value={eventDetails.category} className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" /><FileText className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" /></div> */}
+                <div className="relative">
+                  <select name="category" required value={eventDetails.category} onChange={(e) => setEventDetails(prev => ({ ...prev, category: e.target.value }))} className="w-full pl-12 pr-4 py-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors">
+                    <option value="General">General</option>
+                    <option value="Power Lifting">Power Lifting</option>
+                    <option value="Wrestling">Wrestling</option>
+                    <option value="Cardio">Cardio</option>
+                    <option value="Calisthenics">Calisthenics</option>
+                    <option value="Training">Training</option>
+                    <option value="Physique">Physique</option>
+                    <option value="Seminar">Seminar</option>
+                  </select>
+                  <FileText className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                 </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="relative"><input type="number" name="ticket_fee" placeholder="Ticket Fee" required onChange={handleInputChange} value={eventDetails.ticket_fee === 0 ? '' : eventDetails.ticket_fee} className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" /><IndianRupee className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" /></div>
+                <div className="relative"><input type="number" name="total_tickets" placeholder="Total Tickets" required onChange={handleInputChange} value={eventDetails.total_tickets === 0 ? '' : eventDetails.total_tickets} className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" /><TicketCheck className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" /></div>
+              </div>
+              <div className="relative"><textarea name="description" placeholder="Event Description" required rows={4} onChange={handleInputChange} value={eventDetails.description} className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors resize-none" /><FileText className="absolute left-4 top-4 h-5 w-5 text-gray-400" /></div>
+
+              {/* Organizer Details */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Organizer Details</label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6"><div className="relative"><input type="tel" name="org_phone_no" placeholder="Organizer Phone" required pattern="[0-9]{10}" onChange={handleInputChange} value={eventDetails.org_phone_no} className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" /><Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" /></div><div className="relative"><input type="email" name="org_email" placeholder="Organizer Email" required onChange={handleInputChange} value={eventDetails.org_email} className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" /><AtSign className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" /></div></div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Social Media Handles</label>
+                {eventDetails.social_media.map((social, index) => (
+                  <div key={index} className="flex items-center gap-2 mb-2">
+                    <select value={social.platform} onChange={(e) => handleSocialMediaChange(index, 'platform', e.target.value)} className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors bg-white">
+                      <option>Instagram</option>
+                      <option>YouTube</option>
+                      <option>Facebook</option>
+                    </select>
+                    <input type="text" placeholder="Handle (e.g., @username)" value={social.handle} onChange={(e) => handleSocialMediaChange(index, 'handle', e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" />
+                    {eventDetails.social_media.length > 1 && (<button type="button" onClick={() => removeSocialMediaField(index)} className="p-3 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"><Trash2 className="w-5 h-5" /></button>)}
+                  </div>
+                ))}
+                <button type="button" onClick={addSocialMediaField} className="mt-2 flex items-center text-sm font-medium text-red-600 hover:text-red-800"><Plus className="w-4 h-4 mr-1" />Add Social Media</button>
+              </div>
+              
+              {/* Banner Image Upload */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Event Banner</label>
+                <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md"><div className="space-y-1 text-center"><ImageIcon className="mx-auto h-12 w-12 text-gray-400" /><div className="flex text-sm text-gray-600"><label htmlFor="file-upload" className="relative cursor-pointer bg-white rounded-md font-medium text-red-600 hover:text-red-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-red-500"><span>Upload a file</span><input id="file-upload" name="image" type="file" className="sr-only" onChange={handleBannerImageChange} accept="image/*" /></label><p className="pl-1">or drag and drop</p></div><p className="text-xs text-gray-500">PNG, JPG up to 10MB (768px x 512px)</p>{eventDetails.banner_image && <p className="text-sm text-green-600 mt-2">Selected: {eventDetails.banner_image.name}</p>}</div></div>
+              </div>
+
+              {/* Optional Extra Images Upload */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Optional Extra Images
+                </label>
+
+                {extraImages.map((img, index) => (
+                  <div key={index} className="flex items-center gap-3 mb-3 border border-gray-300 p-3 rounded-lg">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) =>
+                        handleExtraImagesChange(index, e.target.files?.[0] || null)
+                      }
+                      className="block w-full text-sm text-gray-600"
+                    />
+                    {img && (
+                      <p className="text-green-600 text-sm">
+                        Selected: {img.name}
+                      </p>
+                    )}
+                    {extraImages.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removeExtraImageField(index)}
+                        className="p-2 text-gray-500 hover:text-red-600"
+                      >
+                        <Trash2 className="w-5 h-5" />
+                      </button>
+                    )}
+                  </div>
+                ))}
+
+                <button
+                  type="button"
+                  onClick={addExtraImageField}
+                  className="mt-2 flex items-center text-sm font-medium text-red-600 hover:text-red-800"
+                >
+                  <Plus className="w-4 h-4 mr-1" />
+                  Add Image
+                </button>
               </div>
 
               {/* Form Actions */}
@@ -661,7 +875,7 @@ const AdminPanel = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
             <div className="flex justify-between items-center bg-red-500 p-4 sm:p-6 border-b border-gray-200 flex-shrink-0 rounded-t-2xl">
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Set Status</h2>
+              <h2 className="text-xl sm:text-2xl font-bold text-white">Set Status</h2>
               <button onClick={() => setIsStatusModalOpen(false)} className="p-2 rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">
                 <X className="w-6 h-6" />
               </button>
@@ -679,10 +893,64 @@ const AdminPanel = () => {
               
               {/* Event Gallery */}
               {selectedEvent.additional_images && selectedEvent.additional_images.length > 0 && (
-                <div className="mt-6">
+                <div className="mt-6 relative w-full">
                   <h3 className="text-lg font-semibold text-gray-900 mb-3">Gallery</h3>
-                  <div className="relative w-full overflow-hidden rounded-xl">
-                    <div className="flex overflow-x-auto space-x-3 scrollbar-hide snap-x snap-mandatory">
+
+                  <div className="relative overflow-hidden rounded-xl">
+                    <div
+                      className="flex overflow-x-auto space-x-3 scrollbar-hide snap-x snap-mandatory scroll-smooth"
+                      ref={(el) => {
+                        if (!el) return;
+                        const scrollContainer = el;
+                        let index = 0;
+                        let autoScroll: NodeJS.Timeout;
+
+                        const dots = document.querySelectorAll<HTMLButtonElement>(".gallery-dot");
+
+                        const updateDots = (idx: number) => {
+                          dots.forEach((dot, i) => {
+                            dot.classList.toggle("bg-gray-800", i === idx);
+                            dot.classList.toggle("bg-gray-400", i !== idx);
+                          });
+                        };
+
+                        const startAutoScroll = () => {
+                          clearInterval(autoScroll);
+                          autoScroll = setInterval(() => {
+                            if (!scrollContainer) return;
+                            index = (index + 1) % selectedEvent.additional_images.length;
+                            scrollContainer.scrollTo({
+                              left: index * scrollContainer.clientWidth,
+                              behavior: "smooth",
+                            });
+                            updateDots(index);
+                          }, 5000);
+                        };
+
+                        // Detect current index on manual scroll
+                        const handleScroll = () => {
+                          const newIndex = Math.round(
+                            scrollContainer.scrollLeft / scrollContainer.clientWidth
+                          );
+                          index = newIndex;
+                          updateDots(index);
+                        };
+
+                        scrollContainer.addEventListener("scroll", handleScroll);
+                        scrollContainer.addEventListener("mousedown", () => clearInterval(autoScroll));
+                        scrollContainer.addEventListener("touchstart", () => clearInterval(autoScroll));
+                        scrollContainer.addEventListener("mouseup", startAutoScroll);
+                        scrollContainer.addEventListener("touchend", startAutoScroll);
+
+                        updateDots(index);
+                        startAutoScroll();
+
+                        return () => {
+                          clearInterval(autoScroll);
+                          scrollContainer.removeEventListener("scroll", handleScroll);
+                        };
+                      }}
+                    >
                       {selectedEvent.additional_images.map((img, i) => (
                         <img
                           key={i}
@@ -692,8 +960,53 @@ const AdminPanel = () => {
                         />
                       ))}
                     </div>
+
+                    {/* Left arrow */}
+                    <button
+                      onClick={() => {
+                        const container = document.querySelector<HTMLDivElement>(".scrollbar-hide");
+                        if (container)
+                          container.scrollBy({ left: -container.clientWidth, behavior: "smooth" });
+                      }}
+                      className="absolute top-1/2 left-2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-70"
+                    >
+                      ‹
+                    </button>
+
+                    {/* Right arrow */}
+                    <button
+                      onClick={() => {
+                        const container = document.querySelector<HTMLDivElement>(".scrollbar-hide");
+                        if (container)
+                          container.scrollBy({ left: container.clientWidth, behavior: "smooth" });
+                      }}
+                      className="absolute top-1/2 right-2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-70"
+                    >
+                      ›
+                    </button>
+                  </div>
+
+                  {/* Pagination dots below the image */}
+                  <div className="flex justify-center space-x-2 mt-4">
+                    {selectedEvent.additional_images.map((_, i) => (
+                      <button
+                        key={i}
+                        className={`gallery-dot w-3 h-3 rounded-full ${i === 0 ? 'bg-gray-800' : 'bg-gray-400'}`}
+                        onClick={() => {
+                          const container = document.querySelector<HTMLDivElement>(".scrollbar-hide");
+                          if (container)
+                            container.scrollTo({ left: i * container.clientWidth, behavior: "smooth" });
+                        }}
+                      />
+                    ))}
                   </div>
                 </div>
+              )}
+
+              {selectedEvent.is_audience_only && (
+                <span className="flex items-center text-gray-700 mt-2 bg-black w-28 p-1 rounded-full justify-center">
+                  <p className="text-xs font-bold"><span className="text-white">AUDIENCE </span><span className="text-red-500">ONLY</span></p>
+                </span>
               )}
 
               <div className="space-y-1">
@@ -716,21 +1029,27 @@ const AdminPanel = () => {
                 <div className="flex items-center text-gray-700">
                   <p className="text-medium"><span className="text-black">Location:</span> {selectedEvent.location}</p>
                 </div>
-                <div className="flex items-center text-gray-700">
-                  <p className="text-medium"><span className="text-black">Participation Fee:</span> {selectedEvent.registration_fee}</p>
-                </div>
+                {!selectedEvent.is_audience_only && (
+                  <div className="flex items-center text-gray-700">
+                    <p className="text-medium"><span className="text-black">Participation Fee:</span> {selectedEvent.registration_fee}</p>
+                  </div>
+                )}
                 <div className="flex items-center text-gray-700">
                   <p className="text-medium"><span className="text-black">Ticket Fee:</span> {selectedEvent.ticket_fee}</p>
                 </div>
+                {!selectedEvent.is_audience_only && (
+                  <div className="flex items-center text-gray-700">
+                    <p className="text-medium"><span className="text-black">Participants:</span> {selectedEvent.registered_participants_count}/{selectedEvent.max_participants}</p>
+                  </div>
+                )}
                 <div className="flex items-center text-gray-700">
-                  <p className="text-medium"><span className="text-black">Participants:</span> {selectedEvent.registered_participants_count}/{selectedEvent.max_participants}</p>
+                  <p className="text-medium"><span className="text-black">Total Tickets Available:</span> {selectedEvent.total_tickets}</p>
                 </div>
-                <div className="flex items-center text-gray-700">
-                  <p className="text-medium"><span className="text-black">Total Tickets Available:</span>{selectedEvent.total_tickets}</p>
-                </div>
-                <div className="flex items-center text-gray-700 pb-5">
-                  <p className="text-medium"><span className="text-black">Prize:</span> {selectedEvent.prize_sponsorship}</p>
-                </div>
+                {!selectedEvent.is_audience_only && (
+                  <div className="flex items-center text-gray-700 pb-5">
+                    <p className="text-medium"><span className="text-black">Prize:</span> {selectedEvent.prize_sponsorship}</p>
+                  </div>
+                )}
 
                 {/*Organizer Details*/}
                 <div className="border rounded-lg bg-gray-50">
@@ -762,7 +1081,7 @@ const AdminPanel = () => {
                 </div>
               </div>
 
-              {selectedEvent.judging_criteria &&
+              {selectedEvent.judging_criteria && !selectedEvent.is_audience_only &&
                 selectedEvent.judging_criteria.length > 0 && (
                   <div>
                     <h3 className="font-semibold text-gray-900 mb-2 flex items-center">Judging Criteria</h3>
@@ -776,12 +1095,14 @@ const AdminPanel = () => {
             </div>
 
             <div className="rounded-b-2xl bg-black flex justify-end items-center p-4 border-t border-gray-200 space-x-4 flex-shrink-0">
-              <button
-                onClick={() => {exportParticipantList(selectedEvent._id)}}
-                className="px-6 py-3 rounded-full font-semibold text-white bg-blue-500 hover:bg-white hover:text-blue-500 transition-colors"
-                >
-                Export Participant List
-              </button>
+              {!selectedEvent.is_audience_only && (
+                <button
+                  onClick={() => {exportParticipantList(selectedEvent._id)}}
+                  className="px-6 py-3 rounded-full font-semibold text-white bg-blue-500 hover:bg-white hover:text-blue-500 transition-colors"
+                  >
+                  Export Participant List
+                </button>
+              )}
               
               {( selectedEvent.status === "PASSED" ?
               <button

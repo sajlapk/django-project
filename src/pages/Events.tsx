@@ -26,6 +26,7 @@ interface IEvent {
   banner_image_url?: string;
   prize_sponsorship: string;
   issued_tickets_count: number;
+  is_audience_only: boolean;
 }
 
 const Events: React.FC = () => {
@@ -75,7 +76,7 @@ const Events: React.FC = () => {
           setEvents([]);
         }
       } catch (err) {
-        console.error("Error fetching events:", err); // DEBUG
+        // console.error("Error fetching events:", err); // DEBUG
         setEvents([]);
       } finally {
         setLoading(false);
@@ -137,8 +138,8 @@ const Events: React.FC = () => {
       // window.location.href = "/events"; // redirect to home page
       setTimeout(() => navigate("/events"), 1000);
     } catch (error) {
-      console.error("Error saving participant data:", error); // DEBUG
-      alert("Payment succeeded but failed to save participant data."); //DEBUG
+      // console.error("Error saving participant data:", error); // DEBUG
+      // alert("Payment succeeded but failed to save participant data."); //DEBUG
     }
   };
 
@@ -207,17 +208,12 @@ const Events: React.FC = () => {
                 alt={event.name}
                 className="w-full h-48 object-cover"
               />
+
               <div className="p-6 flex-1 flex flex-col">
                 <h2 className="text-2xl font-bold mb-2 text-gray-900">
                   {event.name}
                 </h2>
-
-                <span>
-                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${getCategoryColor(event.category)}`}>
-                    {event.category}
-                  </span>
-                </span>
-
+                
                 <div className="mt-4 space-y-1 text-gray-500 text-sm">
                   <span className="flex items-center">
                     <Calendar className="w-4 h-4 mr-2 text-red-500" />{formatDate(event.date)}
@@ -231,21 +227,30 @@ const Events: React.FC = () => {
                     <MapPin className="w-4 h-4 mr-2 text-red-500" />{event.location}
                   </span>
                   
-                  <div className="mt-5 space-y-2 pb-4 pt-5">
-                    <div className="flex items-center text-gray-700">
-                      <Users className="w-4 h-4 mr-2 text-red-500" />
-                      <span className="text-sm">{event.registered_participants_count}/{event.max_participants} participants</span>
-                    </div>
+                  {!event.is_audience_only ? (
+                      <div className="mt-5 space-y-2 pb-4 pt-5">
+                        <div className="flex items-center text-gray-700">
+                          <Users className="w-4 h-4 mr-2 text-red-500" />
+                          <span className="text-sm">{event.registered_participants_count}/{event.max_participants} participants</span>
+                        </div>
 
-                    <div className="flex items-center justify-between">
-                      <div className="w-full bg-gray-200 rounded-full h-2 mr-4">
-                        <div
-                          className="bg-red-500 h-2 rounded-full"
-                          style={{ width: `${(event.registered_participants_count / event.max_participants) * 100}%` }}
-                        ></div>
+                        <div className="flex items-center justify-between">
+                          <div className="w-full bg-gray-200 rounded-full h-2 mr-4">
+                            <div
+                              className="bg-red-500 h-2 rounded-full"
+                              style={{ width: `${(event.registered_participants_count / event.max_participants) * 100}%` }}
+                            ></div>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
+                    )
+                  : 
+                    (
+                      <div className="mt-5 space-y-2 pb-12 pt-5">
+                        
+                      </div>
+                    )
+                  }
                 </div>
                 <button className="mt-6 w-full bg-red-500 text-white py-2 px-4 rounded-full font-semibold hover:bg-red-600 transition-colors">
                   View Details
@@ -282,6 +287,7 @@ const Events: React.FC = () => {
                     alt={event.name}
                     className="w-full h-48 object-cover border border-b-gray-200 border-4"
                   />
+
                   <div className="p-6 flex-1 flex flex-col">
                     <h2 className="text-2xl font-bold mb-2 text-gray-900">
                       {event.name}
@@ -306,21 +312,30 @@ const Events: React.FC = () => {
                         <MapPin className="w-4 h-4 mr-2 text-red-500" />{event.location}
                       </span>
                       
-                      <div className="mt-5 space-y-2 pb-4 pt-5">
-                        <div className="flex items-center text-gray-700">
-                          <Users className="w-4 h-4 mr-2 text-red-500" />
-                          <span className="text-sm">{event.registered_participants_count}/{event.max_participants} participants</span>
-                        </div>
+                      {!event.is_audience_only ? (
+                          <div className="mt-5 space-y-2 pb-4 pt-5">
+                            <div className="flex items-center text-gray-700">
+                              <Users className="w-4 h-4 mr-2 text-red-500" />
+                              <span className="text-sm">{event.registered_participants_count}/{event.max_participants} participants</span>
+                            </div>
 
-                        <div className="flex items-center justify-between">
-                          <div className="w-full bg-gray-200 rounded-full h-2 mr-4">
-                            <div
-                              className="bg-red-500 h-2 rounded-full"
-                              style={{ width: `${(event.registered_participants_count / event.max_participants) * 100}%` }}
-                            ></div>
+                            <div className="flex items-center justify-between">
+                              <div className="w-full bg-gray-200 rounded-full h-2 mr-4">
+                                <div
+                                  className="bg-red-500 h-2 rounded-full"
+                                  style={{ width: `${(event.registered_participants_count / event.max_participants) * 100}%` }}
+                                ></div>
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                      </div>
+                        )
+                      : 
+                        (
+                          <div className="mt-5 space-y-2 pb-12 pt-5">
+                            
+                          </div>
+                        )
+                      }
                     </div>
                   </div>
                   <div className="text-center w-full bg-red-500 text-white py-4 px-4 font-semibold hover:bg-red-600 transition-colors">
@@ -363,10 +378,64 @@ const Events: React.FC = () => {
 
               {/* Event Gallery */}
               {selectedEvent.additional_images && selectedEvent.additional_images.length > 0 && (
-                <div className="mt-6">
+                <div className="mt-6 relative w-full">
                   <h3 className="text-lg font-semibold text-gray-900 mb-3">Gallery</h3>
-                  <div className="relative w-full overflow-hidden rounded-xl">
-                    <div className="flex overflow-x-auto space-x-3 scrollbar-hide snap-x snap-mandatory">
+
+                  <div className="relative overflow-hidden rounded-xl">
+                    <div
+                      className="flex overflow-x-auto space-x-3 scrollbar-hide snap-x snap-mandatory scroll-smooth"
+                      ref={(el) => {
+                        if (!el) return;
+                        const scrollContainer = el;
+                        let index = 0;
+                        let autoScroll: NodeJS.Timeout;
+
+                        const dots = document.querySelectorAll<HTMLButtonElement>(".gallery-dot");
+
+                        const updateDots = (idx: number) => {
+                          dots.forEach((dot, i) => {
+                            dot.classList.toggle("bg-gray-800", i === idx);
+                            dot.classList.toggle("bg-gray-400", i !== idx);
+                          });
+                        };
+
+                        const startAutoScroll = () => {
+                          clearInterval(autoScroll);
+                          autoScroll = setInterval(() => {
+                            if (!scrollContainer) return;
+                            index = (index + 1) % selectedEvent.additional_images.length;
+                            scrollContainer.scrollTo({
+                              left: index * scrollContainer.clientWidth,
+                              behavior: "smooth",
+                            });
+                            updateDots(index);
+                          }, 5000);
+                        };
+
+                        // Detect current index on manual scroll
+                        const handleScroll = () => {
+                          const newIndex = Math.round(
+                            scrollContainer.scrollLeft / scrollContainer.clientWidth
+                          );
+                          index = newIndex;
+                          updateDots(index);
+                        };
+
+                        scrollContainer.addEventListener("scroll", handleScroll);
+                        scrollContainer.addEventListener("mousedown", () => clearInterval(autoScroll));
+                        scrollContainer.addEventListener("touchstart", () => clearInterval(autoScroll));
+                        scrollContainer.addEventListener("mouseup", startAutoScroll);
+                        scrollContainer.addEventListener("touchend", startAutoScroll);
+
+                        updateDots(index);
+                        startAutoScroll();
+
+                        return () => {
+                          clearInterval(autoScroll);
+                          scrollContainer.removeEventListener("scroll", handleScroll);
+                        };
+                      }}
+                    >
                       {selectedEvent.additional_images.map((img, i) => (
                         <img
                           key={i}
@@ -376,6 +445,45 @@ const Events: React.FC = () => {
                         />
                       ))}
                     </div>
+
+                    {/* Left arrow */}
+                    <button
+                      onClick={() => {
+                        const container = document.querySelector<HTMLDivElement>(".scrollbar-hide");
+                        if (container)
+                          container.scrollBy({ left: -container.clientWidth, behavior: "smooth" });
+                      }}
+                      className="absolute top-1/2 left-2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-70"
+                    >
+                      ‹
+                    </button>
+
+                    {/* Right arrow */}
+                    <button
+                      onClick={() => {
+                        const container = document.querySelector<HTMLDivElement>(".scrollbar-hide");
+                        if (container)
+                          container.scrollBy({ left: container.clientWidth, behavior: "smooth" });
+                      }}
+                      className="absolute top-1/2 right-2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-70"
+                    >
+                      ›
+                    </button>
+                  </div>
+
+                  {/* Pagination dots below the image */}
+                  <div className="flex justify-center space-x-2 mt-4">
+                    {selectedEvent.additional_images.map((_, i) => (
+                      <button
+                        key={i}
+                        className={`gallery-dot w-3 h-3 rounded-full ${i === 0 ? 'bg-gray-800' : 'bg-gray-400'}`}
+                        onClick={() => {
+                          const container = document.querySelector<HTMLDivElement>(".scrollbar-hide");
+                          if (container)
+                            container.scrollTo({ left: i * container.clientWidth, behavior: "smooth" });
+                        }}
+                      />
+                    ))}
                   </div>
                 </div>
               )}
@@ -403,21 +511,31 @@ const Events: React.FC = () => {
                 <div className="flex items-center text-gray-700">
                   <p className="text-medium"><span className="text-black">Location:</span> {selectedEvent.location}</p>
                 </div>
-                <div className="flex items-center text-gray-700">
-                  <p className="text-medium"><span className="text-black">Participation Fee:</span> {selectedEvent.registration_fee}</p>
-                </div>
+                {!selectedEvent.is_audience_only &&
+                  (
+                  <div className="flex items-center text-gray-700">
+                    <p className="text-medium"><span className="text-black">Participation Fee:</span> {selectedEvent.registration_fee}</p>
+                  </div>
+                  )
+                }
                 <div className="flex items-center text-gray-700">
                   <p className="text-medium"><span className="text-black">Ticket Fee:</span> {selectedEvent.ticket_fee}</p>
                 </div>
-                <div className="flex items-center text-gray-700">
-                  <p className="text-medium"><span className="text-black">Participants:</span> {selectedEvent.registered_participants_count}/{selectedEvent.max_participants}</p>
-                </div>
+                {!selectedEvent.is_audience_only &&
+                  (
+                    <div className="flex items-center text-gray-700">
+                      <p className="text-medium"><span className="text-black">Participants:</span> {selectedEvent.registered_participants_count}/{selectedEvent.max_participants}</p>
+                    </div>
+                  )
+                }              
                 <div className="flex items-center text-gray-700">
                   <p className="text-medium"><span className="text-black">Total Tickets:</span> {selectedEvent.total_tickets}</p>
                 </div>
-                <div className="flex items-center text-gray-700 pb-5">
-                  <p className="text-medium"><span className="text-black">Prize:</span> {selectedEvent.prize_sponsorship}</p>
-                </div>
+                {!selectedEvent.is_audience_only &&(
+                  <div className="flex items-center text-gray-700 pb-5">
+                    <p className="text-medium"><span className="text-black">Prize:</span> {selectedEvent.prize_sponsorship}</p>
+                  </div>
+                )}
 
                 {/*Organizer Details*/}
                 <div className="border rounded-lg bg-gray-50">
@@ -448,8 +566,8 @@ const Events: React.FC = () => {
                   </div>
                 </div>
               </div>
-
-              {selectedEvent.judging_criteria &&
+              
+              {selectedEvent.judging_criteria && !selectedEvent.is_audience_only &&
                 selectedEvent.judging_criteria.length > 0 && (
                   <div>
                     <h3 className="font-semibold text-gray-900 mb-2 flex items-center">Judging Criteria</h3>
@@ -485,18 +603,19 @@ const Events: React.FC = () => {
                   className=" px-6 py-3 rounded-full font-semibold text-black bg-white border-2 border-black hover:bg-black hover:text-white transition-colors">
                   Buy Ticket
                 </button>
-                {( selectedEvent.registered_participants_count >= selectedEvent.max_participants ?
-                <button
-                  className="px-6 py-3 rounded-full font-semibold text-red-500 bg-white border border-red-500"
-                  disabled>
-                  Maximum participants registered.
-                </button>
-                :
-                <button
-                  onClick={()=>{setIsParticipantModalOpen(true); setIsModalOpen(false);}}
-                  className="px-6 py-3 rounded-full font-semibold text-white bg-red-500 hover:bg-red-600 transition-colors">
-                  Register for Event
-                </button>
+                {!selectedEvent.is_audience_only && (
+                  selectedEvent.registered_participants_count >= selectedEvent.max_participants ?
+                  <button
+                    className="px-6 py-3 rounded-full font-semibold text-red-500 bg-white border border-red-500"
+                    disabled>
+                    Maximum participants registered.
+                  </button>
+                  :
+                  <button
+                    onClick={()=>{setIsParticipantModalOpen(true); setIsModalOpen(false);}}
+                    className="px-6 py-3 rounded-full font-semibold text-white bg-red-500 hover:bg-red-600 transition-colors">
+                    Register for Event
+                  </button>
                 )}
               </div>
               )

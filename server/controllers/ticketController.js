@@ -1,5 +1,6 @@
 const Ticket = require('../models/ticketsModel');
 const Event = require('../models/eventModel');
+// const { processRefund } = require('../utils/refundHelper');
 
 // Logic for issuing ticket after user payed for an event ticket
 const issueTicket = async (req, res) => {
@@ -58,8 +59,14 @@ const deleteTicketForUser = async (req, res) => {
             return res.status(404).json({ message: "Ticket not found." });
         }
 
-        // Update the parent Event to remove the reference.
+        // // Attempt refund before deletion
+        // const refund = await processRefund(ticket.paymentId, ticket.amount);
 
+        // // Mark ticket as refunded before deletion (for audit)
+        // ticket.status = "REFUNDED";
+        // await ticket.save();
+
+        // Update the parent Event to remove the reference.
         // Use the $pull operator to remove the ticketId from the 'tickets' array.
         await Event.findByIdAndUpdate(ticket.eventId, {
             $pull: { tickets: ticketId }
@@ -68,7 +75,7 @@ const deleteTicketForUser = async (req, res) => {
         // Now, delete the actual ticket document.
         await Ticket.findByIdAndDelete(ticketId);
 
-        res.status(200).json({ message: 'Ticket cancelled successfully.' });
+        res.status(200).json({ message: 'Ticket cancelled successfully.', refund });
     }catch(error){
         console.error("Error deleting ticket: ", error);
         res.status(500).json({ message: "Server error while deleting ticket." });

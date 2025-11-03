@@ -9,27 +9,28 @@ const createEvent = async (req, res) => {
     const { 
       name, date, time, location, description, registration_fee, ticket_fee, total_tickets, banner_image_url, additional_images,
       category, max_participants, judging_criteria, prize_sponsorship, 
-      org_phone_no, org_email, social_media 
+      org_phone_no, org_email, social_media, is_audience_only
     } = req.body;
 
-    if (!name || !date || !time || !location || !description || !registration_fee || !ticket_fee || !total_tickets || !category || !max_participants) {
+    if (!name || !date || !time || !location || !description || !ticket_fee || !total_tickets || !category ) {
       return res.status(400).json({ message: 'Please fill in all required fields' });
     }
 
     const newEvent = new Event({
       name, date, time, location, description,
-      registration_fee: Number(registration_fee),
+      registration_fee: Number(is_audience_only ? 0 : registration_fee),
       ticket_fee: Number(ticket_fee),
       total_tickets: Number(total_tickets),
       banner_image_url: banner_image_url || 'https://res.cloudinary.com/dgfvk6ouy/image/upload/v1758466128/placeholder_banner_lwgiqn.png',
       additional_images: additional_images,
       category,
-      max_participants: Number(max_participants),
+      max_participants: Number(is_audience_only ? 0 : max_participants),
       judging_criteria,
       prize_sponsorship,
       org_phone_no,
       org_email,
       social_media,
+      is_audience_only
     });
 
     const savedEvent = await newEvent.save();

@@ -6,6 +6,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
     <title>Discipl</title>
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <style>
+      /* CHECKBOX TOGGLE SWITCH */
+      /* @apply rules for documentation, these do not work as inline style */
+      .toggle-checkbox:checked {
+        @apply: right-0 border-green-400;
+        right: 0;
+        border-color: #EF4444;
+      }
+      .toggle-checkbox:checked + .toggle-label {
+        @apply: bg-green-400;
+        background-color: #EF4444;
+      }
+      </style>
   </head>
   <body>
     <div id="root"></div>

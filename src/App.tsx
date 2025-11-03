@@ -1,9 +1,10 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, BrowserRouter } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Main from './pages/Main';
 import Home from './pages/Home';
 import About from './pages/About';
+import FitnessDirectory from './pages/FitnessDirectory';
 import Events from './pages/Events';
 import Contact from './pages/Contact';
 import Login from './pages/Login';
@@ -24,6 +25,7 @@ function AppContent() {
           <Route path="/" element={<Main />} />
           <Route path="/home" element={<Home />} />
           <Route path="/about" element={<About />} />
+          <Route path="/fitness-directory" element={<FitnessDirectory />} />
           <Route path="/events" element={<Events />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy/>} />
