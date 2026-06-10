@@ -4,6 +4,17 @@ import { Phone, Mail, MapPin, Star, Check, AlertCircle, Clock, ArrowLeft, Calend
 import axios from 'axios';
 import { API_BASE_URL } from '../config/api';
 
+const getImageUrl = (url: string | null) => {
+  if (!url) return "";
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  
+  // Extract backend base (without /api/v1)
+  const base = API_BASE_URL.replace('/api/v1', '');
+  // Ensure we don't have double slashes
+  const cleanUrl = url.startsWith('/') ? url : `/${url}`;
+  return `${base}${cleanUrl}`;
+};
+
 const GymDetails = () => {
   const { id } = useParams();
   const [selectedPlan, setSelectedPlan] = useState<number | null>(null);
@@ -78,7 +89,7 @@ const GymDetails = () => {
   const gymPhone = gym?.phone_number || "";
   const gymRating = Number(gym?.average_rating) || 0;
   const gymReviews = gym?.review_count || 0;
-  const gymLogo = gym?.logo || "https://images.pexels.com/photos/1552242/pexels-photo-1552242.jpeg?auto=compress&cs=tinysrgb&w=150";
+  const gymLogo = getImageUrl(gym?.logo) || "https://images.pexels.com/photos/1552242/pexels-photo-1552242.jpeg?auto=compress&cs=tinysrgb&w=150";
   const gymAddress = [gym?.location?.building_name, gym?.location?.city, gym?.location?.state].filter(Boolean).join(', ') || 'India';
   const gymCategories = gym?.categories || [];
   const gymAmenities = gym?.amenities || [];
@@ -86,7 +97,8 @@ const GymDetails = () => {
   const gymPlans = gym?.packages || [];
   const gymSlots = gym?.time_slots || [];
   const gymSocials = gym?.social_media || [];
-  const bannerImage = gymPhotos.find((p: any) => p.is_primary)?.image || gymPhotos[0]?.image || "https://images.pexels.com/photos/1552242/pexels-photo-1552242.jpeg?auto=compress&cs=tinysrgb&w=800";
+  const rawBanner = gymPhotos.find((p: any) => p.is_primary)?.image || gymPhotos[0]?.image;
+  const bannerImage = getImageUrl(rawBanner) || "https://images.pexels.com/photos/1552242/pexels-photo-1552242.jpeg?auto=compress&cs=tinysrgb&w=800";
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
@@ -109,7 +121,7 @@ const GymDetails = () => {
           <div className="flex flex-col md:flex-row gap-6 items-start">
             {/* Logo */}
             <div className="w-20 h-20 md:w-24 md:h-24 rounded-xl border-4 border-white overflow-hidden bg-white shadow-md flex-shrink-0">
-              <img src={gymLogo} alt={gymName} className="w-full h-full object-cover" />
+              <img src={gymLogo} alt={gymName} className="w-full h-full object-contain bg-gray-50" />
             </div>
 
             {/* Info */}
@@ -185,7 +197,7 @@ const GymDetails = () => {
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                 {gymPhotos.slice(0, 6).map((p: any) => (
                   <div key={p.id} className="rounded-lg overflow-hidden h-32 md:h-40">
-                    <img src={p.image} alt={p.caption} className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
+                    <img src={getImageUrl(p.image)} alt={p.caption} className="w-full h-full object-contain bg-gray-50 hover:scale-105 transition-transform duration-300" />
                   </div>
                 ))}
               </div>
