@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { User, LogOut, Settings, Home, Info, MapPin, Calendar, Mail } from 'lucide-react';
+import { User, LogOut, Settings, Home, Info, MapPin, Calendar, Mail, Dumbbell } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { doc } from 'firebase/firestore';
 
@@ -61,7 +61,7 @@ const Navbar = () => {
     const observer = document.getElementById('observer');
     if (!observer) return;
 
-    const sections = ['home', 'about', 'events', 'contact'];
+    const sections = ['home', 'about', 'fitness-center', 'events', 'contact'];
     for (const id of sections) {
       const el = document.getElementById(id);
       if (el && isOverlapping(observer, el)) {
@@ -75,6 +75,7 @@ const Navbar = () => {
   const navLinks = [
     { path: '#home', label: 'Home', icon: <Home size={20} /> },
     { path: '#about', label: 'About', icon: <Info size={20} /> },
+    { path: '#fitness-center', label: 'Fitness Center', icon: <Dumbbell size={20} /> },
     { path: '#events', label: 'Events', icon: <Calendar size={20} /> },
     { path: '#contact', label: 'Contact', icon: <Mail size={20} /> },
   ];
@@ -86,8 +87,16 @@ const Navbar = () => {
     // initial check
     handleObserver();
 
+    // scroll if navigated with scrollTo state
+    if (location.state && (location.state as any).scrollTo) {
+      const targetId = (location.state as any).scrollTo;
+      setTimeout(() => {
+        scrollToSection(targetId);
+      }, 200);
+    }
+
     return () => window.removeEventListener('scroll', onScroll);
-  }, []);
+  }, [location.pathname, location.state]);
 
   return (
     <>
@@ -256,7 +265,7 @@ const Navbar = () => {
               >
                 <div className='flex flex-col items-center'>
                   {link.icon}
-                  {link.label}
+                  <span className="text-[10px] mt-1 font-medium">{link.label}</span>
                 </div>
               </button>
             ))}
