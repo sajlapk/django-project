@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, BrowserRouter } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+import Main from './pages/Main';
 import Home from './pages/Home';
 import About from './pages/About';
 import FitnessDirectory from './pages/FitnessDirectory';
@@ -13,18 +13,25 @@ import AdminPanel from './pages/AdminPanel';
 import Profile from './pages/Profile';
 import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsConditions from './pages/TermsConditions';
+import GymDetails from './pages/GymDetails';
 
 function AppContent() {
   return (
-    <div className="min-h-screen flex flex-col bg-white pb-20 md:pb-0">
+    <div className="h-screen flex flex-col bg-white pb-20 sm:pb-0 md:pb-0">
       <Navbar />
       <div className="flex-1">
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<Main />} />
+          <Route path="/home" element={<Home />} />
           <Route path="/about" element={<About />} />
           <Route path="/fitness-directory" element={<FitnessDirectory />} />
+          <Route path="/gym/:id" element={<GymDetails />} />
           <Route path="/events" element={<Events />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy/>} />
+          <Route path="/terms-conditions" element={<TermsConditions/>} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/profile" element={
@@ -47,9 +54,9 @@ function AppContent() {
 function App() {
   return (
     <AuthProvider>
-      <Router>
-        <AppContent />
-      </Router>
+        <Router>
+          <AppContent />
+        </Router>
     </AuthProvider>
   );
 }

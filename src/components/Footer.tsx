@@ -1,8 +1,16 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { Dumbbell, Facebook, Twitter, Instagram, Mail, Phone, MapPin, Youtube } from 'lucide-react';
+import { Facebook, Twitter, Instagram, Mail, Phone, MapPin, Youtube } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const Footer: React.FC = () => {
+  const navigate = useNavigate();
+
+  const handleInternalLink = (e: React.MouseEvent<HTMLAnchorElement>, path: string) => {
+    e.preventDefault(); // stop the browser from doing a full reload
+    window.scrollTo(0, 0); // scroll to top if desired
+    navigate(path);
+  };
+
   return (
     <footer className="bg-neutral-900 text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -36,29 +44,29 @@ const Footer: React.FC = () => {
             <h3 className="font-semibold text-lg mb-4">Quick Links</h3>
             <ul className="space-y-3">
               <li>
-                <Link to="/" className="text-neutral-400 hover:text-primary-500 transition-colors">
+                <a href="../#home" className="text-neutral-400 hover:text-primary-500 transition-colors">
                   Home
-                </Link>
+                </a>
               </li>
               <li>
-                <Link to="/about" className="text-neutral-400 hover:text-primary-500 transition-colors">
-                  About Us
-                </Link>
+                <a href="../#about" className="text-neutral-400 hover:text-primary-500 transition-colors">
+                  About
+                </a>
               </li>
-              <li>
+              {/* <li>
                 <Link to="/fitness-directory" className="text-neutral-400 hover:text-primary-500 transition-colors">
                   Fitness Directory
                 </Link>
-              </li>
+              </li> */}
               <li>
-                <Link to="/events" className="text-neutral-400 hover:text-primary-500 transition-colors">
+                <a href="../#events" className="text-neutral-400 hover:text-primary-500 transition-colors">
                   Events
-                </Link>
+                </a>
               </li>
               <li>
-                <Link to="/contact" className="text-neutral-400 hover:text-primary-500 transition-colors">
+                <a href="../#contact" className="text-neutral-400 hover:text-primary-500 transition-colors">
                   Contact
-                </Link>
+                </a>
               </li>
             </ul>
           </div>
@@ -69,7 +77,7 @@ const Footer: React.FC = () => {
             <div className="space-y-3">
               <div className="flex items-center space-x-3 text-neutral-400">
                   <Mail className="h-4 w-4 flex-shrink-0" />
-                  <a href="mailto: info@discipl.com" className="text-sm">info@discipl.com</a>
+                  <a href="mailto: info@discipl.com" className="text-sm">info@thediscipl.com</a>
               </div>
               <div className="flex items-center space-x-3 text-neutral-400">
                 <Phone className="h-4 w-4 flex-shrink-0" />
@@ -77,7 +85,7 @@ const Footer: React.FC = () => {
               </div>
               <div className="flex items-center space-x-3 text-neutral-400">
                 <MapPin className="h-4 w-4 flex-shrink-0" />
-                <span className="text-[12px]">Room no - L-15, AUWM, Thadambattuthazham, Vengeri, Kozhikode-673010</span>
+                <span className="text-[12px]">Vankannayullathil, Near Block Office, Balussery, Kozhikode, Kerala - 673613</span>
               </div>
             </div>
           </div>
@@ -85,9 +93,12 @@ const Footer: React.FC = () => {
 
         <div className="border-t border-neutral-800 mt-12 pt-8 text-center">
           <p className="text-neutral-400 text-sm">
-            © 2025 Discipl. All rights reserved. | <a href="privacy_policy.pdf" target="_blank">Privacy Policy</a> | <a href="terms_and_conditions.pdf" target="_blank">Terms and Conditions</a> | <a href="https://thediscipl.com/privacy-policy-vendorapp/" target="_blank">Privacy Policy for Vendor App</a>
+            © 2025 Discipl. All rights reserved. | <a href="/privacy-policy" onClick={(e) => handleInternalLink(e, '/privacy-policy')} className="hover:text-primary-500 transition-colors">Privacy Policy</a> | <a href="/privacy-policy" onClick={(e) => handleInternalLink(e, '/terms-conditions')} className="hover:text-primary-500 transition-colors">Terms and Conditions</a> 
           </p>
         </div>
+              
+        {/* Space to show terms and conditions in mobile view */}
+        <div className="block lg:hidden mt-20"></div>
       </div>
     </footer>
   );

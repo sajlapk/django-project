@@ -1,38 +1,83 @@
-import React, { useState, useEffect } from 'react';
-import { Calendar, MapPin, Users, Clock, Search, Award } from 'lucide-react';
-import axios from 'axios';
+import React, { useEffect, useState } from "react";
+import { useAuth } from "../contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { Calendar, MapPin, Users, Clock } from "lucide-react";
+import RazorPayButton from "../components/RazorPayButton";
 
-// 1. Update the interface to include judgingCriteria
 interface IEvent {
   _id: string;
   name: string;
   description: string;
+  judging_criteria: string[];
+  org_email: string;
+  org_phone_no: string;
+  social_media: { platform: string; handle: string }[];
   date: string;
   time: string;
   location: string;
   category: string;
-  participants: number;
-  maxParticipants: number;
-  fee: number;
-  imageUrl: string;
-  judgingCriteria?: string[]; // It's optional as older events might not have it
+  status: 'ONGOING' | 'PASSED';
+  registration_fee: number;
+  ticket_fee: number;
+  total_tickets: number;
+  registered_participants_count: number;
+  max_participants: number;
+  banner_image_url?: string;
+  prize_sponsorship: string;
+  issued_tickets_count: number;
+  is_audience_only: boolean;
 }
 
-const Events = () => {
+const Events: React.FC = () => {
+  const navigate = useNavigate();
+  const { user } = useAuth(); // Get the logged-in user from context
+
+  const [noOfTickets, setNoOfTickets] = useState(1)
+
   const [events, setEvents] = useState<IEvent[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  // Used when participant details are collected
+  // const [participantData, setParticipantData] = useState({
+  //   name: "",
+  //   age: 0,
+  //   height: 0,
+  //   weight: 0
+  // });
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
+  const [isParticipantModalOpen, setIsParticipantModalOpen] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<IEvent | null>(null);
+
+  const openModal = (event: IEvent) => {
+    setSelectedEvent(event);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setSelectedEvent(null);
+    setIsModalOpen(false);
+  };
 
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const response = await axios.get('https://discipl-server.onrender.com/api/events');  // Used for github deployment
-        //const response = await axios.get('http://localhost:8172/api/events');
-        setEvents(response.data);
+        const response = await axios.get('https://discipl-web-frontend-1.onrender.com/api/events'); // This is used when running from github repo
+        // const response = await axios.get('http://localhost:8172/api/events'); // This is used when running on localhost
+        // console.log(response.data); // DEBUG
+
+        if (Array.isArray(response.data)) {
+          setEvents(response.data);
+        } else if (Array.isArray(response.data.events)) {
+          setEvents(response.data.events);
+        } else {
+          setEvents([]);
+        }
       } catch (err) {
-        setError('Failed to load events. Please try again later.');
-        console.error(err);
+        // console.error("Error fetching events:", err); // DEBUG
+        setEvents([]);
       } finally {
         setLoading(false);
       }
@@ -41,180 +86,653 @@ const Events = () => {
     fetchEvents();
   }, []);
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+  const formatDate = (dateStr: string) =>
+    new Date(dateStr).toLocaleDateString("en-IN", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
-  };
 
   const getCategoryColor = (category: string) => {
     const colors: { [key: string]: string } = {
-      'Challenge': 'bg-red-100 text-red-800', 'Workshop': 'bg-blue-100 text-blue-800',
-      'Competition': 'bg-purple-100 text-purple-800', 'Seminar': 'bg-green-100 text-green-800',
-      'Training': 'bg-orange-100 text-orange-800', 'Dance': 'bg-pink-100 text-pink-800'
+      'Power Lifting': 'bg-red-100 text-red-800', 
+      'Arm Wrestling': 'bg-blue-100 text-blue-800',
+      'Cardio': 'bg-purple-100 text-purple-800', 
+      'Calisthenics': 'bg-green-100 text-green-800',
+      'Training': 'bg-orange-100 text-orange-800', 
+      'Physique': 'bg-pink-100 text-pink-800'
     };
     return colors[category] || 'bg-gray-100 text-gray-800';
   };
 
-  const filteredEvents = events.filter(event =>
-    event.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    event.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    event.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    event.category.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-red-500"></div>
-      </div>
-    );
+    return <p className="text-center text-gray-600">Loading events...</p>;
   }
 
-  if (error) {
-    return (
-      <div className="min-h-screen flex items-center justify-center text-center">
-        <div>
-          <h2 className="text-2xl font-bold text-red-600 mb-4">Oops! Something went wrong.</h2>
-          <p className="text-gray-600">{error}</p>
-        </div>
-      </div>
-    );
+  const handleParticipantPaymentSuccess = async (paymentDetails: any) => {  
+    if (!selectedEvent) return;
+
+    try {
+      // Payload for when participant details are NOT collected
+      const payload = {
+        eventId: selectedEvent._id,
+        userId: user?.id,
+        paymentId: paymentDetails.response.razorpay_payment_id,
+        name: user?.name,
+      };
+
+      await axios.post('https://discipl-web-frontend-1.onrender.com/api/participants/add', payload); // This is used when running from github repo
+      // const pre_payment_response = await axios.post("http://localhost:8172/api/participants/add", payload); // This is used when running on localhost
+      // console.log("Participant registered successfully", pre_payment_response); //DEBUG
+      
+      // Close all modals
+      setIsParticipantModalOpen(false)
+      setIsModalOpen(false);
+
+      // Refetch the events so the issued_tickets_count and registered_participants_count can refresh 
+      const post_payment_response = await axios.get('https://discipl-web-frontend-1.onrender.com/api/events'); // This is used when running from github repo      
+      // const post_payment_response = await axios.get('http://localhost:8172/api/events'); // This is used when running on localhost
+      // console.log("Fetched events after payment", post_payment_response) // DEBUG
+
+      setEvents(post_payment_response.data);
+      // window.location.href = "/events"; // redirect to home page
+      setTimeout(() => navigate("/events"), 1000);
+    } catch (error) {
+      // console.error("Error saving participant data:", error); // DEBUG
+      // alert("Payment succeeded but failed to save participant data."); //DEBUG
+    }
+  };
+
+  // // Function to issue a ticket on successful payment for ticket purchase
+  const issueTicket = async(paymentDetails: any) =>{
+    if(!selectedEvent) return
+
+    try{
+      const payload = {
+        eventId: selectedEvent._id,
+        userId: user?.id,
+        paymentId: paymentDetails.response.razorpay_payment_id,
+        buyer_name: user?.name,
+        buyer_email: user?.email,
+        amount: paymentDetails.order.amount, // money is sent in paise
+        no_of_tickets: noOfTickets,
+      }
+      // console.log(payload) // DEBUG
+      
+      await axios.post('https://discipl-web-frontend-1.onrender.com/api/tickets/issueTicket', payload); // This is used when running from github repo
+      // const pre_payment_response = await axios.post("http://localhost:8172/api/tickets/issueTicket", payload); // This is used when running on localhost
+      // console.log("Issued Ticket", pre_payment_response); //DEBUG
+      
+      // Close the modal and reset state
+      setIsTicketModalOpen(false);
+      setNoOfTickets(1);
+      setIsModalOpen(false);
+
+      // Refetch the events so the issued_tickets_count and registered_participants_count can refresh 
+      const post_payment_response = await axios.get('https://discipl-web-frontend-1.onrender.com/api/events'); // This is used when running from github repo      
+      // const post_payment_response = await axios.get('http://localhost:8172/api/events'); // This is used when running on localhost
+      // console.log("Fetched events after payment", post_payment_response) // DEBUG
+
+      setEvents(post_payment_response.data);
+      // window.location.href = "/events"; // redirect to home page
+      setTimeout(() => navigate("/events"), 1000);
+    }catch(error){
+      // console.error("Error issuing ticket for payment", error); // DEBUG
+      // alert("Payment succeeded but failed to issue ticket for payment."); //DEBUG
+    }
   }
 
   return (
-    <div className="min-h-screen">
-      {/* Hero and Search Sections */}
-      <section className="py-20 bg-gradient-to-br from-gray-50 to-red-50 text-black sm: h-[15rem] md: h-[15rem]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <h1 className="text-4xl md:text-6xl font-bold mb-6">
-              Fitness <span className="text-red-500">Events</span>
-            </h1>
-            <p className="text-xl md:text-2xl max-w-3xl mx-auto text-gray-600">
-              Discover exciting fitness events, competitions, and workshops in your area
-            </p>
-          </div>
-        </div>
-      </section>
-      <section className="py-8 bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-            <h2 className="text-2xl font-bold text-black">Upcoming Events</h2>
-            <div className="relative w-full md:w-96">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <input
-                type="text"
-                placeholder="Search events..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+    <div className="container mx-auto px-4 py-10 rounded-b-2xl">
+      <h1 className="text-4xl font-bold mb-10 text-center text-black">
+        Upcoming Events
+      </h1>
+      {events.length === 0 || events.filter(event => event.status === "ONGOING").length === 0 ? 
+      (
+        <p className="text-center text-gray-600">No events available</p>
+      ) 
+      : 
+      (
+        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+          {events.filter(event => event.status === "ONGOING").map((event) => (
+            <div
+              key={event._id}
+              onClick={() => openModal(event)}
+              className="cursor-pointer bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 overflow-hidden flex flex-col"
+            >
+              <img
+                src={
+                  event.banner_image_url ||
+                  "https://res.cloudinary.com/dgfvk6ouy/image/upload/v1758466128/placeholder_banner_lwgiqn.png"
+                }
+                alt={event.name}
+                className="w-full h-48 object-cover"
               />
-            </div>
-          </div>
-          {searchTerm && (
-            <div className="mt-4 text-gray-600">
-              Found {filteredEvents.length} event{filteredEvents.length !== 1 ? 's' : ''} matching "{searchTerm}"
-            </div>
-          )}
-        </div>
-      </section>
 
-      {/* Events Grid */}
-      <section className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {filteredEvents.length === 0 ? (
-            <div className="text-center py-12">
-              <Calendar className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-              <h3 className="text-xl font-semibold text-gray-700">No events found</h3>
-              <p className="text-gray-500">
-                {searchTerm ? `No events match "${searchTerm}".` : 'Check back later for new events!'}
-              </p>
+              <div className="p-6 flex-1 flex flex-col">
+                <h2 className="text-2xl font-bold mb-2 text-gray-900">
+                  {event.name}
+                </h2>
+                
+                <div className="mt-4 space-y-1 text-gray-500 text-sm">
+                  <span className="flex items-center">
+                    <Calendar className="w-4 h-4 mr-2 text-red-500" />{formatDate(event.date)}
+                  </span>
+                  
+                  <span className="flex items-center">
+                    <Clock className="w-4 h-4 mr-2 text-red-500" />{event.time}
+                  </span>
+                  
+                  <span className="flex items-center">
+                    <MapPin className="w-4 h-4 mr-2 text-red-500" />{event.location}
+                  </span>
+                  
+                  {!event.is_audience_only ? (
+                      <div className="mt-5 space-y-2 pb-4 pt-5">
+                        <div className="flex items-center text-gray-700">
+                          <Users className="w-4 h-4 mr-2 text-red-500" />
+                          <span className="text-sm">{event.registered_participants_count}/{event.max_participants} participants</span>
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                          <div className="w-full bg-gray-200 rounded-full h-2 mr-4">
+                            <div
+                              className="bg-red-500 h-2 rounded-full"
+                              style={{ width: `${(event.registered_participants_count / event.max_participants) * 100}%` }}
+                            ></div>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  : 
+                    (
+                      <div className="mt-5 space-y-2 pb-12 pt-5">
+                        
+                      </div>
+                    )
+                  }
+                </div>
+                <button className="mt-6 w-full bg-red-500 text-white py-2 px-4 rounded-full font-semibold hover:bg-red-600 transition-colors">
+                  View Details
+                </button>
+              </div>
             </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {filteredEvents.map((event) => (
+          ))}
+        </div>
+      )}
+
+      <div className="container mx-auto py-10 rounded-b-2xl">
+        <h1 className="text-4xl p-4 font-bold mt-10 text-white bg-gray-800 rounded-t-2xl">
+          Past Events
+        </h1>
+        <div className="container mx-auto px-4 py-10 bg-gray-800 rounded-b-2xl shadow-lg">
+          {events.length === 0 || events.filter(event => event.status === "PASSED").length === 0 ? 
+          (
+            <p className="text-center text-gray-600">No past events.</p>
+          ) 
+          : 
+          (
+            <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+              {events.filter(event => event.status === "PASSED").map((event) => (
                 <div
                   key={event._id}
-                  className="bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 overflow-hidden flex flex-col"
+                  onClick={() => openModal(event)}
+                  className="cursor-pointer bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 overflow-hidden flex flex-col"
                 >
-                  <div className="relative">
-                    <img
-                      src={event.imageUrl || 'https://placehold.co/600x400/f87171/white?text=Event'}
-                      alt={event.name}
-                      className="w-full h-48 object-cover"
-                    />
-                    <div className="absolute top-4 left-4">
+                  <img
+                    src={
+                      event.banner_image_url ||
+                      "https://res.cloudinary.com/dgfvk6ouy/image/upload/v1758466128/placeholder_banner_lwgiqn.png"
+                    }
+                    alt={event.name}
+                    className="w-full h-48 object-cover border border-b-gray-200 border-4"
+                  />
+
+                  <div className="p-6 flex-1 flex flex-col">
+                    <h2 className="text-2xl font-bold mb-2 text-gray-900">
+                      {event.name}
+                    </h2>
+
+                    <span>
                       <span className={`px-3 py-1 rounded-full text-sm font-medium ${getCategoryColor(event.category)}`}>
                         {event.category}
                       </span>
-                    </div>
-                    <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full">
-                      <span className="text-lg font-bold text-red-500">₹{event.fee}</span>
+                    </span>
+
+                    <div className="mt-4 space-y-1 text-gray-500 text-sm">
+                      <span className="flex items-center">
+                        <Calendar className="w-4 h-4 mr-2 text-red-500" />{formatDate(event.date)}
+                      </span>
+                      
+                      <span className="flex items-center">
+                        <Clock className="w-4 h-4 mr-2 text-red-500" />{event.time}
+                      </span>
+                      
+                      <span className="flex items-center">
+                        <MapPin className="w-4 h-4 mr-2 text-red-500" />{event.location}
+                      </span>
+                      
+                      {!event.is_audience_only ? (
+                          <div className="mt-5 space-y-2 pb-4 pt-5">
+                            <div className="flex items-center text-gray-700">
+                              <Users className="w-4 h-4 mr-2 text-red-500" />
+                              <span className="text-sm">{event.registered_participants_count}/{event.max_participants} participants</span>
+                            </div>
+
+                            <div className="flex items-center justify-between">
+                              <div className="w-full bg-gray-200 rounded-full h-2 mr-4">
+                                <div
+                                  className="bg-red-500 h-2 rounded-full"
+                                  style={{ width: `${(event.registered_participants_count / event.max_participants) * 100}%` }}
+                                ></div>
+                              </div>
+                            </div>
+                          </div>
+                        )
+                      : 
+                        (
+                          <div className="mt-5 space-y-2 pb-12 pt-5">
+                            
+                          </div>
+                        )
+                      }
                     </div>
                   </div>
-                  <div className="p-6 flex flex-col flex-grow">
-                    <h3 className="text-xl font-bold text-black mb-3">{event.name}</h3>
-                    <p className="text-gray-600 mb-4 line-clamp-3 flex-grow">{event.description}</p>
-                    
-                    {/* --- 2. NEW SECTION: Display Judging Criteria --- */}
-                    {event.judgingCriteria && event.judgingCriteria.length > 0 && (
-                      <div className="mb-4">
-                        <div className="flex items-center text-sm font-bold text-gray-800 mb-2">
-                           <Award className="w-4 h-4 mr-2 text-red-500" />
-                           <span>Judging Criteria</span>
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                          {event.judgingCriteria.map((criterion, index) => (
-                            <span key={index} className="bg-red-100 text-red-800 text-xs font-medium px-3 py-1 rounded-full">
-                              {criterion}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    {/* --- END OF NEW SECTION --- */}
-
-                    <div className="space-y-2 mb-4">
-                      <div className="flex items-center text-gray-700">
-                        <Calendar className="w-4 h-4 mr-2 text-red-500" />
-                        <span className="text-sm">{formatDate(event.date)}</span>
-                      </div>
-                      <div className="flex items-center text-gray-700">
-                        <Clock className="w-4 h-4 mr-2 text-red-500" />
-                        <span className="text-sm">{event.time}</span>
-                      </div>
-                      <div className="flex items-center text-gray-700">
-                        <MapPin className="w-4 h-4 mr-2 text-red-500" />
-                        <span className="text-sm">{event.location}</span>
-                      </div>
-                      <div className="flex items-center text-gray-700">
-                        <Users className="w-4 h-4 mr-2 text-red-500" />
-                        <span className="text-sm">{event.participants}/{event.maxParticipants} participants</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div className="w-full bg-gray-200 rounded-full h-2 mr-4">
-                        <div
-                          className="bg-red-500 h-2 rounded-full"
-                          style={{ width: `${(event.participants / event.maxParticipants) * 100}%` }}
-                        ></div>
-                      </div>
-                      <span className="text-xs text-gray-500 whitespace-nowrap">
-                        {Math.round((event.participants / event.maxParticipants) * 100)}% full
-                      </span>
-                    </div>
-                    <button className="w-full mt-4 bg-red-500 text-white px-6 py-3 rounded-full font-semibold hover:bg-red-600">
-                      Register Now
-                    </button>
+                  <div className="text-center w-full bg-red-500 text-white py-4 px-4 font-semibold hover:bg-red-600 transition-colors">
+                    View Details
                   </div>
                 </div>
               ))}
             </div>
           )}
         </div>
-      </section>
+      </div>
+  
+      {/* Popup for view event details */}
+      {isModalOpen && selectedEvent && (
+        <div className="rounded-3xl fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+            {/* Header */}
+            <div className="rounded-t-3xl bg-red-500 flex justify-between items-center p-4 sm:p-6 border-b border-gray-200 flex-shrink-0">
+              <h2 className="text-xl sm:text-2xl font-bold text-white">
+                {selectedEvent.name}
+              </h2>
+              <button
+                onClick={closeModal}
+                className="p-2 rounded-full text-white hover:bg-gray-100 hover:text-gray-600 transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="p-4 sm:p-8 overflow-y-auto space-y-6">
+              <img
+                src={
+                  selectedEvent.banner_image_url ||
+                  "https://res.cloudinary.com/dgfvk6ouy/image/upload/v1758466128/placeholder_banner_lwgiqn.png"
+                }
+                alt={selectedEvent.name}
+                className="w-full h-full object-cover rounded-lg"
+              />
+
+              {/* Event Gallery */}
+              {selectedEvent.additional_images && selectedEvent.additional_images.length > 0 && (
+                <div className="mt-6 relative w-full">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Gallery</h3>
+
+                  <div className="relative overflow-hidden rounded-xl">
+                    <div
+                      className="flex overflow-x-auto space-x-3 scrollbar-hide snap-x snap-mandatory scroll-smooth"
+                      ref={(el) => {
+                        if (!el) return;
+                        const scrollContainer = el;
+                        let index = 0;
+                        let autoScroll: NodeJS.Timeout;
+
+                        const dots = document.querySelectorAll<HTMLButtonElement>(".gallery-dot");
+
+                        const updateDots = (idx: number) => {
+                          dots.forEach((dot, i) => {
+                            dot.classList.toggle("bg-gray-800", i === idx);
+                            dot.classList.toggle("bg-gray-400", i !== idx);
+                          });
+                        };
+
+                        const startAutoScroll = () => {
+                          clearInterval(autoScroll);
+                          autoScroll = setInterval(() => {
+                            if (!scrollContainer) return;
+                            index = (index + 1) % selectedEvent.additional_images.length;
+                            scrollContainer.scrollTo({
+                              left: index * scrollContainer.clientWidth,
+                              behavior: "smooth",
+                            });
+                            updateDots(index);
+                          }, 5000);
+                        };
+
+                        // Detect current index on manual scroll
+                        const handleScroll = () => {
+                          const newIndex = Math.round(
+                            scrollContainer.scrollLeft / scrollContainer.clientWidth
+                          );
+                          index = newIndex;
+                          updateDots(index);
+                        };
+
+                        scrollContainer.addEventListener("scroll", handleScroll);
+                        scrollContainer.addEventListener("mousedown", () => clearInterval(autoScroll));
+                        scrollContainer.addEventListener("touchstart", () => clearInterval(autoScroll));
+                        scrollContainer.addEventListener("mouseup", startAutoScroll);
+                        scrollContainer.addEventListener("touchend", startAutoScroll);
+
+                        updateDots(index);
+                        startAutoScroll();
+
+                        return () => {
+                          clearInterval(autoScroll);
+                          scrollContainer.removeEventListener("scroll", handleScroll);
+                        };
+                      }}
+                    >
+                      {selectedEvent.additional_images.map((img, i) => (
+                        <img
+                          key={i}
+                          src={img}
+                          alt={`Event image ${i + 1}`}
+                          className="w-full h-64 object-cover rounded-lg snap-center flex-shrink-0"
+                        />
+                      ))}
+                    </div>
+
+                    {/* Left arrow */}
+                    <button
+                      onClick={() => {
+                        const container = document.querySelector<HTMLDivElement>(".scrollbar-hide");
+                        if (container)
+                          container.scrollBy({ left: -container.clientWidth, behavior: "smooth" });
+                      }}
+                      className="absolute top-1/2 left-2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-70"
+                    >
+                      ‹
+                    </button>
+
+                    {/* Right arrow */}
+                    <button
+                      onClick={() => {
+                        const container = document.querySelector<HTMLDivElement>(".scrollbar-hide");
+                        if (container)
+                          container.scrollBy({ left: container.clientWidth, behavior: "smooth" });
+                      }}
+                      className="absolute top-1/2 right-2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-70"
+                    >
+                      ›
+                    </button>
+                  </div>
+
+                  {/* Pagination dots below the image */}
+                  <div className="flex justify-center space-x-2 mt-4">
+                    {selectedEvent.additional_images.map((_, i) => (
+                      <button
+                        key={i}
+                        className={`gallery-dot w-3 h-3 rounded-full ${i === 0 ? 'bg-gray-800' : 'bg-gray-400'}`}
+                        onClick={() => {
+                          const container = document.querySelector<HTMLDivElement>(".scrollbar-hide");
+                          if (container)
+                            container.scrollTo({ left: i * container.clientWidth, behavior: "smooth" });
+                        }}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <span className={`px-3 py-1 rounded-full text-sm font-medium ${getCategoryColor(selectedEvent.category)}`}>
+                  {selectedEvent.category}
+                </span>
+              </div>
+              
+              <div className="space-y-1">
+                <p className="text-medium text-black mb-0">Description:</p>
+                <div className="border p-4 pt-1 pl-3 rounded-lg bg-gray-50">
+                  <p className="text-gray-700">{selectedEvent.description}</p>
+                </div>
+              </div>
+
+              <div className="space-y-2 mb-4">
+                <div className="flex items-center text-gray-700">
+                  <p className="text-medium"><span className="text-black">Date:</span> {formatDate(selectedEvent.date)}</p>
+                </div>
+                <div className="flex items-center text-gray-700">
+                  <p className="text-medium"><span className="text-black">Time:</span> {selectedEvent.time }</p>
+                </div>
+                <div className="flex items-center text-gray-700">
+                  <p className="text-medium"><span className="text-black">Location:</span> {selectedEvent.location}</p>
+                </div>
+                {!selectedEvent.is_audience_only &&
+                  (
+                  <div className="flex items-center text-gray-700">
+                    <p className="text-medium"><span className="text-black">Participation Fee:</span> {selectedEvent.registration_fee}</p>
+                  </div>
+                  )
+                }
+                <div className="flex items-center text-gray-700">
+                  <p className="text-medium"><span className="text-black">Ticket Fee:</span> {selectedEvent.ticket_fee}</p>
+                </div>
+                {!selectedEvent.is_audience_only &&
+                  (
+                    <div className="flex items-center text-gray-700">
+                      <p className="text-medium"><span className="text-black">Participants:</span> {selectedEvent.registered_participants_count}/{selectedEvent.max_participants}</p>
+                    </div>
+                  )
+                }              
+                <div className="flex items-center text-gray-700">
+                  <p className="text-medium"><span className="text-black">Total Tickets:</span> {selectedEvent.total_tickets}</p>
+                </div>
+                {!selectedEvent.is_audience_only &&(
+                  <div className="flex items-center text-gray-700 pb-5">
+                    <p className="text-medium"><span className="text-black">Prize:</span> {selectedEvent.prize_sponsorship}</p>
+                  </div>
+                )}
+
+                {/*Organizer Details*/}
+                <div className="border rounded-lg bg-gray-50">
+                  <h3 className="font-semibold text-gray-900 mb-2 p-4 pt-1 pl-3 pb-0">Organizer Details</h3>
+
+                  <div className="flex flex-row text-gray-700 gap-6 p-5 pt-1 pb-3">
+                    <div className="flex flex-col gap-2 mb-2 pt-2">
+                      <p className="text-black text-lg">Email:</p> 
+                      <p className="text-black text-lg">Phone Number:</p>    
+                    </div>
+                    <div className="flex flex-col gap-2 mb-2">
+                      <div className="bg-white border rounded-lg border-black p-4 pl-2 pt-1 pb-1">{selectedEvent.org_phone_no}</div>
+                      <div className="bg-white border rounded-lg border-black p-4 pl-2 pt-1 pb-1">{selectedEvent.org_email}</div>
+                    </div>
+                  </div>
+
+                  <div className="text-medium">
+                    {selectedEvent.social_media && selectedEvent.social_media.length > 0 && (
+                      <div className="flex flex-row gap-4 mb-2 p-4 pt-1 pl-3 pb-0 justify-space-between">
+                        {selectedEvent.social_media.map((link, index) => (
+                          <div className="flex flex-row gap-1" key={index}>
+                            <h4>{link.platform}: </h4>
+                            <p>{link.handle}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}                  
+                  </div>
+                </div>
+              </div>
+              
+              {selectedEvent.judging_criteria && !selectedEvent.is_audience_only &&
+                selectedEvent.judging_criteria.length > 0 && (
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-2 flex items-center">Judging Criteria</h3>
+                    <ul className="list-disc list-inside text-gray-700 space-y-1">
+                      {selectedEvent.judging_criteria.map((c, i) => (
+                        <li key={i}>{c}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}              
+            </div>
+            
+            { selectedEvent.status === "PASSED" ?
+              <div>
+
+              </div>            
+            :
+              (!user ?
+                <div
+                className="rounded-b-3xl bg-black flex justify-center items-center p-4 border-t border-gray-200 space-x-4 flex-shrink-0"
+                >
+                  <button
+                  className=" px-6 py-3 rounded-full font-semibold text-white bg-red-500 border-2 border-red-500 hover:bg-white hover:text-red-500 hover:border-white transition-colors"
+                  onClick={()=>{window.location.href="/login"}}
+                  >
+                    Please Login to buy tickets or Register for an event
+                  </button>
+                </div>  
+              :
+              <div className="rounded-b-3xl bg-black flex justify-end items-center p-4 border-t border-gray-200 space-x-4 flex-shrink-0">
+                <button 
+                  onClick={()=>{setIsTicketModalOpen(true); setIsModalOpen(false);}}
+                  className=" px-6 py-3 rounded-full font-semibold text-black bg-white border-2 border-black hover:bg-black hover:text-white transition-colors">
+                  Buy Ticket
+                </button>
+                {!selectedEvent.is_audience_only && (
+                  selectedEvent.registered_participants_count >= selectedEvent.max_participants ?
+                  <button
+                    className="px-6 py-3 rounded-full font-semibold text-red-500 bg-white border border-red-500"
+                    disabled>
+                    Maximum participants registered.
+                  </button>
+                  :
+                  <button
+                    onClick={()=>{setIsParticipantModalOpen(true); setIsModalOpen(false);}}
+                    className="px-6 py-3 rounded-full font-semibold text-white bg-red-500 hover:bg-red-600 transition-colors">
+                    Register for Event
+                  </button>
+                )}
+              </div>
+              )
+            }
+          </div>
+        </div>
+      )}
+
+      {/* Popup for Ticket Payment */}
+      {isTicketModalOpen && selectedEvent && (() => {
+        // console.log("Selected Event Data:", selectedEvent); // DEBUG
+        const availableTickets = selectedEvent.total_tickets - selectedEvent.issued_tickets_count;
+        
+        return(
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+              {/* Header */}
+              <div className="bg-red-500 rounded-t-3xl flex justify-between items-center p-4 sm:p-6 border-b border-gray-200 flex-shrink-0">
+                <h2 className="text-xl sm:text-2xl font-bold text-white">
+                  Purchase Ticket for {selectedEvent.name}?
+                </h2>
+              </div>
+
+              {/* Content */}
+              {(availableTickets>0 ?
+              <div className="space-y-2 p-8 overflow-y-auto flex-1">
+                <div className="flex flex-row items-center text-gray-700 justify-evenly gap-2">
+                  <p className="text-small text-black">How many tickets?</p>
+                  <div className="w-1/4">
+                    <input className="border-2 border-black rounded-xl w-full pl-3" type="number"  min={1} max={availableTickets} value={noOfTickets} onChange={(event)=>setNoOfTickets(Number(event.target.value))}/>
+                  </div>
+                </div>
+              </div>
+              :
+              <div className="space-y-2 p-8 overflow-y-auto flex-1">
+                <p className="text-2xl text-black">Sorry. All Tickets are booked</p>
+              </div>
+              )}
+
+              {/* Payment Summary */}
+              {(availableTickets>0 ?
+                <div className="p-4 sm:p-8 border border-gray-200 flex-shrink-0">
+                  <p className="text-gray-500">Available Tickets = {availableTickets} Tickets</p>
+                  <p className="text-gray-500">₹{selectedEvent.ticket_fee} x {noOfTickets} {noOfTickets>1 ? "Tickets" : "Ticket"} = ₹{selectedEvent.ticket_fee * noOfTickets}</p>
+                  <p className="text-gray-500">GST: 14%</p>
+                  <p className="text-gray-500">(14 x ₹{selectedEvent.ticket_fee * noOfTickets})/100 = ₹{(14 * selectedEvent.ticket_fee * noOfTickets)/100} GST</p>
+                  <p className="text-black text-lg font-semibold mt-4 pt-2 border-t">Total(₹{selectedEvent.ticket_fee * noOfTickets} + ₹{(14 * selectedEvent.ticket_fee * noOfTickets)/100} GST): ₹{(selectedEvent.ticket_fee * noOfTickets) + ((14 * selectedEvent.ticket_fee * noOfTickets)/100)}</p>
+                </div>
+              :
+                <div className="p-4 sm:p-8 border border-gray-200 flex-shrink-0">
+                  <p className="text-gray-500">No tickets are available.</p>
+                </div>
+              )}
+            
+              <div className="bg-white rounded-b-3xl flex justify-end items-center p-4 border-t border-gray-200 space-x-4 flex-shrink-0">
+                <button
+                  onClick={()=>{setIsTicketModalOpen(false); setIsModalOpen(true);}}
+                  className="px-6 py-3 rounded-full font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors"
+                >
+                  Close
+                </button>
+                {( availableTickets <= 0 ? 
+                  <button 
+                  className="px-6 py-3 rounded-full font-semibold text-black bg-gray-300 border border-black"
+                  disabled
+                  >Sold Out!</button>
+                :
+                <RazorPayButton
+                  amount={(selectedEvent.ticket_fee * noOfTickets) + ((14 * selectedEvent.ticket_fee * noOfTickets)/100)}
+                  eventName={selectedEvent.name}
+                  buyer_name = {user?.name}
+                  buyer_email = {user?.email}
+                  onSuccess={(paymentDetails)=>{issueTicket(paymentDetails)}}
+                  disabled={noOfTickets<=0 || noOfTickets>availableTickets}
+                  />
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Popup for Participant Payment */}
+      {isParticipantModalOpen && selectedEvent && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+            {/* Header */}
+            <div className="bg-red-500 rounded-t-3xl flex justify-between items-center p-4 sm:p-6 border-b border-gray-200 flex-shrink-0">
+              <h2 className="text-xl sm:text-2xl font-bold text-white">
+                Register for {selectedEvent.name}?
+              </h2>
+            </div>
+
+            {/* Payment Summary */}
+            <div className="p-4 sm:p-8 border border-gray-200 flex-shrink-0">
+              <p className="text-gray-500">₹{selectedEvent.registration_fee} x {noOfTickets} {noOfTickets>1 ? "Tickets" : "Ticket"} = ₹{selectedEvent.registration_fee * noOfTickets}</p>
+              <p className="text-gray-500">GST: 14%</p>
+              <p className="text-gray-500">(14 x ₹{selectedEvent.registration_fee * noOfTickets})/100 = ₹{(14 * selectedEvent.registration_fee * noOfTickets)/100} GST</p>
+              <p className="text-black text-lg font-semibold mt-4 pt-2 border-t">Total(₹{selectedEvent.registration_fee * noOfTickets} + ₹{(14 * selectedEvent.registration_fee * noOfTickets)/100} GST): ₹{(selectedEvent.registration_fee * noOfTickets) + ((14 * selectedEvent.registration_fee * noOfTickets)/100)}</p>
+            </div>
+
+            <div className="bg-white rounded-b-3xl flex justify-end items-center p-4 border-t border-gray-200 space-x-4 flex-shrink-0">
+              <button
+                onClick={()=>{setIsParticipantModalOpen(false); setIsModalOpen(true);}}
+                className="px-6 py-3 rounded-full font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors"
+              >
+                Close
+              </button>
+              <RazorPayButton
+                amount={(selectedEvent.registration_fee * noOfTickets) + ((14 * selectedEvent.registration_fee * noOfTickets)/100)}
+                eventName={selectedEvent.name}
+                onSuccess={(paymentDetails) => handleParticipantPaymentSuccess(paymentDetails)}
+                />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

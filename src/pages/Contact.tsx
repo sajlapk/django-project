@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Mail, Phone, MapPin, Youtube, Send, CheckCircle, Instagram, Facebook } from 'lucide-react';
+import axios from 'axios';
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -21,25 +22,29 @@ const Contact = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
-    // Simulate form submission
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    setIsSubmitted(true);
-    setIsSubmitting(false);
-    setFormData({ name: '', email: '', subject: '', message: '' });
-    
-    // Reset success message after 3 seconds
-    setTimeout(() => {
-      setIsSubmitted(false);
-    }, 3000);
+
+    try {
+      const response = await axios.post('https://discipl-web-frontend-1.onrender.com/api/contacts/sendMessage', formData); // This is used when running from github repo
+      // const response = await axios.post('http://localhost:8172/api/contacts/sendMessage', formData); // This is used when running on localhost
+      
+      if (response.data.success) {
+        setIsSubmitted(true);
+        setFormData({ name: '', email: '', subject: '', message: '' });
+        setTimeout(() => setIsSubmitted(false), 3000);
+      }
+    } catch (error) {
+      console.error('Email sending failed:', error);
+      alert('Failed to send message. Please try again later.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const contactInfo = [
     {
       icon: <Mail className="w-6 h-6 text-red-500" />,
       title: "Email",
-      details: ["info@discipl.com"],
+      details: ["info@thediscipl.com"],
       description: "Get in touch via email for general inquiries or partnerships",
       link: ""
     },
@@ -225,15 +230,15 @@ const Contact = () => {
               </form>
             </div>
 
-            {/* Map/Additional Info */}
+            {/* Map Info */}
             <div>
               <h2 className="text-3xl font-bold text-black mb-8">
-                Why Choose Discipl?
+                Our Office
               </h2>
               
               <div className="flex flex-col justify-evenly">
                 <div className="bg-gray-100 rounded-lg h-64 mb-1 flex flex-col items-center justify-center">
-                  <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15650.102154382917!2d75.77022258715822!3d11.296246400000005!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x6d918e9583142b25%3A0x7b712d6b87310149!2sDiscipl!5e0!3m2!1sen!2sin!4v1754909444381!5m2!1sen!2sin" 
+                  <iframe src="https://www.google.com/maps/embed?pb=!1m17!1m12!1m3!1d3910.3652616191944!2d75.81836507505187!3d11.453539988739433!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m2!1m1!2zMTHCsDI3JzEyLjciTiA3NcKwNDknMTUuNCJF!5e0!3m2!1sen!2sin!4v1760762840091!5m2!1sen!2sin" 
                     width="100%" 
                     height="100%" 
                     style={{border:0}} 
@@ -245,55 +250,7 @@ const Contact = () => {
                 <div className="bg-gray-100 rounded-lg h-10 mb-8 flex items-center justify-center">
                   <div className="text-center text-gray-600 flex flex-row">
                     <MapPin className="w-5 h-5 mx-auto mr-4" />
-                    <p className="text-sm">Room no - L-15, AUWM, Thadampattuthazham, Kozhikode, Kerala 673010</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-xl font-bold text-black mb-4">
-                    Our Advantages
-                  </h3>
-                  <ul className="space-y-3 text-gray-700">
-                    <li className="flex items-start">
-                      <div className="w-2 h-2 bg-red-500 rounded-full mt-2 mr-3 flex-shrink-0"></div>
-                      <span>Comprehensive fitness center management platform</span>
-                    </li>
-                    <li className="flex items-start">
-                      <div className="w-2 h-2 bg-red-500 rounded-full mt-2 mr-3 flex-shrink-0"></div>
-                      <span>Innovative event organization and management tools</span>
-                    </li>
-                    <li className="flex items-start">
-                      <div className="w-2 h-2 bg-red-500 rounded-full mt-2 mr-3 flex-shrink-0"></div>
-                      <span>24/7 customer support and assistance</span>
-                    </li>
-                    <li className="flex items-start">
-                      <div className="w-2 h-2 bg-red-500 rounded-full mt-2 mr-3 flex-shrink-0"></div>
-                      <span>Growing community of fitness professionals</span>
-                    </li>
-                  </ul>
-                </div>
-
-                <div className="bg-red-50 p-6 rounded-lg">
-                  <h4 className="font-bold text-black mb-2">Need Immediate Help?</h4>
-                  <p className="text-gray-700 mb-4">
-                    For urgent matters, please call our support hotline or send us an email. 
-                    We typically respond within 2-4 hours during business hours.
-                  </p>
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <a
-                      href="tel:+15551234567"
-                      className="bg-red-500 text-white px-4 py-2 rounded-full hover:bg-red-600 transition-colors duration-200 text-center"
-                    >
-                      Call Now
-                    </a>
-                    <a
-                      href="mailto: info@discipl.com"
-                      className="border border-red-500 text-red-500 px-4 py-2 rounded-full hover:bg-red-500 hover:text-white transition-colors duration-200 text-center"
-                    >
-                      Email Support
-                    </a>
+                    <p className="text-sm">Vankannayullathil, Near Block Office, Balussery, Kozhikode, Kerala - 673613</p>
                   </div>
                 </div>
               </div>

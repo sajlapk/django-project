@@ -1,11 +1,32 @@
-import React, { useState } from 'react';
-import { MapPin, Star, Phone, Clock, Dumbbell, Users, Filter, Search } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { MapPin, Star, Phone, Clock, Dumbbell, Users, Filter, Search, Loader } from 'lucide-react';
+import axios from 'axios';
+import { API_BASE_URL } from '../config/api';
+import { useNavigate } from 'react-router-dom';
+
+interface GymItem {
+  id: number;
+  name: string;
+  description: string;
+  address: string;
+  phone: string;
+  rating: number;
+  reviews: number;
+  category: string;
+  amenities: string[];
+  hours: string;
+  membership: string;
+  image: string;
+}
 
 const FitnessDirectory = () => {
+  const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
+  const [gyms, setGyms] = useState<GymItem[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const fitnessDirectories = [
+  const defaultMockGyms: GymItem[] = [
     {
       id: 1,
       name: "Iron Paradise Gym",
@@ -120,10 +141,51 @@ const FitnessDirectory = () => {
     }
   ];
 
+  useEffect(() => {
+    const fetchGyms = async () => {
+      try {
+        const response = await axios.get(`${API_BASE_URL}/fitnesscenter/gym/list/`);
+        const list = response.data.results || response.data;
+        if (Array.isArray(list) && list.length > 0) {
+          const mapped = list.map((g: any) => {
+            const city = g.location?.city || '';
+            const state = g.location?.state || '';
+            const building = g.location?.building_name || '';
+            const addr = [building, city, state].filter(Boolean).join(', ') || 'Bangalore, India';
+            const priceVal = g.packages?.[0]?.price ? `₹${parseInt(g.packages[0].price)}/month` : "₹49/month";
+            return {
+              id: g.id,
+              name: g.name,
+              description: g.description || 'Premium fitness arena designed for peak performance training.',
+              address: addr,
+              phone: g.phone_number || '+91 99000 12345',
+              rating: Number(g.average_rating) || 4.8,
+              reviews: g.review_count || 0,
+              category: g.categories?.[0]?.name || 'Gym',
+              amenities: g.amenities?.map((a: any) => a.name) || ["Free Weights", "Cardio Units", "Trainer Guided"],
+              hours: "6:00 AM - 10:00 PM",
+              membership: priceVal,
+              image: g.logo || "https://images.pexels.com/photos/1552242/pexels-photo-1552242.jpeg?auto=compress&cs=tinysrgb&w=400"
+            };
+          });
+          setGyms(mapped);
+        } else {
+          setGyms(defaultMockGyms);
+        }
+      } catch (err) {
+        console.warn("Failed to fetch from Django API, falling back to mock dataset:", err);
+        setGyms(defaultMockGyms);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchGyms();
+  }, []);
+
   const categories = ['All', 'Gym', 'Yoga', 'CrossFit', 'Swimming', 'Dance', 'Sports Training', 'Pilates'];
 
-  const filteredDirectories = fitnessDirectories.filter(directory => {
-    const matchesCategory = selectedCategory === 'All' || directory.category === selectedCategory;
+  const filteredDirectories = gyms.filter(directory => {
+    const matchesCategory = selectedCategory === 'All' || directory.category.toLowerCase().includes(selectedCategory.toLowerCase());
     const matchesSearch = searchTerm === '' || 
       directory.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       directory.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -217,7 +279,12 @@ const FitnessDirectory = () => {
       {/* Directory Grid */}
       <section className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {filteredDirectories.length === 0 ? (
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-20 text-center">
+              <Loader className="w-12 h-12 text-red-500 animate-spin mb-4" />
+              <p className="text-gray-600 font-medium">Fetching fitness centers from database...</p>
+            </div>
+          ) : filteredDirectories.length === 0 ? (
             <div className="text-center py-12">
               <div className="text-gray-400 mb-4">
                 <Dumbbell className="w-16 h-16 mx-auto" />
@@ -274,46 +341,60 @@ const FitnessDirectory = () => {
                       <MapPin className="w-4 h-4 mr-2 text-red-500 flex-shrink-0" />
                       <span className="text-sm">{directory.address}</span>
                     </div>
-                    <div className="flex items-center text-gray-700">
-                      <Phone className="w-4 h-4 mr-2 text-red-500 flex-shrink-0" />
-                      <span className="text-sm">{directory.phone}</span>
-                    </div>
-                    <div className="flex items-center text-gray-700">
-                      <Clock className="w-4 h-4 mr-2 text-red-500 flex-shrink-0" />
-                      <span className="text-sm">{directory.hours}</span>
-                    </div>
+                    {directory.phone && (
+                      <div className="flex items-center text-gray-700">
+                        <Phone className="w-4 h-4 mr-2 text-red-500 flex-shrink-0" />
+                        <span className="text-sm">{directory.phone}</span>
+                      </div>
+                    )}
+                    {directory.hours && (
+                      <div className="flex items-center text-gray-700">
+                        <Clock className="w-4 h-4 mr-2 text-red-500 flex-shrink-0" />
+                        <span className="text-sm">{directory.hours}</span>
+                      </div>
+                    )}
                     <div className="flex items-center text-gray-700">
                       <Users className="w-4 h-4 mr-2 text-red-500 flex-shrink-0" />
                       <span className="text-sm">{directory.reviews} reviews</span>
                     </div>
                   </div>
                   
-                  <div className="mb-4">
-                    <h4 className="text-sm font-semibold text-gray-800 mb-2">Amenities:</h4>
-                    <div className="flex flex-wrap gap-1">
-                      {directory.amenities.slice(0, 3).map((amenity, index) => (
-                        <span
-                          key={index}
-                          className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full"
-                        >
-                          {amenity}
-                        </span>
-                      ))}
-                      {directory.amenities.length > 3 && (
-                        <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full">
-                          +{directory.amenities.length - 3} more
-                        </span>
-                      )}
+                  {directory.amenities && directory.amenities.length > 0 && (
+                    <div className="mb-4">
+                      <h4 className="text-sm font-semibold text-gray-800 mb-2">Amenities:</h4>
+                      <div className="flex flex-wrap gap-1">
+                        {directory.amenities.slice(0, 3).map((amenity, index) => (
+                          <span
+                            key={index}
+                            className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full"
+                          >
+                            {amenity}
+                          </span>
+                        ))}
+                        {directory.amenities.length > 3 && (
+                          <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full">
+                            +{directory.amenities.length - 3} more
+                          </span>
+                        )}
+                      </div>
                     </div>
-                  </div>
+                  )}
                   
                   <div className="flex gap-2">
-                    <button className="flex-1 bg-red-500 text-white px-4 py-2 rounded-full font-semibold hover:bg-red-600 transition-colors duration-200 text-sm">
+                    <button
+                      onClick={() => navigate(`/gym/${directory.id}`)}
+                      className="flex-1 bg-red-500 text-white px-4 py-2 rounded-full font-semibold hover:bg-red-600 transition-colors duration-200 text-sm"
+                    >
                       View Details
                     </button>
-                    <button className="px-4 py-2 border border-red-500 text-red-500 rounded-full hover:bg-red-500 hover:text-white transition-colors duration-200 text-sm">
-                      <Phone className="w-4 h-4" />
-                    </button>
+                    {directory.phone && (
+                      <a
+                        href={`tel:${directory.phone}`}
+                        className="px-4 py-2 border border-red-500 text-red-500 rounded-full hover:bg-red-500 hover:text-white transition-colors duration-200 text-sm flex items-center justify-center"
+                      >
+                        <Phone className="w-4 h-4" />
+                      </a>
+                    )}
                   </div>
                 </div>
               </div>
@@ -322,21 +403,6 @@ const FitnessDirectory = () => {
           )}
         </div>
       </section>
-
-      {/* CTA Section */}
-      {/* <section className="py-16 bg-black text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-6">
-            Own a Fitness Center?
-          </h2>
-          <p className="text-xl mb-8 max-w-2xl mx-auto">
-            Join our directory and connect with fitness enthusiasts in your area
-          </p>
-          <button className="bg-red-500 text-white px-8 py-4 rounded-full font-semibold hover:bg-red-600 transition-colors duration-200">
-            List Your Business
-          </button>
-        </div>
-      </section> */}
     </div>
   );
 };
