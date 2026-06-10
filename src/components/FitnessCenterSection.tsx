@@ -19,6 +19,17 @@ interface GymItem {
   image: string;
 }
 
+const getImageUrl = (url: string | null) => {
+  if (!url) return "https://images.pexels.com/photos/1552242/pexels-photo-1552242.jpeg?auto=compress&cs=tinysrgb&w=400";
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  
+  // Extract backend base (without /api/v1)
+  const base = API_BASE_URL.replace('/api/v1', '');
+  // Ensure we don't have double slashes
+  const cleanUrl = url.startsWith('/') ? url : `/${url}`;
+  return `${base}${cleanUrl}`;
+};
+
 const FitnessCenterSection = () => {
   const navigate = useNavigate();
   const [gyms, setGyms] = useState<GymItem[]>([]);
@@ -80,7 +91,9 @@ const FitnessCenterSection = () => {
             const state = g.location?.state || '';
             const building = g.location?.building_name || '';
             const addr = [building, city, state].filter(Boolean).join(', ') || 'Bangalore, India';
-            const priceVal = g.packages?.[0]?.price ? `₹${parseInt(g.packages[0].price)}/month` : "₹49/month";
+            const packageItem = g.packages?.[0];
+            const price = packageItem ? (packageItem.offer_price || packageItem.actual_price || packageItem.price) : null;
+            const priceVal = price ? `₹${parseInt(price)}/month` : "";
             return {
               id: g.id,
               name: g.name,
@@ -93,7 +106,7 @@ const FitnessCenterSection = () => {
               amenities: g.amenities?.map((a: any) => a.name) || ["Free Weights", "Cardio Units", "Trainer Guided"],
               hours: "6:00 AM - 10:00 PM",
               membership: priceVal,
-              image: g.logo || "https://images.pexels.com/photos/1552242/pexels-photo-1552242.jpeg?auto=compress&cs=tinysrgb&w=400"
+              image: getImageUrl(g.logo)
             };
           });
           setGyms(mapped);
@@ -169,9 +182,11 @@ const FitnessCenterSection = () => {
                           {directory.category}
                         </span>
                       </div>
-                      <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full">
-                        <span className="text-lg font-bold text-red-500">{directory.membership}</span>
-                      </div>
+                      {directory.membership && (
+                        <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full">
+                          <span className="text-lg font-bold text-red-500">{directory.membership}</span>
+                        </div>
+                      )}
                     </div>
                     
                     <div className="p-6">
