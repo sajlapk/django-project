@@ -175,7 +175,7 @@ const FitnessCenterSection = () => {
                       <img
                         src={directory.image}
                         alt={directory.name}
-                        className="w-full h-48 object-cover"
+                        className="w-full h-48 object-contain bg-gray-100"
                       />
                       <div className="absolute top-4 left-4">
                         <span className={`px-3 py-1 rounded-full text-sm font-medium ${getCategoryColor(directory.category)}`}>
