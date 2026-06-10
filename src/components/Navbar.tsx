@@ -77,7 +77,7 @@ const Navbar = () => {
     { path: '#about', label: 'About', icon: <Info size={20} /> },
     { path: '#fitness-center', label: 'Fitness Center', icon: <Dumbbell size={20} /> },
     { path: '#events', label: 'Events', icon: <Calendar size={20} /> },
-    { path: '#contact', label: 'Contact', icon: <Mail size={20} /> },
+    { path: '#contact', label: 'Contac', icon: <Mail size={20} /> },
   ];
 
   useEffect(() => {
