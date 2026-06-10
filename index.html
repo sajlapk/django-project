@@ -1,6 +1,15 @@
 <!doctype html>
 <html lang="en">
   <head>
+    <script>
+      window.errors = [];
+      window.addEventListener('error', function(e) {
+        window.errors.push(e.message + ' at ' + e.filename + ':' + e.lineno);
+      });
+      window.addEventListener('unhandledrejection', function(e) {
+        window.errors.push('Unhandled Promise Rejection: ' + e.reason);
+      });
+    </script>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/logo_sing.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />

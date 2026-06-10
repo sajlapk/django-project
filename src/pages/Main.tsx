@@ -2,6 +2,7 @@ import Home from './Home';
 import Events from './Events';
 import About from './About';
 import Contact from './Contact';
+import FitnessCenterSection from '../components/FitnessCenterSection';
 
 const Main = () => {
     return(
@@ -14,6 +15,11 @@ const Main = () => {
             {/* About Section */}
             <section id="about" className="overflow-x-hidden">
                 <About/>
+            </section>
+
+            {/* Fitness Center Section */}
+            <section id="fitness-center" className="overflow-x-hidden">
+                <FitnessCenterSection />
             </section>
 
             {/* Events Section */}

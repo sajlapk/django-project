@@ -24,6 +24,7 @@ const FitnessDirectory = () => {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
   const [gyms, setGyms] = useState<GymItem[]>([]);
+  const [categories, setCategories] = useState<string[]>(['All']);
   const [loading, setLoading] = useState(true);
 
   const defaultMockGyms: GymItem[] = [
@@ -144,7 +145,7 @@ const FitnessDirectory = () => {
   useEffect(() => {
     const fetchGyms = async () => {
       try {
-        const response = await axios.get(`${API_BASE_URL}/fitnesscenter/gym/list/`);
+        const response = await axios.get(`${API_BASE_URL}/fitnesscenter/gym/list/?page_size=100`);
         const list = response.data.results || response.data;
         if (Array.isArray(list) && list.length > 0) {
           const mapped = list.map((g: any) => {
@@ -182,7 +183,23 @@ const FitnessDirectory = () => {
     fetchGyms();
   }, []);
 
-  const categories = ['All', 'Gym', 'Yoga', 'CrossFit', 'Swimming', 'Dance', 'Sports Training', 'Pilates'];
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await axios.get(`${API_BASE_URL}/fitnesscenter/categories/`, {
+          headers: { 'X-Platform': 'admin-web' }
+        });
+        const list = response.data.results || response.data;
+        if (Array.isArray(list)) {
+          setCategories(['All', ...list.map((c: any) => c.name)]);
+        }
+      } catch (err) {
+        console.warn("Failed to fetch categories from Django API, using defaults:", err);
+        setCategories(['All', 'Gym', 'Yoga', 'CrossFit', 'Swimming', 'Dance', 'Sports Training', 'Pilates']);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   const filteredDirectories = gyms.filter(directory => {
     const matchesCategory = selectedCategory === 'All' || directory.category.toLowerCase().includes(selectedCategory.toLowerCase());
