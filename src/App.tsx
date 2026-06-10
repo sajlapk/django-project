@@ -15,6 +15,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsConditions from './pages/TermsConditions';
+import GymDetails from './pages/GymDetails';
 
 function AppContent() {
   return (
@@ -26,6 +27,7 @@ function AppContent() {
           <Route path="/home" element={<Home />} />
           <Route path="/about" element={<About />} />
           <Route path="/fitness-directory" element={<FitnessDirectory />} />
+          <Route path="/gym/:id" element={<GymDetails />} />
           <Route path="/events" element={<Events />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy/>} />
