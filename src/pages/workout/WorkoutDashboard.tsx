@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useWorkouts, Workout } from '../../contexts/WorkoutContext';
 import { 
   Flame, Award, Calendar as CalendarIcon, CheckCircle2, 
-  Plus, History, Dumbbell, AlertTriangle, ArrowRight, XCircle, ChevronLeft, ChevronRight 
+  Plus, History, Dumbbell, AlertTriangle, ArrowRight, XCircle, ChevronLeft, ChevronRight,
+  Coffee
 } from 'lucide-react';
 
 export default function WorkoutDashboard() {
@@ -14,6 +15,31 @@ export default function WorkoutDashboard() {
 
   const streak = getStreak();
   const totalCompleted = getTotalCompleted();
+
+  // Calculate rest days in current month up to today
+  const getRestDaysCount = () => {
+    const todayStr = new Date().toISOString().split('T')[0];
+    const year = currentMonth.getFullYear();
+    const month = currentMonth.getMonth();
+    const lastDayOfMonth = new Date(year, month + 1, 0).getDate();
+    
+    let restCount = 0;
+    for (let i = 1; i <= lastDayOfMonth; i++) {
+      const day = new Date(year, month, i);
+      const dayStr = day.toISOString().split('T')[0];
+      
+      // Count days up to today that have no completed workout
+      if (dayStr <= todayStr) {
+        const workout = workouts.find(w => w.workout_date === dayStr);
+        if (!workout || workout.status !== 'completed') {
+          restCount++;
+        }
+      }
+    }
+    return restCount;
+  };
+
+  const restDaysCount = getRestDaysCount();
 
   // Find workout for the selected date
   const dateStr = selectedDate.toISOString().split('T')[0];
@@ -129,7 +155,7 @@ export default function WorkoutDashboard() {
       </div>
 
       {/* Grid of Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {/* Streak Card */}
         <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between">
           <div className="space-y-1">
@@ -155,6 +181,20 @@ export default function WorkoutDashboard() {
           </div>
           <div className="p-4 bg-emerald-50 rounded-2xl text-emerald-600">
             <Award className="w-8 h-8" />
+          </div>
+        </div>
+
+        {/* Rest Days Metric */}
+        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between">
+          <div className="space-y-1">
+            <span className="text-gray-400 text-xs font-bold uppercase tracking-wider">Rest Days</span>
+            <p className="text-3xl font-black text-blue-600">
+              {restDaysCount} <span className="text-sm font-medium text-gray-500">days</span>
+            </p>
+            <p className="text-xs text-gray-500">This month (up to today).</p>
+          </div>
+          <div className="p-4 bg-blue-50 rounded-2xl text-blue-600">
+            <Coffee className="w-8 h-8" />
           </div>
         </div>
 
