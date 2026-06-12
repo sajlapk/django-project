@@ -156,7 +156,7 @@ const FitnessDirectory = () => {
   useEffect(() => {
     const fetchGyms = async () => {
       try {
-        const response = await axios.get(`${API_BASE_URL}/fitnesscenter/gym/list/?page_size=100`);
+        const response = await axios.get(`${API_BASE_URL}/fitnesscenter/gym/list/?page_size=1000`);
         const list = response.data.results || response.data;
         if (Array.isArray(list) && list.length > 0) {
           const mapped = list.map((g: any) => {
