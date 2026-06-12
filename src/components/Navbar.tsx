@@ -152,6 +152,14 @@ const Navbar = () => {
                         <User size={16} className="mr-2" />
                         Profile
                       </Link>
+                      <Link
+                        to="/workout-tracker"
+                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        onClick={() => setIsUserMenuOpen(false)}
+                      >
+                        <Dumbbell size={16} className="mr-2 text-red-500" />
+                        Workout Tracker
+                      </Link>
                       {user.role === 'admin' && (
                         <Link
                           to="/admin"
@@ -224,6 +232,14 @@ const Navbar = () => {
             >
               <User size={16} className="mr-2" />
               Profile
+            </Link>
+            <Link
+              to="/workout-tracker"
+              className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+              onClick={() => setIsUserMenuOpen(false)}
+            >
+              <Dumbbell size={16} className="mr-2 text-red-500" />
+              Workout Tracker
             </Link>
             {user.role === 'admin' && (
               <Link

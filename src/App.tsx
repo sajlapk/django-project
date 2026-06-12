@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, BrowserRouter } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Main from './pages/Main';
@@ -12,10 +12,16 @@ import Register from './pages/Register';
 import AdminPanel from './pages/AdminPanel';
 import Profile from './pages/Profile';
 import { AuthProvider } from './contexts/AuthContext';
+import { WorkoutProvider } from './contexts/WorkoutContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsConditions from './pages/TermsConditions';
 import GymDetails from './pages/GymDetails';
+import WorkoutDashboard from './pages/workout/WorkoutDashboard';
+import WorkoutLibrary from './pages/workout/WorkoutLibrary';
+import WorkoutBuilder from './pages/workout/WorkoutBuilder';
+import WorkoutSession from './pages/workout/WorkoutSession';
+import WorkoutLogs from './pages/workout/WorkoutLogs';
 
 function AppContent() {
   return (
@@ -34,6 +40,34 @@ function AppContent() {
           <Route path="/terms-conditions" element={<TermsConditions/>} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          
+          {/* Workout Tracker Routes */}
+          <Route path="/workout-tracker" element={
+            <ProtectedRoute>
+              <WorkoutDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/workout-tracker/library" element={
+            <ProtectedRoute>
+              <WorkoutLibrary />
+            </ProtectedRoute>
+          } />
+          <Route path="/workout-tracker/new" element={
+            <ProtectedRoute>
+              <WorkoutBuilder />
+            </ProtectedRoute>
+          } />
+          <Route path="/workout-tracker/session" element={
+            <ProtectedRoute>
+              <WorkoutSession />
+            </ProtectedRoute>
+          } />
+          <Route path="/workout-tracker/logs" element={
+            <ProtectedRoute>
+              <WorkoutLogs />
+            </ProtectedRoute>
+          } />
+
           <Route path="/profile" element={
             <ProtectedRoute>
               <Profile />
@@ -54,9 +88,11 @@ function AppContent() {
 function App() {
   return (
     <AuthProvider>
+      <WorkoutProvider>
         <Router>
           <AppContent />
         </Router>
+      </WorkoutProvider>
     </AuthProvider>
   );
 }
