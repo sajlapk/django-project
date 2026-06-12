@@ -39,9 +39,18 @@ export interface Workout {
   created_at: string;
 }
 
+export interface WorkoutPreset {
+  id: string;
+  user_id: string;
+  title: string;
+  exercises: WorkoutExercise[];
+  created_at: string;
+}
+
 interface WorkoutContextType {
   exercises: Exercise[];
   workouts: Workout[];
+  presets: WorkoutPreset[];
   isLoading: boolean;
   addCustomExercise: (exercise: Omit<Exercise, 'id' | 'is_default'>) => Promise<void>;
   updateCustomExercise: (id: string, exercise: Partial<Exercise>) => Promise<void>;
@@ -49,6 +58,8 @@ interface WorkoutContextType {
   saveWorkout: (workout: Omit<Workout, 'user_id' | 'created_at'>) => Promise<void>;
   deleteWorkoutLog: (id: string) => Promise<void>;
   updateWorkoutLog: (id: string, workout: Partial<Workout>) => Promise<void>;
+  savePreset: (preset: Omit<WorkoutPreset, 'user_id' | 'created_at'>) => Promise<void>;
+  deletePreset: (id: string) => Promise<void>;
   getStreak: () => number;
   getTotalCompleted: () => number;
   getWeeklyProgress: () => { [key: string]: boolean };
@@ -76,6 +87,7 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const { user } = useAuth();
   const [customExercises, setCustomExercises] = useState<Exercise[]>([]);
   const [workouts, setWorkouts] = useState<Workout[]>([]);
+  const [presets, setPresets] = useState<WorkoutPreset[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   // Load workouts and custom exercises
@@ -85,6 +97,7 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
       if (!user) {
         setWorkouts([]);
         setCustomExercises([]);
+        setPresets([]);
         setIsLoading(false);
         return;
       }
@@ -92,6 +105,7 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
       // Try LocalStorage first as local database / backup
       const localWorkouts = localStorage.getItem(`workouts_${user.id}`);
       const localExercises = localStorage.getItem(`custom_exercises_${user.id}`);
+      const localPresets = localStorage.getItem(`presets_${user.id}`);
 
       if (localWorkouts) {
         try {
@@ -106,6 +120,14 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
           setCustomExercises(JSON.parse(localExercises));
         } catch (e) {
           console.error('Error parsing local exercises', e);
+        }
+      }
+
+      if (localPresets) {
+        try {
+          setPresets(JSON.parse(localPresets));
+        } catch (e) {
+          console.error('Error parsing local presets', e);
         }
       }
 
@@ -139,6 +161,21 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
           fbWorkouts.sort((a, b) => new Date(b.workout_date).getTime() - new Date(a.workout_date).getTime());
           setWorkouts(fbWorkouts);
           localStorage.setItem(`workouts_${user.id}`, JSON.stringify(fbWorkouts));
+        }
+
+        // Fetch Presets
+        const presetsRef = collection(db, 'presets');
+        const qPresets = query(presetsRef, where('user_id', '==', user.id));
+        const presetSnap = await getDocs(qPresets);
+        const fbPresets: WorkoutPreset[] = [];
+        presetSnap.forEach((doc) => {
+          fbPresets.push({ id: doc.id, ...doc.data() } as WorkoutPreset);
+        });
+
+        if (fbPresets.length > 0) {
+          fbPresets.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+          setPresets(fbPresets);
+          localStorage.setItem(`presets_${user.id}`, JSON.stringify(fbPresets));
         }
       } catch (error) {
         console.warn('Firestore failed/offline, using LocalStorage backup:', error);
@@ -275,6 +312,50 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   };
 
+  // 7. Save Preset
+  const savePreset = async (presetData: Omit<WorkoutPreset, 'user_id' | 'created_at'>) => {
+    if (!user) return;
+
+    const existingIdx = presets.findIndex((p) => p.id === presetData.id);
+    const createdAt = existingIdx >= 0 ? presets[existingIdx].created_at : new Date().toISOString();
+
+    const fullPreset: WorkoutPreset = {
+      ...presetData,
+      user_id: user.id,
+      created_at: createdAt,
+    };
+
+    let updatedPresets = [...presets];
+    if (existingIdx >= 0) {
+      updatedPresets[existingIdx] = fullPreset;
+    } else {
+      updatedPresets.push(fullPreset);
+    }
+
+    setPresets(updatedPresets);
+    localStorage.setItem(`presets_${user.id}`, JSON.stringify(updatedPresets));
+
+    try {
+      await setDoc(doc(db, 'presets', fullPreset.id), fullPreset);
+    } catch (e) {
+      console.warn('Firestore offline, saved preset to localStorage', e);
+    }
+  };
+
+  // 8. Delete Preset
+  const deletePreset = async (id: string) => {
+    if (!user) return;
+    const updated = presets.filter((p) => p.id !== id);
+    setPresets(updated);
+    localStorage.setItem(`presets_${user.id}`, JSON.stringify(updated));
+
+    try {
+      await deleteDoc(doc(db, 'presets', id));
+    } catch (e) {
+      console.warn('Firestore offline, deleted preset from localStorage', e);
+    }
+  };
+
   // Stats calculation: Streak of completed workouts
   const getStreak = () => {
     if (workouts.length === 0) return 0;
@@ -359,6 +440,7 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
       value={{
         exercises: allExercises,
         workouts,
+        presets,
         isLoading,
         addCustomExercise,
         updateCustomExercise,
@@ -366,6 +448,8 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
         saveWorkout,
         deleteWorkoutLog,
         updateWorkoutLog,
+        savePreset,
+        deletePreset,
         getStreak,
         getTotalCompleted,
         getWeeklyProgress,

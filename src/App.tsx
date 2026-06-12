@@ -22,6 +22,8 @@ import WorkoutLibrary from './pages/workout/WorkoutLibrary';
 import WorkoutBuilder from './pages/workout/WorkoutBuilder';
 import WorkoutSession from './pages/workout/WorkoutSession';
 import WorkoutLogs from './pages/workout/WorkoutLogs';
+import WorkoutPresets from './pages/workout/WorkoutPresets';
+import WorkoutPresetBuilder from './pages/workout/WorkoutPresetBuilder';
 
 function AppContent() {
   return (
@@ -65,6 +67,16 @@ function AppContent() {
           <Route path="/workout-tracker/logs" element={
             <ProtectedRoute>
               <WorkoutLogs />
+            </ProtectedRoute>
+          } />
+          <Route path="/workout-tracker/presets" element={
+            <ProtectedRoute>
+              <WorkoutPresets />
+            </ProtectedRoute>
+          } />
+          <Route path="/workout-tracker/presets/new" element={
+            <ProtectedRoute>
+              <WorkoutPresetBuilder />
             </ProtectedRoute>
           } />
 
