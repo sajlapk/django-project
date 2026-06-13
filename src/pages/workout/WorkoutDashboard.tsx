@@ -138,7 +138,7 @@ export default function WorkoutDashboard() {
         </div>
         <div className="flex gap-3">
           <button 
-            onClick={() => navigate('/workout-tracker/presets')}
+            onClick={() => navigate(`/workout-tracker/presets?date=${dateStr}`)}
             className="flex items-center gap-2 border border-amber-200 bg-amber-50/50 hover:bg-amber-50 text-amber-700 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-sm"
           >
             <Sliders className="w-4 h-4 text-amber-500" />

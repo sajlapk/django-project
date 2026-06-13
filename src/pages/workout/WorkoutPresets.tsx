@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useWorkouts, WorkoutPreset } from '../../contexts/WorkoutContext';
 import { 
   ArrowLeft, Plus, Play, Trash2, Edit, Dumbbell, 
@@ -8,11 +8,13 @@ import {
 
 export default function WorkoutPresets() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { presets, deletePreset, saveWorkout } = useWorkouts();
 
   const handleStartWorkout = async (preset: WorkoutPreset) => {
     const newWorkoutId = 'work-' + Date.now();
     const todayStr = new Date().toISOString().split('T')[0];
+    const targetDateStr = searchParams.get('date') || todayStr;
     
     // Map preset exercises to workout exercises with completed=false
     const workoutExercises = preset.exercises.map(ex => ({
@@ -30,7 +32,7 @@ export default function WorkoutPresets() {
     await saveWorkout({
       id: newWorkoutId,
       title: preset.title,
-      workout_date: todayStr,
+      workout_date: targetDateStr,
       duration: 0,
       status: 'active',
       exercises: workoutExercises
