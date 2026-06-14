@@ -125,7 +125,7 @@ const FitnessCenterSection = () => {
     const fetchGyms = async () => {
       try {
         // Build URL: use customer/fitnesscenter with lat/lon if available
-        let url = `${API_BASE_URL}/customer/fitnesscenter/`;
+        let url = `${API_BASE_URL}/fitnesscenter/gym/list/`;
         if (userCoords) {
           url += `?lat=${userCoords.lat}&lon=${userCoords.lon}&radius_km=100000`;
         } else {
