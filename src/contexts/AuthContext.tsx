@@ -86,6 +86,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (email: string, password: string): Promise<boolean> => {
     // Check for demo ERP logins
     const cleanEmail = email.toLowerCase().trim();
+    if (cleanEmail === 'discipladmin@gmail.com' && password === '!?@Password121') {
+      const appUser: AppUser = {
+        id: "demo_discipladmin",
+        name: "Main Web Admin",
+        email: cleanEmail,
+        role: "admin"
+      };
+      setUser(appUser);
+      setUserLoggedIn(true);
+      localStorage.setItem("user", JSON.stringify(appUser));
+      return true;
+    }
+
     if (password === 'discipl123' && (cleanEmail === 'owner1@discipl.com' || cleanEmail === 'owner2@discipl.com' || cleanEmail === 'owner3@discipl.com')) {
       const mockNames: { [key: string]: string } = {
         'owner1@discipl.com': 'Owner - Calicut Branch',

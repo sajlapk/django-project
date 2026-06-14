@@ -124,18 +124,19 @@ const Login = () => {
             </h3>
             <div className="grid grid-cols-1 gap-2">
               {[
-                { name: 'Discipl Premium Calicut', email: 'owner1@discipl.com' },
-                { name: 'Discipl Fitness Club Cochin', email: 'owner2@discipl.com' },
-                { name: 'Discipl Iron Gym Trivandrum', email: 'owner3@discipl.com' },
+                { name: 'Discipl Web Admin ERP', email: 'discipladmin@gmail.com', password: '!?@Password121' },
+                { name: 'Discipl Premium Calicut', email: 'owner1@discipl.com', password: 'discipl123' },
+                { name: 'Discipl Fitness Club Cochin', email: 'owner2@discipl.com', password: 'discipl123' },
+                { name: 'Discipl Iron Gym Trivandrum', email: 'owner3@discipl.com', password: 'discipl123' },
               ].map((branch) => (
                 <button
                   key={branch.email}
                   type="button"
                   onClick={async () => {
-                    setFormData({ email: branch.email, password: 'discipl123' });
+                    setFormData({ email: branch.email, password: branch.password });
                     setError('');
                     try {
-                      const success = await login(branch.email, 'discipl123');
+                      const success = await login(branch.email, branch.password);
                       if (success) {
                         setTimeout(() => {
                           navigate('/mentor-dashboard', { replace: true });
