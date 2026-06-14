@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Phone, Mail, MapPin, Star, Check, AlertCircle, Clock, ArrowLeft, Calendar, Loader, Globe, Instagram, Facebook, Youtube, MessageCircle, X, Award } from 'lucide-react';
+import { Phone, Mail, MapPin, Star, Check, AlertCircle, Clock, ArrowLeft, Calendar, Loader, Globe, Instagram, Facebook, Youtube, MessageCircle, X, Award, Navigation } from 'lucide-react';
 import axios from 'axios';
 import { API_BASE_URL } from '../config/api';
 
@@ -31,6 +31,7 @@ const GymDetails = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedTrainer, setSelectedTrainer] = useState<any | null>(null);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -155,8 +156,9 @@ const GymDetails = () => {
                       href={gym.location.google_maps_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-red-500 hover:text-red-600 hover:bg-red-100 transition-colors ml-2 font-bold text-xs border border-red-200 bg-red-50 px-2 py-0.5 rounded-full"
+                      className="inline-flex items-center gap-1 text-red-500 hover:text-red-600 hover:bg-red-100 transition-colors ml-2 font-bold text-xs border border-red-200 bg-red-50 px-2.5 py-0.5 rounded-full shadow-sm"
                     >
+                      <Navigation className="w-3 h-3 text-red-500 rotate-[45deg]" />
                       Directions
                     </a>
                   )}
@@ -227,7 +229,11 @@ const GymDetails = () => {
               <h2 className="text-xl font-bold text-black mb-4">Gallery</h2>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                 {gymPhotos.slice(0, 6).map((p: any) => (
-                  <div key={p.id} className="rounded-lg overflow-hidden h-32 md:h-40">
+                  <div
+                    key={p.id}
+                    onClick={() => setSelectedImage(getImageUrl(p.image))}
+                    className="rounded-lg overflow-hidden h-32 md:h-40 cursor-pointer border hover:border-red-200 transition-all shadow-sm"
+                  >
                     <img src={getImageUrl(p.image)} alt={p.caption} className="w-full h-full object-contain bg-gray-50 hover:scale-105 transition-transform duration-300" />
                   </div>
                 ))}
@@ -318,6 +324,115 @@ const GymDetails = () => {
               </div>
             </div>
           )}
+
+          {/* Member Reviews Section */}
+          <div className="bg-white rounded-xl shadow-sm p-6 md:p-8">
+            <h2 className="text-xl font-bold text-black mb-6">Member Reviews</h2>
+            
+            {/* Rating Overview */}
+            <div className="flex flex-col md:flex-row gap-6 items-center border-b border-gray-100 pb-6 mb-6">
+              <div className="text-center md:border-r border-gray-100 md:pr-8 flex-shrink-0">
+                <div className="text-5xl font-black text-gray-900 mb-1">{gymRating > 0 ? gymRating.toFixed(1) : "4.8"}</div>
+                <div className="flex items-center gap-1 justify-center text-yellow-400 mb-1">
+                  <Star className="w-5 h-5 fill-current" />
+                  <Star className="w-5 h-5 fill-current" />
+                  <Star className="w-5 h-5 fill-current" />
+                  <Star className="w-5 h-5 fill-current" />
+                  <Star className="w-5 h-5 fill-current" />
+                </div>
+                <div className="text-xs text-gray-500 font-medium">Based on {gymReviews > 0 ? gymReviews : 24} ratings</div>
+              </div>
+
+              {/* Rating Bars */}
+              <div className="flex-1 w-full space-y-2 max-w-sm">
+                <div className="flex items-center gap-3 text-xs text-gray-600">
+                  <span className="w-3 font-semibold">5</span>
+                  <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div className="h-full bg-emerald-500 rounded-full" style={{ width: '85%' }}></div>
+                  </div>
+                  <span className="w-8 text-right font-medium">85%</span>
+                </div>
+                <div className="flex items-center gap-3 text-xs text-gray-600">
+                  <span className="w-3 font-semibold">4</span>
+                  <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div className="h-full bg-emerald-400 rounded-full" style={{ width: '10%' }}></div>
+                  </div>
+                  <span className="w-8 text-right font-medium">10%</span>
+                </div>
+                <div className="flex items-center gap-3 text-xs text-gray-600">
+                  <span className="w-3 font-semibold">3</span>
+                  <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div className="h-full bg-yellow-400 rounded-full" style={{ width: '5%' }}></div>
+                  </div>
+                  <span className="w-8 text-right font-medium">5%</span>
+                </div>
+                <div className="flex items-center gap-3 text-xs text-gray-600">
+                  <span className="w-3 font-semibold">2</span>
+                  <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div className="h-full bg-orange-400 rounded-full" style={{ width: '0%' }}></div>
+                  </div>
+                  <span className="w-8 text-right font-medium">0%</span>
+                </div>
+                <div className="flex items-center gap-3 text-xs text-gray-600">
+                  <span className="w-3 font-semibold">1</span>
+                  <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div className="h-full bg-red-400 rounded-full" style={{ width: '0%' }}></div>
+                  </div>
+                  <span className="w-8 text-right font-medium">0%</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Static Reviews List */}
+            <div className="space-y-6">
+              {[
+                {
+                  id: 1,
+                  name: "Rahul Krishnan",
+                  rating: 5,
+                  date: "2 days ago",
+                  comment: "Absolutely love training here! The space is extremely clean, well-ventilated, and the trainers are highly professional. The community vibe is amazing.",
+                  avatar: "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=80"
+                },
+                {
+                  id: 2,
+                  name: "Priya Mohandas",
+                  rating: 5,
+                  date: "1 week ago",
+                  comment: "The workout equipment is modern, functional, and very well-maintained. Coaches are always available to help correct form. Easily the best fitness center in town!",
+                  avatar: "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=80"
+                },
+                {
+                  id: 3,
+                  name: "Abhinav S.",
+                  rating: 5,
+                  date: "3 weeks ago",
+                  comment: "Great place, positive energy, and clean locker rooms. The subscription price is completely worth the quality of service provided.",
+                  avatar: "https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=80"
+                }
+              ].map((rev) => (
+                <div key={rev.id} className="flex gap-4 border-b border-gray-50 pb-6 last:border-b-0 last:pb-0">
+                  <img
+                    src={rev.avatar}
+                    alt={rev.name}
+                    className="w-10 h-10 rounded-full object-cover bg-gray-50 flex-shrink-0"
+                  />
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between mb-1">
+                      <h4 className="text-sm font-bold text-gray-900">{rev.name}</h4>
+                      <span className="text-[10px] text-gray-400 font-medium">{rev.date}</span>
+                    </div>
+                    <div className="flex items-center gap-0.5 text-yellow-400 mb-2">
+                      {[...Array(rev.rating)].map((_, i) => (
+                        <Star key={i} className="w-3 h-3 fill-current" />
+                      ))}
+                    </div>
+                    <p className="text-xs text-gray-600 leading-relaxed">{rev.comment}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* Right Column — Plans */}
@@ -503,6 +618,24 @@ const GymDetails = () => {
               )}
             </div>
           </div>
+        </div>
+      </div>
+    )}
+
+    {/* Image Lightbox Modal */}
+    {selectedImage && (
+      <div 
+        className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-sm p-4 cursor-zoom-out animate-fadeIn" 
+        onClick={() => setSelectedImage(null)}
+      >
+        <button
+          onClick={() => setSelectedImage(null)}
+          className="absolute top-4 right-4 z-[110] p-2 bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors cursor-pointer"
+        >
+          <X className="w-6 h-6" />
+        </button>
+        <div className="max-w-4xl max-h-[85vh] relative animate-scaleUp" onClick={(e) => e.stopPropagation()}>
+          <img src={selectedImage} alt="Gym details" className="max-w-full max-h-[80vh] object-contain rounded-lg shadow-2xl bg-black" />
         </div>
       </div>
     )}

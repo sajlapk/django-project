@@ -210,7 +210,9 @@ const FitnessDirectory = () => {
     const fetchGyms = async () => {
       setLoading(true);
       try {
-        let url = `${API_BASE_URL}/fitnesscenter/gym/list/`;
+        let url = sortByNearest
+          ? `${API_BASE_URL}/customer/nearest/fitnesscenter/`
+          : `${API_BASE_URL}/fitnesscenter/gym/list/`;
         if (sortByNearest && userCoords) {
           url += `?lat=${userCoords.lat}&lon=${userCoords.lon}&radius_km=100000`;
         } else {
