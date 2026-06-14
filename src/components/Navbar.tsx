@@ -170,6 +170,14 @@ const Navbar = () => {
                           Admin Panel
                         </Link>
                       )}
+                      <Link
+                        to="/mentor-dashboard"
+                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        onClick={() => setIsUserMenuOpen(false)}
+                      >
+                        <Settings size={16} className="mr-2 text-emerald-500" />
+                        Mentor Dashboard
+                      </Link>
                       <button
                         onClick={handleLogout}
                         className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100"

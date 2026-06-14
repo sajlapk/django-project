@@ -4,7 +4,7 @@ import { useWorkouts, Workout } from '../../contexts/WorkoutContext';
 import { 
   Flame, Award, Calendar as CalendarIcon, CheckCircle2, 
   Plus, History, Dumbbell, AlertTriangle, ArrowRight, XCircle, ChevronLeft, ChevronRight,
-  Coffee
+  Coffee, Sliders
 } from 'lucide-react';
 
 export default function WorkoutDashboard() {
@@ -137,6 +137,13 @@ export default function WorkoutDashboard() {
           <p className="text-gray-500 text-sm mt-1">Track your fitness journey, log custom workouts, and stay consistent.</p>
         </div>
         <div className="flex gap-3">
+          <button 
+            onClick={() => navigate(`/workout-tracker/presets?date=${dateStr}`)}
+            className="flex items-center gap-2 border border-amber-200 bg-amber-50/50 hover:bg-amber-50 text-amber-700 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-sm"
+          >
+            <Sliders className="w-4 h-4 text-amber-500" />
+            Workout Presets
+          </button>
           <button 
             onClick={() => navigate('/workout-tracker/library')}
             className="flex items-center gap-2 border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-sm"

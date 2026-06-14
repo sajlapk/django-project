@@ -64,9 +64,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setUserLoggedIn(true);
         localStorage.setItem("user", JSON.stringify(appUser));
       } else {
-        setUser(null);
-        setUserLoggedIn(false);
-        localStorage.removeItem("user");
+        // Check if there is a demo user stored in localStorage before clearing
+        const localUserStr = localStorage.getItem("user");
+        if (localUserStr && localUserStr.includes("demo_")) {
+          const appUser = JSON.parse(localUserStr);
+          setUser(appUser);
+          setUserLoggedIn(true);
+        } else {
+          setUser(null);
+          setUserLoggedIn(false);
+          localStorage.removeItem("user");
+        }
       }
       setIsLoading(false);
     });
@@ -76,14 +84,45 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   
   // **SIMPLIFIED LOGIN FUNCTION**
   const login = async (email: string, password: string): Promise<boolean> => {
-    // setIsLoading(true);
+    // Check for demo ERP logins
+    const cleanEmail = email.toLowerCase().trim();
+    if (cleanEmail === 'discipladmin@gmail.com' && password === '!?@Password121') {
+      const appUser: AppUser = {
+        id: "demo_discipladmin",
+        name: "Main Web Admin",
+        email: cleanEmail,
+        role: "admin"
+      };
+      setUser(appUser);
+      setUserLoggedIn(true);
+      localStorage.setItem("user", JSON.stringify(appUser));
+      return true;
+    }
+
+    if (password === 'discipl123' && (cleanEmail === 'owner1@discipl.com' || cleanEmail === 'owner2@discipl.com' || cleanEmail === 'owner3@discipl.com')) {
+      const mockNames: { [key: string]: string } = {
+        'owner1@discipl.com': 'Owner - Calicut Branch',
+        'owner2@discipl.com': 'Owner - Cochin Branch',
+        'owner3@discipl.com': 'Owner - Trivandrum Branch'
+      };
+      const appUser: AppUser = {
+        id: `demo_${cleanEmail.replace('@', '_')}`,
+        name: mockNames[cleanEmail],
+        email: cleanEmail,
+        role: "admin"
+      };
+      setUser(appUser);
+      setUserLoggedIn(true);
+      localStorage.setItem("user", JSON.stringify(appUser));
+      return true;
+    }
+
     try {
       // Just perform the sign-in. onAuthStateChanged will handle the state update.
       await doSignInWithEmailAndPassword(email, password);
       return true;
     } catch (error) {
       console.error("Login failed:", error);
-      // setIsLoading(false);
       return false;
     }
   };
@@ -127,8 +166,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = async () => {
     setIsLoading(true);
     try {
+      // Clear local state first for demo users
+      setUser(null);
+      setUserLoggedIn(false);
+      localStorage.removeItem("user");
       await doSignout();
-      // onAuthStateChanged will handle clearing user state.
     } catch (error) {
       console.error("Logout failed:", error);
       setIsLoading(false);

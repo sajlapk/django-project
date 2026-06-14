@@ -1,8 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { MapPin, Star, Phone, Clock, Dumbbell, Users, Filter, Search, Loader } from 'lucide-react';
+import { MapPin, Star, Phone, Clock, Dumbbell, Users, Filter, Search, Loader, Navigation } from 'lucide-react';
 import axios from 'axios';
 import { API_BASE_URL } from '../config/api';
 import { useNavigate } from 'react-router-dom';
+
+const slugify = (text: string) => {
+  return text
+    .toString()
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-')           // Replace spaces with -
+    .replace(/[^\w\-]+/g, '')       // Remove all non-word chars
+    .replace(/\-\-+/g, '-')         // Replace multiple - with single -
+    .replace(/^-+/, '')             // Trim - from start
+    .replace(/-+$/, '');            // Trim - from end
+};
 
 interface GymItem {
   id: number;
@@ -17,6 +29,7 @@ interface GymItem {
   hours: string;
   membership: string;
   image: string;
+  distance_km?: number;
 }
 
 const getImageUrl = (url: string | null) => {
@@ -37,6 +50,8 @@ const FitnessDirectory = () => {
   const [gyms, setGyms] = useState<GymItem[]>([]);
   const [categories, setCategories] = useState<string[]>(['All']);
   const [loading, setLoading] = useState(true);
+  const [userCoords, setUserCoords] = useState<{ lat: number; lon: number } | null>(null);
+  const [locationStatus, setLocationStatus] = useState<'loading' | 'granted' | 'denied'>('loading');
 
   const defaultMockGyms: GymItem[] = [
     {
@@ -153,10 +168,42 @@ const FitnessDirectory = () => {
     }
   ];
 
+  // Step 1: Get user's GPS coordinates
   useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserCoords({
+            lat: position.coords.latitude,
+            lon: position.coords.longitude,
+          });
+          setLocationStatus('granted');
+        },
+        (error) => {
+          console.warn('Location permission denied or unavailable:', error);
+          setLocationStatus('denied');
+        },
+        { timeout: 8000, enableHighAccuracy: false }
+      );
+    } else {
+      setLocationStatus('denied');
+    }
+  }, []);
+
+  // Step 2: Fetch gyms (location-wise if coordinates available)
+  useEffect(() => {
+    if (locationStatus === 'loading') return;
+
     const fetchGyms = async () => {
       try {
-        const response = await axios.get(`${API_BASE_URL}/fitnesscenter/gym/list/?page_size=1000`);
+        let url = `${API_BASE_URL}/customer/fitnesscenter/`;
+        if (userCoords) {
+          url += `?lat=${userCoords.lat}&lon=${userCoords.lon}&radius_km=100000`;
+        } else {
+          url += `?page_size=1000`;
+        }
+
+        const response = await axios.get(url);
         const list = response.data.results || response.data;
         if (Array.isArray(list) && list.length > 0) {
           const mapped = list.map((g: any) => {
@@ -179,7 +226,8 @@ const FitnessDirectory = () => {
               amenities: g.amenities?.map((a: any) => a.name) || ["Free Weights", "Cardio Units", "Trainer Guided"],
               hours: "6:00 AM - 10:00 PM",
               membership: priceVal,
-              image: getImageUrl(g.logo)
+              image: getImageUrl(g.logo),
+              distance_km: g.distance_km ?? undefined,
             };
           });
           setGyms(mapped);
@@ -194,7 +242,7 @@ const FitnessDirectory = () => {
       }
     };
     fetchGyms();
-  }, []);
+  }, [locationStatus, userCoords]);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -249,8 +297,16 @@ const FitnessDirectory = () => {
               Fitness <span className="text-red-500">Directory</span>
             </h1>
             <p className="text-xl md:text-2xl max-w-3xl mx-auto text-gray-600">
-              Find the perfect fitness center that matches your goals and lifestyle
+              {userCoords
+                ? 'Showing fitness centers nearest to your current location'
+                : 'Find the perfect fitness center that matches your goals and lifestyle'}
             </p>
+            {userCoords && (
+              <div className="inline-flex items-center gap-1.5 mt-4 px-4 py-1.5 bg-emerald-50 text-emerald-700 text-sm font-bold rounded-full border border-emerald-200">
+                <Navigation className="w-4 h-4" />
+                Sorted by distance from your location
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -349,6 +405,12 @@ const FitnessDirectory = () => {
                       <span className="text-lg font-bold text-red-500">{directory.membership}</span>
                     </div>
                   )}
+                  {directory.distance_km !== undefined && (
+                    <div className="absolute bottom-3 left-3 bg-black/70 backdrop-blur-sm px-2.5 py-1 rounded-full flex items-center gap-1">
+                      <Navigation className="w-3 h-3 text-emerald-400" />
+                      <span className="text-white text-xs font-bold">{directory.distance_km} km</span>
+                    </div>
+                  )}
                 </div>
                 
                 <div className="p-6">
@@ -414,7 +476,7 @@ const FitnessDirectory = () => {
                   
                   <div className="flex gap-2">
                     <button
-                      onClick={() => navigate(`/gym/${directory.id}`)}
+                      onClick={() => navigate(`/gym/${directory.id}/${slugify(directory.name || 'gym')}`)}
                       className="flex-1 bg-red-500 text-white px-4 py-2 rounded-full font-semibold hover:bg-red-600 transition-colors duration-200 text-sm"
                     >
                       View Details

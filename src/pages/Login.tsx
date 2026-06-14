@@ -118,6 +118,45 @@ const Login = () => {
             </button>
           </form>
 
+          <div className="mt-8 border-t border-gray-155 pt-6">
+            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4 text-center">
+              Quick ERP Demo Logins
+            </h3>
+            <div className="grid grid-cols-1 gap-2">
+              {[
+                { name: 'Discipl Web Admin ERP', email: 'discipladmin@gmail.com', password: '!?@Password121' },
+                { name: 'Discipl Premium Calicut', email: 'owner1@discipl.com', password: 'discipl123' },
+                { name: 'Discipl Fitness Club Cochin', email: 'owner2@discipl.com', password: 'discipl123' },
+                { name: 'Discipl Iron Gym Trivandrum', email: 'owner3@discipl.com', password: 'discipl123' },
+              ].map((branch) => (
+                <button
+                  key={branch.email}
+                  type="button"
+                  onClick={async () => {
+                    setFormData({ email: branch.email, password: branch.password });
+                    setError('');
+                    try {
+                      const success = await login(branch.email, branch.password);
+                      if (success) {
+                        setTimeout(() => {
+                          navigate('/mentor-dashboard', { replace: true });
+                        }, 100);
+                      } else {
+                        setError('Failed to login with demo credentials');
+                      }
+                    } catch (e) {
+                      setError('An error occurred during demo login');
+                    }
+                  }}
+                  className="w-full bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-700 px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition-all duration-200"
+                >
+                  <span className="font-bold">{branch.name}</span>
+                  <span className="text-[10px] text-gray-400 font-mono">{branch.email}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="mt-6 text-center">
             <p className="text-gray-600">
               Don't have an account?{' '}

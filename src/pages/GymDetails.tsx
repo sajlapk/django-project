@@ -274,10 +274,22 @@ const GymDetails = () => {
                     )}
                     <button
                       onClick={(e) => { e.stopPropagation(); handleRequestMembership(plan.name); }}
-                      className="w-full bg-red-500 text-white py-2.5 rounded-full text-sm font-semibold hover:bg-red-600 transition-colors"
+                      className="w-full bg-red-500 text-white py-2.5 rounded-full text-sm font-semibold hover:bg-red-600 transition-colors mb-2"
                     >
                       Request Membership
                     </button>
+                    {gymPhone && (
+                      <a
+                        href={`https://wa.me/${gymPhone.replace(/[^\d]/g, '')}?text=${encodeURIComponent(`Hi, I'm interested in the "${plan.name}" package at ${gymName}.`)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        className="w-full border border-green-500 text-green-600 bg-white hover:bg-green-50 py-2.5 rounded-full text-sm font-semibold transition-colors flex items-center justify-center gap-1.5"
+                      >
+                        <span className="text-green-500 text-base font-bold">💬</span>
+                        Enquire on WhatsApp
+                      </a>
+                    )}
                   </div>
                 ))}
               </div>
