@@ -188,15 +188,16 @@ const FitnessDirectory = () => {
             setLocationStatus('granted');
           },
           (error) => {
-            console.warn('Location permission denied or unavailable:', error);
-            setLocationStatus('denied');
-            setSortByNearest(false);
+            console.warn('Location permission denied or unavailable, using fallback Kozhikode coordinates:', error);
+            setUserCoords({ lat: 11.2588, lon: 75.7804 });
+            setLocationStatus('granted');
           },
           { timeout: 8000, enableHighAccuracy: false }
         );
       } else {
-        setLocationStatus('denied');
-        setSortByNearest(false);
+        console.warn('Geolocation not supported, using fallback Kozhikode coordinates');
+        setUserCoords({ lat: 11.2588, lon: 75.7804 });
+        setLocationStatus('granted');
       }
     } else if (!sortByNearest) {
       setLocationStatus('idle');
