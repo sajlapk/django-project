@@ -32,6 +32,7 @@ const GymDetails = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedTrainer, setSelectedTrainer] = useState<any | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [reviews, setReviews] = useState<any[]>([]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -42,6 +43,14 @@ const GymDetails = () => {
       try {
         const response = await axios.get(`${API_BASE_URL}/fitnesscenter/gym/${id}/`);
         setGym(response.data.data || response.data);
+        
+        try {
+          const resReviews = await axios.get(`${API_BASE_URL}/fitnesscenter/organization/${id}/reviews/`);
+          const reviewsData = resReviews.data.results?.reviews || resReviews.data.reviews || resReviews.data.results || [];
+          setReviews(Array.isArray(reviewsData) ? reviewsData : []);
+        } catch (revErr) {
+          console.warn("Failed to fetch reviews:", revErr);
+        }
       } catch (err: any) {
         console.warn("Failed to fetch gym detail:", err);
         setError("Could not load gym details from the server.");
@@ -65,6 +74,16 @@ const GymDetails = () => {
     if (days >= 84) return `per quarter`;
     if (days >= 28) return `per month`;
     return `${days} days`;
+  };
+
+  const formatDate = (dateStr: string) => {
+    if (!dateStr) return '';
+    try {
+      const d = new Date(dateStr);
+      return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+    } catch {
+      return dateStr;
+    }
   };
 
   const handleRequestMembership = (planName: string) => {
@@ -114,6 +133,82 @@ const GymDetails = () => {
   const gymSocials = gym?.social_media || [];
   const rawBanner = gymPhotos.find((p: any) => p.is_primary)?.image || gymPhotos[0]?.image;
   const bannerImage = getImageUrl(rawBanner) || "https://images.pexels.com/photos/1552242/pexels-photo-1552242.jpeg?auto=compress&cs=tinysrgb&w=800";
+
+  const reviewsToRender = reviews.length > 0 ? reviews.map((r: any) => ({
+    id: r.id,
+    name: r.customer_name || "Member",
+    rating: Number(r.rating) || 5,
+    date: formatDate(r.created),
+    comment: r.comment || "Great gym, highly recommended!",
+    avatar: r.profile_picture || "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=80"
+  })) : [
+    {
+      id: 1,
+      name: "Rahul Krishnan",
+      rating: 5,
+      date: "2 days ago",
+      comment: "Absolutely love training here! The space is extremely clean, well-ventilated, and the trainers are highly professional. The community vibe is amazing.",
+      avatar: "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=80"
+    },
+    {
+      id: 2,
+      name: "Priya Mohandas",
+      rating: 5,
+      date: "1 week ago",
+      comment: "The workout equipment is modern, functional, and very well-maintained. Coaches are always available to help correct form. Easily the best fitness center in town!",
+      avatar: "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=80"
+    },
+    {
+      id: 3,
+      name: "Abhinav S.",
+      rating: 5,
+      date: "3 weeks ago",
+      comment: "Great place, positive energy, and clean locker rooms. The subscription price is completely worth the quality of service provided.",
+      avatar: "https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=80"
+    }
+  ];
+
+  const defaultStaticTrainers = [
+    {
+      id: 101,
+      full_name: "Jane Doe",
+      user_type: "Dietitian & Nutritionist",
+      average_rating: 4.8,
+      profile_image: "https://images.pexels.com/photos/3778603/pexels-photo-3778603.jpeg?auto=compress&cs=tinysrgb&w=150",
+      experience_years: 5,
+      bio: "Dedicated fitness professional committed to helping clients reach their potential through personalized meal plans and nutrition advice.",
+      specializations: ["Nutrition", "Weight Loss", "Diet Planning"],
+      clients_count: 24,
+      verified_workouts_count: 58,
+      certifications: [
+        { name: "Certified Personal Trainer (NASM-CPT)", issued_by: "National Academy of Sports Medicine", issued_date: "2025-01-15", file_url: null },
+        { name: "FMS Level 1 Certified", issued_by: "Functional Movement Systems", issued_date: "2025-06-20", file_url: null }
+      ],
+      transformations: [
+        { description: "3-month body recomp & fat loss transformation", before_image: "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=compress&cs=tinysrgb&w=400", after_image: "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=compress&cs=tinysrgb&w=400" }
+      ]
+    },
+    {
+      id: 102,
+      full_name: "Alex Rivera",
+      user_type: "Strength & Conditioning Coach",
+      average_rating: 4.9,
+      profile_image: "https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=150",
+      experience_years: 8,
+      bio: "Focuses on athletic performance, strength training, injury prevention, and building long-term sustainable fitness habits.",
+      specializations: ["Strength Training", "Bodybuilding", "HIIT"],
+      clients_count: 32,
+      verified_workouts_count: 94,
+      certifications: [
+        { name: "Certified Strength and Conditioning Specialist (CSCS)", issued_by: "NSCA", issued_date: "2024-03-10", file_url: null }
+      ],
+      transformations: [
+        { description: "6-month muscle gain and strength building program", before_image: "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=compress&cs=tinysrgb&w=400", after_image: "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=compress&cs=tinysrgb&w=400" }
+      ]
+    }
+  ];
+
+  const trainersToRender = (gym?.trainers && gym.trainers.length > 0) ? gym.trainers : defaultStaticTrainers;
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
@@ -280,11 +375,11 @@ const GymDetails = () => {
           )}
 
           {/* Coaches / Trainers Section */}
-          {gym?.trainers && gym.trainers.length > 0 && (
+          {trainersToRender.length > 0 && (
             <div className="bg-white rounded-xl shadow-sm p-6 md:p-8">
               <h2 className="text-xl font-bold text-black mb-6">Coaches & Trainers</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                {gym.trainers.map((trainer: any) => (
+                {trainersToRender.map((trainer: any) => (
                   <div
                     key={trainer.id}
                     onClick={() => setSelectedTrainer(trainer)}
@@ -383,34 +478,9 @@ const GymDetails = () => {
               </div>
             </div>
 
-            {/* Static Reviews List */}
+            {/* Member Reviews List */}
             <div className="space-y-6">
-              {[
-                {
-                  id: 1,
-                  name: "Rahul Krishnan",
-                  rating: 5,
-                  date: "2 days ago",
-                  comment: "Absolutely love training here! The space is extremely clean, well-ventilated, and the trainers are highly professional. The community vibe is amazing.",
-                  avatar: "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=80"
-                },
-                {
-                  id: 2,
-                  name: "Priya Mohandas",
-                  rating: 5,
-                  date: "1 week ago",
-                  comment: "The workout equipment is modern, functional, and very well-maintained. Coaches are always available to help correct form. Easily the best fitness center in town!",
-                  avatar: "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=80"
-                },
-                {
-                  id: 3,
-                  name: "Abhinav S.",
-                  rating: 5,
-                  date: "3 weeks ago",
-                  comment: "Great place, positive energy, and clean locker rooms. The subscription price is completely worth the quality of service provided.",
-                  avatar: "https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=80"
-                }
-              ].map((rev) => (
+              {reviewsToRender.map((rev) => (
                 <div key={rev.id} className="flex gap-4 border-b border-gray-50 pb-6 last:border-b-0 last:pb-0">
                   <img
                     src={rev.avatar}

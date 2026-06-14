@@ -240,7 +240,7 @@ const FitnessDirectory = () => {
               phone: g.phone_number || '+91 99000 12345',
               rating: Number(g.average_rating) || 4.8,
               reviews: g.review_count || 0,
-              category: g.categories?.[0]?.name || 'Gym',
+              category: g.category?.[0]?.name || g.categories?.[0]?.name || 'Gym',
               amenities: g.amenities?.map((a: any) => a.name) || ["Free Weights", "Cardio Units", "Trainer Guided"],
               hours: "6:00 AM - 10:00 PM",
               membership: priceVal,
@@ -360,7 +360,7 @@ const FitnessDirectory = () => {
               onClick={() => setSortByNearest(!sortByNearest)}
               className={`inline-flex items-center justify-center gap-2 px-5 py-3 rounded-lg font-semibold border transition-all ${
                 sortByNearest
-                  ? 'bg-emerald-500 text-white border-emerald-500 shadow-md hover:bg-emerald-600'
+                  ? 'bg-red-500 text-white border-red-500 shadow-md hover:bg-red-600'
                   : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
               }`}
             >
