@@ -24,6 +24,7 @@ import WorkoutSession from './pages/workout/WorkoutSession';
 import WorkoutLogs from './pages/workout/WorkoutLogs';
 import WorkoutPresets from './pages/workout/WorkoutPresets';
 import WorkoutPresetBuilder from './pages/workout/WorkoutPresetBuilder';
+import MentorDashboard from './pages/MentorDashboard';
 
 function AppContent() {
   return (
@@ -36,6 +37,7 @@ function AppContent() {
           <Route path="/about" element={<About />} />
           <Route path="/fitness-directory" element={<FitnessDirectory />} />
           <Route path="/gym/:id" element={<GymDetails />} />
+          <Route path="/gym/:id/:name" element={<GymDetails />} />
           <Route path="/events" element={<Events />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy/>} />
@@ -88,6 +90,11 @@ function AppContent() {
           <Route path="/admin" element={
             <ProtectedRoute adminOnly>
               <AdminPanel />
+            </ProtectedRoute>
+          } />
+          <Route path="/mentor-dashboard" element={
+            <ProtectedRoute>
+              <MentorDashboard />
             </ProtectedRoute>
           } />
         </Routes>

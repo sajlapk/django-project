@@ -4,6 +4,18 @@ import axios from 'axios';
 import { API_BASE_URL } from '../config/api';
 import { useNavigate } from 'react-router-dom';
 
+const slugify = (text: string) => {
+  return text
+    .toString()
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-')           // Replace spaces with -
+    .replace(/[^\w\-]+/g, '')       // Remove all non-word chars
+    .replace(/\-\-+/g, '-')         // Replace multiple - with single -
+    .replace(/^-+/, '')             // Trim - from start
+    .replace(/-+$/, '');            // Trim - from end
+};
+
 interface GymItem {
   id: number;
   name: string;
@@ -303,7 +315,7 @@ const FitnessCenterSection = () => {
                   
                   <div className="p-6 pt-0 flex gap-2">
                     <button
-                      onClick={() => navigate(`/gym/${directory.id}`)}
+                      onClick={() => navigate(`/gym/${directory.id}/${slugify(directory.name || 'gym')}`)}
                       className="flex-1 bg-red-500 text-white px-4 py-2 rounded-full font-semibold hover:bg-red-600 transition-colors duration-200 text-sm"
                     >
                       View Details
