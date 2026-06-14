@@ -132,7 +132,9 @@ const FitnessCenterSection = () => {
           url += `?page_size=1000`;
         }
 
-        const response = await axios.get(url);
+        const response = await axios.get(url, {
+          headers: { 'X-Platform': 'admin-web' }
+        });
         const list = response.data.results || response.data;
         if (Array.isArray(list) && list.length > 0) {
           const mapped = list.slice(0, 6).map((g: any) => {
