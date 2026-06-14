@@ -26,7 +26,7 @@ const GymDetails = () => {
     const fetchGym = async () => {
       try {
         const response = await axios.get(`${API_BASE_URL}/fitnesscenter/gym/${id}/`);
-        setGym(response.data);
+        setGym(response.data.data || response.data);
       } catch (err: any) {
         console.warn("Failed to fetch gym detail:", err);
         setError("Could not load gym details from the server.");
