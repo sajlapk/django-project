@@ -127,7 +127,6 @@ const Login = () => {
                 { name: 'Discipl Web Admin ERP', email: 'discipladmin@gmail.com', password: '!?@Password121' },
                 { name: 'Discipl Premium Calicut', email: 'owner1@discipl.com', password: 'discipl123' },
                 { name: 'Discipl Fitness Club Cochin', email: 'owner2@discipl.com', password: 'discipl123' },
-                { name: 'Discipl Iron Gym Trivandrum', email: 'owner3@discipl.com', password: 'discipl123' },
               ].map((branch) => (
                 <button
                   key={branch.email}

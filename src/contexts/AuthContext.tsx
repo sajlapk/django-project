@@ -99,11 +99,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return true;
     }
 
-    if (password === 'discipl123' && (cleanEmail === 'owner1@discipl.com' || cleanEmail === 'owner2@discipl.com' || cleanEmail === 'owner3@discipl.com')) {
+    if (password === 'discipl123' && (cleanEmail === 'owner1@discipl.com' || cleanEmail === 'owner2@discipl.com')) {
       const mockNames: { [key: string]: string } = {
         'owner1@discipl.com': 'Owner - Calicut Branch',
-        'owner2@discipl.com': 'Owner - Cochin Branch',
-        'owner3@discipl.com': 'Owner - Trivandrum Branch'
+        'owner2@discipl.com': 'Owner - Cochin Branch'
       };
       const appUser: AppUser = {
         id: `demo_${cleanEmail.replace('@', '_')}`,
