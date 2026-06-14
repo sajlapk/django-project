@@ -127,7 +127,9 @@ const FitnessCenterSection = () => {
         // Build URL: use customer/fitnesscenter with lat/lon if available
         let url = `${API_BASE_URL}/customer/fitnesscenter/`;
         if (userCoords) {
-          url += `?lat=${userCoords.lat}&lon=${userCoords.lon}&radius_km=50`;
+          url += `?lat=${userCoords.lat}&lon=${userCoords.lon}&radius_km=100000`;
+        } else {
+          url += `?page_size=1000`;
         }
 
         const response = await axios.get(url);
