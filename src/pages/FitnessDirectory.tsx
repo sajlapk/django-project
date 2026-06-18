@@ -51,7 +51,12 @@ const FitnessDirectory = () => {
   const [categories, setCategories] = useState<string[]>(['All']);
   const [loading, setLoading] = useState(true);
   const [userCoords, setUserCoords] = useState<{ lat: number; lon: number } | null>(null);
-  const [locationStatus, setLocationStatus] = useState<'loading' | 'granted' | 'denied'>('loading');
+  const [locationStatus, setLocationStatus] = useState<'idle' | 'loading' | 'granted' | 'denied'>('idle');
+  const [sortByNearest, setSortByNearest] = useState(false);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   const defaultMockGyms: GymItem[] = [
     {
@@ -168,36 +173,48 @@ const FitnessDirectory = () => {
     }
   ];
 
-  // Step 1: Get user's GPS coordinates
+  // Step 1: Get user's GPS coordinates conditionally
   useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setUserCoords({
-            lat: position.coords.latitude,
-            lon: position.coords.longitude,
-          });
-          setLocationStatus('granted');
-        },
-        (error) => {
-          console.warn('Location permission denied or unavailable:', error);
-          setLocationStatus('denied');
-        },
-        { timeout: 8000, enableHighAccuracy: false }
-      );
-    } else {
-      setLocationStatus('denied');
+    if (sortByNearest && !userCoords) {
+      setLocationStatus('loading');
+      setLoading(true);
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            setUserCoords({
+              lat: position.coords.latitude,
+              lon: position.coords.longitude,
+            });
+            setLocationStatus('granted');
+          },
+          (error) => {
+            console.warn('Location permission denied or unavailable, using fallback Kozhikode coordinates:', error);
+            setUserCoords({ lat: 11.2588, lon: 75.7804 });
+            setLocationStatus('granted');
+          },
+          { timeout: 8000, enableHighAccuracy: false }
+        );
+      } else {
+        console.warn('Geolocation not supported, using fallback Kozhikode coordinates');
+        setUserCoords({ lat: 11.2588, lon: 75.7804 });
+        setLocationStatus('granted');
+      }
+    } else if (!sortByNearest) {
+      setLocationStatus('idle');
     }
-  }, []);
+  }, [sortByNearest, userCoords]);
 
-  // Step 2: Fetch gyms (location-wise if coordinates available)
+  // Step 2: Fetch gyms (location-wise if coordinates available and sortByNearest active)
   useEffect(() => {
-    if (locationStatus === 'loading') return;
+    if (sortByNearest && locationStatus === 'loading') return;
 
     const fetchGyms = async () => {
+      setLoading(true);
       try {
-        let url = `${API_BASE_URL}/fitnesscenter/gym/list/`;
-        if (userCoords) {
+        let url = sortByNearest
+          ? `${API_BASE_URL}/customer/nearest/fitnesscenter/`
+          : `${API_BASE_URL}/fitnesscenter/gym/list/`;
+        if (sortByNearest && userCoords) {
           url += `?lat=${userCoords.lat}&lon=${userCoords.lon}&radius_km=100000`;
         } else {
           url += `?page_size=1000`;
@@ -224,7 +241,7 @@ const FitnessDirectory = () => {
               phone: g.phone_number || '+91 99000 12345',
               rating: Number(g.average_rating) || 4.8,
               reviews: g.review_count || 0,
-              category: g.categories?.[0]?.name || 'Gym',
+              category: g.category?.[0]?.name || g.categories?.[0]?.name || 'Gym',
               amenities: g.amenities?.map((a: any) => a.name) || ["Free Weights", "Cardio Units", "Trainer Guided"],
               hours: "6:00 AM - 10:00 PM",
               membership: priceVal,
@@ -244,7 +261,7 @@ const FitnessDirectory = () => {
       }
     };
     fetchGyms();
-  }, [locationStatus, userCoords]);
+  }, [locationStatus, userCoords, sortByNearest]);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -326,9 +343,9 @@ const FitnessDirectory = () => {
             </div>
           </div>
           
-          {/* Search Bar */}
-          <div className="mb-6">
-            <div className="relative max-w-md">
+          {/* Search & Location Bar */}
+          <div className="mb-6 flex flex-col md:flex-row gap-4 items-stretch md:items-center">
+            <div className="relative flex-1 max-w-md">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <input
                 type="text"
@@ -338,8 +355,22 @@ const FitnessDirectory = () => {
                 className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors duration-200"
               />
             </div>
+            
+            <button
+              type="button"
+              onClick={() => setSortByNearest(!sortByNearest)}
+              className={`inline-flex items-center justify-center gap-2 px-5 py-3 rounded-lg font-semibold border transition-all ${
+                sortByNearest
+                  ? 'bg-red-500 text-white border-red-500 shadow-md hover:bg-red-600'
+                  : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+              }`}
+            >
+              <Navigation className={`w-4 h-4 ${sortByNearest ? 'animate-pulse' : ''}`} />
+              {sortByNearest ? 'Nearest Location: Active' : 'Nearest Location'}
+            </button>
+
             {searchTerm && (
-              <div className="mt-2 text-gray-600 text-sm">
+              <div className="text-gray-600 text-sm md:ml-auto">
                 Found {filteredDirectories.length} center{filteredDirectories.length !== 1 ? 's' : ''} matching "{searchTerm}"
               </div>
             )}

@@ -1,8 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Phone, Mail, MapPin, Star, Check, AlertCircle, Clock, ArrowLeft, Calendar, Loader, Globe, Instagram } from 'lucide-react';
+import { Phone, Mail, MapPin, Star, Check, AlertCircle, Clock, ArrowLeft, Calendar, Loader, Globe, Instagram, Facebook, Youtube, MessageCircle, X, Award, Navigation } from 'lucide-react';
 import axios from 'axios';
 import { API_BASE_URL } from '../config/api';
+
+const renderSocialIcon = (platform: string) => {
+  const lower = platform.toLowerCase();
+  if (lower.includes('instagram')) return <Instagram className="w-5 h-5 text-pink-600 hover:scale-110 transition-transform" />;
+  if (lower.includes('facebook')) return <Facebook className="w-5 h-5 text-blue-600 hover:scale-110 transition-transform" />;
+  if (lower.includes('youtube')) return <Youtube className="w-5 h-5 text-red-600 hover:scale-110 transition-transform" />;
+  if (lower.includes('whatsapp')) return <MessageCircle className="w-5 h-5 text-green-500 hover:scale-110 transition-transform" />;
+  return <Globe className="w-5 h-5 text-gray-500 hover:scale-110 transition-transform" />;
+};
 
 const getImageUrl = (url: string | null) => {
   if (!url) return "";
@@ -21,12 +30,27 @@ const GymDetails = () => {
   const [gym, setGym] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedTrainer, setSelectedTrainer] = useState<any | null>(null);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [reviews, setReviews] = useState<any[]>([]);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   useEffect(() => {
     const fetchGym = async () => {
       try {
         const response = await axios.get(`${API_BASE_URL}/fitnesscenter/gym/${id}/`);
         setGym(response.data.data || response.data);
+        
+        try {
+          const resReviews = await axios.get(`${API_BASE_URL}/fitnesscenter/organization/${id}/reviews/`);
+          const reviewsData = resReviews.data.results?.reviews || resReviews.data.reviews || resReviews.data.results || [];
+          setReviews(Array.isArray(reviewsData) ? reviewsData : []);
+        } catch (revErr) {
+          console.warn("Failed to fetch reviews:", revErr);
+        }
       } catch (err: any) {
         console.warn("Failed to fetch gym detail:", err);
         setError("Could not load gym details from the server.");
@@ -50,6 +74,16 @@ const GymDetails = () => {
     if (days >= 84) return `per quarter`;
     if (days >= 28) return `per month`;
     return `${days} days`;
+  };
+
+  const formatDate = (dateStr: string) => {
+    if (!dateStr) return '';
+    try {
+      const d = new Date(dateStr);
+      return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+    } catch {
+      return dateStr;
+    }
   };
 
   const handleRequestMembership = (planName: string) => {
@@ -100,6 +134,82 @@ const GymDetails = () => {
   const rawBanner = gymPhotos.find((p: any) => p.is_primary)?.image || gymPhotos[0]?.image;
   const bannerImage = getImageUrl(rawBanner) || "https://images.pexels.com/photos/1552242/pexels-photo-1552242.jpeg?auto=compress&cs=tinysrgb&w=800";
 
+  const reviewsToRender = reviews.length > 0 ? reviews.map((r: any) => ({
+    id: r.id,
+    name: r.customer_name || "Member",
+    rating: Number(r.rating) || 5,
+    date: formatDate(r.created),
+    comment: r.comment || "Great gym, highly recommended!",
+    avatar: r.profile_picture || "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=80"
+  })) : [
+    {
+      id: 1,
+      name: "Rahul Krishnan",
+      rating: 5,
+      date: "2 days ago",
+      comment: "Absolutely love training here! The space is extremely clean, well-ventilated, and the trainers are highly professional. The community vibe is amazing.",
+      avatar: "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=80"
+    },
+    {
+      id: 2,
+      name: "Priya Mohandas",
+      rating: 5,
+      date: "1 week ago",
+      comment: "The workout equipment is modern, functional, and very well-maintained. Coaches are always available to help correct form. Easily the best fitness center in town!",
+      avatar: "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=80"
+    },
+    {
+      id: 3,
+      name: "Abhinav S.",
+      rating: 5,
+      date: "3 weeks ago",
+      comment: "Great place, positive energy, and clean locker rooms. The subscription price is completely worth the quality of service provided.",
+      avatar: "https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=80"
+    }
+  ];
+
+  const defaultStaticTrainers = [
+    {
+      id: 101,
+      full_name: "Jane Doe",
+      user_type: "Dietitian & Nutritionist",
+      average_rating: 4.8,
+      profile_image: "https://images.pexels.com/photos/3778603/pexels-photo-3778603.jpeg?auto=compress&cs=tinysrgb&w=150",
+      experience_years: 5,
+      bio: "Dedicated fitness professional committed to helping clients reach their potential through personalized meal plans and nutrition advice.",
+      specializations: ["Nutrition", "Weight Loss", "Diet Planning"],
+      clients_count: 24,
+      verified_workouts_count: 58,
+      certifications: [
+        { name: "Certified Personal Trainer (NASM-CPT)", issued_by: "National Academy of Sports Medicine", issued_date: "2025-01-15", file_url: null },
+        { name: "FMS Level 1 Certified", issued_by: "Functional Movement Systems", issued_date: "2025-06-20", file_url: null }
+      ],
+      transformations: [
+        { description: "3-month body recomp & fat loss transformation", before_image: "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=compress&cs=tinysrgb&w=400", after_image: "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=compress&cs=tinysrgb&w=400" }
+      ]
+    },
+    {
+      id: 102,
+      full_name: "Alex Rivera",
+      user_type: "Strength & Conditioning Coach",
+      average_rating: 4.9,
+      profile_image: "https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=150",
+      experience_years: 8,
+      bio: "Focuses on athletic performance, strength training, injury prevention, and building long-term sustainable fitness habits.",
+      specializations: ["Strength Training", "Bodybuilding", "HIIT"],
+      clients_count: 32,
+      verified_workouts_count: 94,
+      certifications: [
+        { name: "Certified Strength and Conditioning Specialist (CSCS)", issued_by: "NSCA", issued_date: "2024-03-10", file_url: null }
+      ],
+      transformations: [
+        { description: "6-month muscle gain and strength building program", before_image: "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=compress&cs=tinysrgb&w=400", after_image: "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=compress&cs=tinysrgb&w=400" }
+      ]
+    }
+  ];
+
+  const trainersToRender = (gym?.trainers && gym.trainers.length > 0) ? gym.trainers : defaultStaticTrainers;
+
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
 
@@ -133,7 +243,21 @@ const GymDetails = () => {
                 ))}
               </div>
               <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
-                <span className="flex items-center gap-1"><MapPin className="w-4 h-4 text-red-500" />{gymAddress}</span>
+                <span className="flex items-center gap-1 flex-wrap">
+                  <MapPin className="w-4 h-4 text-red-500" />
+                  {gymAddress}
+                  {gym?.location?.google_maps_url && (
+                    <a
+                      href={gym.location.google_maps_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-red-500 hover:text-red-600 hover:bg-red-100 transition-colors ml-2 font-bold text-xs border border-red-200 bg-red-50 px-2.5 py-0.5 rounded-full shadow-sm"
+                    >
+                      <Navigation className="w-3 h-3 text-red-500 rotate-[45deg]" />
+                      Directions
+                    </a>
+                  )}
+                </span>
                 {gymRating > 0 && <span className="flex items-center gap-1"><Star className="w-4 h-4 text-yellow-400 fill-current" />{gymRating} ({gymReviews} reviews)</span>}
               </div>
             </div>
@@ -150,12 +274,16 @@ const GymDetails = () => {
                   <Mail className="w-4 h-4 text-red-500" />{gymEmail}
                 </a>
               )}
-              {gymSocials.map((s: any, i: number) => (
-                <a key={i} href={s.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-red-500 transition-colors">
-                  {s.platform === 'instagram' ? <Instagram className="w-4 h-4 text-red-500" /> : <Globe className="w-4 h-4 text-red-500" />}
-                  <span className="capitalize">{s.platform}</span>
-                </a>
-              ))}
+              {/* Social Icons Row */}
+              {gymSocials.length > 0 && (
+                <div className="flex items-center gap-3 mt-1">
+                  {gymSocials.map((s: any, i: number) => (
+                    <a key={i} href={s.url} target="_blank" rel="noopener noreferrer" title={s.platform} className="p-1.5 bg-gray-50 hover:bg-gray-100 rounded-full border border-gray-200 transition-all">
+                      {renderSocialIcon(s.platform)}
+                    </a>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -196,7 +324,11 @@ const GymDetails = () => {
               <h2 className="text-xl font-bold text-black mb-4">Gallery</h2>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                 {gymPhotos.slice(0, 6).map((p: any) => (
-                  <div key={p.id} className="rounded-lg overflow-hidden h-32 md:h-40">
+                  <div
+                    key={p.id}
+                    onClick={() => setSelectedImage(getImageUrl(p.image))}
+                    className="rounded-lg overflow-hidden h-32 md:h-40 cursor-pointer border hover:border-red-200 transition-all shadow-sm"
+                  >
                     <img src={getImageUrl(p.image)} alt={p.caption} className="w-full h-full object-contain bg-gray-50 hover:scale-105 transition-transform duration-300" />
                   </div>
                 ))}
@@ -241,6 +373,136 @@ const GymDetails = () => {
               </div>
             </div>
           )}
+
+          {/* Coaches / Trainers Section */}
+          {trainersToRender.length > 0 && (
+            <div className="bg-white rounded-xl shadow-sm p-6 md:p-8">
+              <h2 className="text-xl font-bold text-black mb-6">Coaches & Trainers</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                {trainersToRender.map((trainer: any) => (
+                  <div
+                    key={trainer.id}
+                    onClick={() => setSelectedTrainer(trainer)}
+                    className="border border-gray-200 rounded-xl p-5 hover:border-red-200 hover:shadow-md transition-all duration-300 cursor-pointer flex gap-4 items-start bg-white"
+                  >
+                    <img
+                      src={getImageUrl(trainer.profile_image)}
+                      alt={trainer.full_name}
+                      className="w-16 h-16 rounded-full object-cover bg-gray-50 flex-shrink-0"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-1">
+                        <h4 className="font-bold text-gray-900 truncate">{trainer.full_name}</h4>
+                        <div className="flex items-center gap-0.5 text-yellow-400">
+                          <Star className="w-3.5 h-3.5 fill-current" />
+                          <span className="text-xs font-semibold text-gray-700">{trainer.average_rating}</span>
+                        </div>
+                      </div>
+                      <p className="text-xs font-medium text-red-500 mb-2">{trainer.user_type}</p>
+                      
+                      {/* Specializations tags */}
+                      <div className="flex flex-wrap gap-1.5 mb-3">
+                        {trainer.specializations?.slice(0, 3).map((spec: string, sIdx: number) => (
+                          <span key={sIdx} className="text-[10px] bg-gray-50 text-gray-600 px-2 py-0.5 rounded-full border border-gray-100">
+                            {spec}
+                          </span>
+                        ))}
+                      </div>
+                      
+                      <div className="flex items-center justify-between text-[11px] text-gray-500 font-medium">
+                        <span>Clients: {trainer.clients_count}</span>
+                        <span>Verified: {trainer.verified_workouts_count}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Member Reviews Section */}
+          <div className="bg-white rounded-xl shadow-sm p-6 md:p-8">
+            <h2 className="text-xl font-bold text-black mb-6">Member Reviews</h2>
+            
+            {/* Rating Overview */}
+            <div className="flex flex-col md:flex-row gap-6 items-center border-b border-gray-100 pb-6 mb-6">
+              <div className="text-center md:border-r border-gray-100 md:pr-8 flex-shrink-0">
+                <div className="text-5xl font-black text-gray-900 mb-1">{gymRating > 0 ? gymRating.toFixed(1) : "4.8"}</div>
+                <div className="flex items-center gap-1 justify-center text-yellow-400 mb-1">
+                  <Star className="w-5 h-5 fill-current" />
+                  <Star className="w-5 h-5 fill-current" />
+                  <Star className="w-5 h-5 fill-current" />
+                  <Star className="w-5 h-5 fill-current" />
+                  <Star className="w-5 h-5 fill-current" />
+                </div>
+                <div className="text-xs text-gray-500 font-medium">Based on {gymReviews > 0 ? gymReviews : 24} ratings</div>
+              </div>
+
+              {/* Rating Bars */}
+              <div className="flex-1 w-full space-y-2 max-w-sm">
+                <div className="flex items-center gap-3 text-xs text-gray-600">
+                  <span className="w-3 font-semibold">5</span>
+                  <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div className="h-full bg-emerald-500 rounded-full" style={{ width: '85%' }}></div>
+                  </div>
+                  <span className="w-8 text-right font-medium">85%</span>
+                </div>
+                <div className="flex items-center gap-3 text-xs text-gray-600">
+                  <span className="w-3 font-semibold">4</span>
+                  <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div className="h-full bg-emerald-400 rounded-full" style={{ width: '10%' }}></div>
+                  </div>
+                  <span className="w-8 text-right font-medium">10%</span>
+                </div>
+                <div className="flex items-center gap-3 text-xs text-gray-600">
+                  <span className="w-3 font-semibold">3</span>
+                  <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div className="h-full bg-yellow-400 rounded-full" style={{ width: '5%' }}></div>
+                  </div>
+                  <span className="w-8 text-right font-medium">5%</span>
+                </div>
+                <div className="flex items-center gap-3 text-xs text-gray-600">
+                  <span className="w-3 font-semibold">2</span>
+                  <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div className="h-full bg-orange-400 rounded-full" style={{ width: '0%' }}></div>
+                  </div>
+                  <span className="w-8 text-right font-medium">0%</span>
+                </div>
+                <div className="flex items-center gap-3 text-xs text-gray-600">
+                  <span className="w-3 font-semibold">1</span>
+                  <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div className="h-full bg-red-400 rounded-full" style={{ width: '0%' }}></div>
+                  </div>
+                  <span className="w-8 text-right font-medium">0%</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Member Reviews List */}
+            <div className="space-y-6">
+              {reviewsToRender.map((rev) => (
+                <div key={rev.id} className="flex gap-4 border-b border-gray-50 pb-6 last:border-b-0 last:pb-0">
+                  <img
+                    src={rev.avatar}
+                    alt={rev.name}
+                    className="w-10 h-10 rounded-full object-cover bg-gray-50 flex-shrink-0"
+                  />
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between mb-1">
+                      <h4 className="text-sm font-bold text-gray-900">{rev.name}</h4>
+                      <span className="text-[10px] text-gray-400 font-medium">{rev.date}</span>
+                    </div>
+                    <div className="flex items-center gap-0.5 text-yellow-400 mb-2">
+                      {[...Array(rev.rating)].map((_, i) => (
+                        <Star key={i} className="w-3 h-3 fill-current" />
+                      ))}
+                    </div>
+                    <p className="text-xs text-gray-600 leading-relaxed">{rev.comment}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* Right Column — Plans */}
@@ -301,8 +563,153 @@ const GymDetails = () => {
             </div>
           </div>
         </div>
-      </div>
     </div>
+
+    {/* Trainer Profile Modal */}
+    {selectedTrainer && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fadeIn">
+        <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto relative animate-scaleUp">
+          
+          {/* Close Button */}
+          <button
+            onClick={() => setSelectedTrainer(null)}
+            className="absolute top-4 right-4 z-10 p-2 bg-gray-100 hover:bg-gray-200 text-gray-500 rounded-full transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+
+          {/* Banner/Header Block */}
+          <div className="h-32 bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 rounded-t-2xl relative">
+            <div className="absolute -bottom-12 left-6 border-4 border-white rounded-full overflow-hidden w-24 h-24 shadow-lg bg-white">
+              <img
+                src={getImageUrl(selectedTrainer.profile_image)}
+                alt={selectedTrainer.full_name}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          </div>
+
+          {/* Modal Body */}
+          <div className="p-6 pt-16">
+            <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 border-b pb-5 mb-5">
+              <div>
+                <h3 className="text-2xl font-bold text-gray-900">{selectedTrainer.full_name}</h3>
+                <p className="text-sm font-semibold text-red-500 capitalize">{selectedTrainer.user_type}</p>
+                <div className="flex items-center gap-1.5 text-yellow-400 mt-1.5">
+                  <Star className="w-4 h-4 fill-current" />
+                  <span className="text-sm font-bold text-gray-800">{selectedTrainer.average_rating}</span>
+                  <span className="text-xs text-gray-400">({selectedTrainer.review_count} reviews)</span>
+                  <span className="text-xs text-gray-300">|</span>
+                  <span className="text-xs text-gray-500 font-semibold">{selectedTrainer.experience_years} Years Experience</span>
+                </div>
+              </div>
+              
+              {/* Contact info in modal */}
+              <div className="flex flex-col gap-1.5 text-xs text-gray-500 font-medium">
+                {selectedTrainer.email && <span className="flex items-center gap-1"><Mail className="w-3.5 h-3.5 text-red-500" /> {selectedTrainer.email}</span>}
+                {selectedTrainer.mobile && <span className="flex items-center gap-1"><Phone className="w-3.5 h-3.5 text-red-500" /> {selectedTrainer.mobile}</span>}
+              </div>
+            </div>
+
+            {/* Bio & Details Grid */}
+            <div className="space-y-6">
+              
+              {/* Bio */}
+              <div>
+                <h4 className="font-bold text-gray-900 mb-2 text-sm">About / Bio</h4>
+                <p className="text-sm text-gray-600 leading-relaxed">{selectedTrainer.bio}</p>
+              </div>
+
+              {/* Specializations */}
+              <div>
+                <h4 className="font-bold text-gray-900 mb-2 text-sm">Specialities</h4>
+                <div className="flex flex-wrap gap-2">
+                  {selectedTrainer.specializations?.map((spec: string, idx: number) => (
+                    <span key={idx} className="text-xs bg-red-50 text-red-600 px-3 py-1 rounded-full font-medium border border-red-100">
+                      {spec}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Certifications */}
+              {selectedTrainer.certifications?.length > 0 && (
+                <div>
+                  <h4 className="font-bold text-gray-900 mb-2.5 text-sm">Certifications & Credentials</h4>
+                  <div className="space-y-2">
+                    {selectedTrainer.certifications.map((cert: any, idx: number) => (
+                      <div key={idx} className="flex items-start gap-3 bg-gray-50 p-3 rounded-lg border border-gray-100">
+                        <Award className="w-5 h-5 text-yellow-500 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <h5 className="text-xs font-bold text-gray-900">{cert.name}</h5>
+                          <p className="text-[11px] text-gray-500">{cert.issued_by} {cert.issued_date && `• Issued ${cert.issued_date}`}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Transformations (Before/After Slider/Grid) */}
+              {selectedTrainer.transformations?.length > 0 && (
+                <div>
+                  <h4 className="font-bold text-gray-900 mb-3 text-sm">Client Transformations</h4>
+                  {selectedTrainer.transformations.map((trans: any, idx: number) => (
+                    <div key={idx} className="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                      <p className="text-xs text-gray-700 italic mb-3">"{trans.description}"</p>
+                      <div className="grid grid-cols-2 gap-4">
+                        {/* Before Image */}
+                        <div className="relative rounded-lg overflow-hidden h-48 border bg-white">
+                          <img
+                            src={getImageUrl(trans.before_image)}
+                            alt="Before"
+                            className="w-full h-full object-contain bg-gray-100"
+                          />
+                          <div className="absolute bottom-2 left-2 bg-black/70 text-white text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full">
+                            Before
+                          </div>
+                        </div>
+                        
+                        {/* After Image */}
+                        <div className="relative rounded-lg overflow-hidden h-48 border bg-white">
+                          <img
+                            src={getImageUrl(trans.after_image)}
+                            alt="After"
+                            className="w-full h-full object-contain bg-gray-100"
+                          />
+                          <div className="absolute bottom-2 left-2 bg-emerald-600 text-white text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full">
+                            After
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
+
+    {/* Image Lightbox Modal */}
+    {selectedImage && (
+      <div 
+        className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-sm p-4 cursor-zoom-out animate-fadeIn" 
+        onClick={() => setSelectedImage(null)}
+      >
+        <button
+          onClick={() => setSelectedImage(null)}
+          className="absolute top-4 right-4 z-[110] p-2 bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors cursor-pointer"
+        >
+          <X className="w-6 h-6" />
+        </button>
+        <div className="max-w-4xl max-h-[85vh] relative animate-scaleUp" onClick={(e) => e.stopPropagation()}>
+          <img src={selectedImage} alt="Gym details" className="max-w-full max-h-[80vh] object-contain rounded-lg shadow-2xl bg-black" />
+        </div>
+      </div>
+    )}
+  </div>
   );
 };
 

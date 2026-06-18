@@ -236,7 +236,7 @@ const AdminPanel = () => {
       setExtraImages([]);
       setEventDetails({
         _id: '', name: '', date: '', time: '', location: '', description: '', registration_fee: 0, ticket_fee: 0, total_tickets: 0, banner_image: null,
-        category: 'General', status: 'ONGOING', max_participants: 50, judging_criteria: [''], prize_sponsorship: '',
+        category: 'None', status: 'ONGOING', max_participants: 50, judging_criteria: [''], prize_sponsorship: '',
         org_phone_no: '', org_email: '', social_media: [{ platform: 'Instagram', handle: '' }], is_audience_only: false
       });
     } catch (error) {
@@ -296,7 +296,7 @@ const AdminPanel = () => {
     return formatter.format(date);
   };
 
-  // Helper function to check if all important fields in event form are filled
+  // Helper function to check if all important fields in event form are filled. Configured to not check for anything.
   const formIncompleteCheck = (eventDetails: any) => {
     if(
       eventDetails.name === '' || 
@@ -310,7 +310,7 @@ const AdminPanel = () => {
       eventDetails.org_phone_no === '' || 
       eventDetails.org_email === '' 
     )
-      return true
+      return false // Change this to true to make it check for fields
     else 
       return false
   };
@@ -601,23 +601,24 @@ const AdminPanel = () => {
 
               {/* Event Name, Date, Time, Location, Fee, Category, Max Participants... */}
               <div className="relative">
-                <input type="text" name="name" placeholder="Event Name" required onChange={handleInputChange} value={eventDetails.name} className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" />
+                <input type="text" name="name" placeholder="Event Name" onChange={handleInputChange} value={eventDetails.name} className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" />
                 <FileText className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="relative"><label htmlFor="date">Date of Event</label><input type="date" name="date" required onChange={handleInputChange} value={eventDetails.date} className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" /><Calendar className="absolute left-4 top-12 -translate-y-1/2 h-5 w-5 text-gray-400" /></div>
-                <div className="relative"><label htmlFor="time">Time of Event</label><input type="time" name="time" required onChange={handleInputChange} value={eventDetails.time} className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" /><Clock className="absolute left-4 top-12 -translate-y-1/2 h-5 w-5 text-gray-400" /></div>
+                <div className="relative"><label htmlFor="date">Date of Event</label><input type="date" name="date" onChange={handleInputChange} value={eventDetails.date} className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" /><Calendar className="absolute left-4 top-12 -translate-y-1/2 h-5 w-5 text-gray-400" /></div>
+                <div className="relative"><label htmlFor="time">Time of Event</label><input type="time" name="time" onChange={handleInputChange} value={eventDetails.time} className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" /><Clock className="absolute left-4 top-12 -translate-y-1/2 h-5 w-5 text-gray-400" /></div>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="relative"><input type="text" name="location" placeholder="Location or Venue" required onChange={handleInputChange} value={eventDetails.location} className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" /><MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" /></div>
-                <div className="relative"><input type="number" name="registration_fee" placeholder="Registration Fee" required onChange={handleInputChange} value={eventDetails.registration_fee === 0 ? '' : eventDetails.registration_fee} className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" /><IndianRupee className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" /></div>
+                <div className="relative"><input type="text" name="location" placeholder="Location or Venue" onChange={handleInputChange} value={eventDetails.location} className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" /><MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" /></div>
+                <div className="relative"><input type="number" name="registration_fee" placeholder="Registration Fee" onChange={handleInputChange} value={eventDetails.registration_fee === 0 ? '' : eventDetails.registration_fee} className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" /><IndianRupee className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" /></div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* <div className="relative"><input type="text" name="category" placeholder="Category" required onChange={handleInputChange} value={eventDetails.category} className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" /><FileText className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" /></div> */}
                 <div className="relative">
-                  <select name="category" required value={eventDetails.category} onChange={(e) => setEventDetails(prev => ({ ...prev, category: e.target.value }))} className="w-full pl-12 pr-4 py-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors">
+                  <select name="category" value={eventDetails.category} onChange={(e) => setEventDetails(prev => ({ ...prev, category: e.target.value }))} className="w-full pl-12 pr-4 py-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors">
+                    <option value="None">None</option>
                     <option value="General">General</option>
                     <option value="Power Lifting">Power Lifting</option>
                     <option value="Wrestling">Wrestling</option>
@@ -629,13 +630,13 @@ const AdminPanel = () => {
                   </select>
                   <FileText className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                 </div>
-                <div className="relative"><input type="number" name="max_participants" placeholder="Max Participants" required onChange={handleInputChange} value={eventDetails.max_participants === 0 ?  '' : eventDetails.max_participants} className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" /><Users className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" /></div>
+                <div className="relative"><input type="number" name="max_participants" placeholder="Max Participants" onChange={handleInputChange} value={eventDetails.max_participants === 0 ?  '' : eventDetails.max_participants} className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" /><Users className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" /></div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="relative"><input type="number" name="ticket_fee" placeholder="Ticket Fee" required onChange={handleInputChange} value={eventDetails.ticket_fee === 0 ? '' : eventDetails.ticket_fee} className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" /><IndianRupee className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" /></div>
-                <div className="relative"><input type="number" name="total_tickets" placeholder="Total Tickets" required onChange={handleInputChange} value={eventDetails.total_tickets === 0 ? '' : eventDetails.total_tickets} className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" /><TicketCheck className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" /></div>
+                <div className="relative"><input type="number" name="ticket_fee" placeholder="Ticket Fee" onChange={handleInputChange} value={eventDetails.ticket_fee === 0 ? '' : eventDetails.ticket_fee} className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" /><IndianRupee className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" /></div>
+                <div className="relative"><input type="number" name="total_tickets" placeholder="Total Tickets" onChange={handleInputChange} value={eventDetails.total_tickets === 0 ? '' : eventDetails.total_tickets} className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" /><TicketCheck className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" /></div>
               </div>
-              <div className="relative"><textarea name="description" placeholder="Event Description" required rows={4} onChange={handleInputChange} value={eventDetails.description} className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors resize-none" /><FileText className="absolute left-4 top-4 h-5 w-5 text-gray-400" /></div>
+              <div className="relative"><textarea name="description" placeholder="Event Description" rows={4} onChange={handleInputChange} value={eventDetails.description} className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors resize-none" /><FileText className="absolute left-4 top-4 h-5 w-5 text-gray-400" /></div>
               
               {/* Judging Criteria */}
               <div>
@@ -645,12 +646,12 @@ const AdminPanel = () => {
               </div>
 
               {/* Prize & Sponsorship */}
-              <div className="relative"><textarea name="prize_sponsorship" placeholder="Prize & Sponsorship Details" required rows={3} onChange={handleInputChange} value={eventDetails.prize_sponsorship} className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors resize-none" /><Award className="absolute left-4 top-4 h-5 w-5 text-gray-400" /></div>
+              <div className="relative"><textarea name="prize_sponsorship" placeholder="Prize & Sponsorship Details" rows={3} onChange={handleInputChange} value={eventDetails.prize_sponsorship} className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors resize-none" /><Award className="absolute left-4 top-4 h-5 w-5 text-gray-400" /></div>
 
               {/* Organizer Details */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Organizer Details</label>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6"><div className="relative"><input type="tel" name="org_phone_no" placeholder="Organizer Phone" required pattern="[0-9]{10}" onChange={handleInputChange} value={eventDetails.org_phone_no} className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" /><Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" /></div><div className="relative"><input type="email" name="org_email" placeholder="Organizer Email" required onChange={handleInputChange} value={eventDetails.org_email} className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" /><AtSign className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" /></div></div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6"><div className="relative"><input type="tel" name="org_phone_no" placeholder="Organizer Phone" pattern="[0-9]{10}" onChange={handleInputChange} value={eventDetails.org_phone_no} className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" /><Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" /></div><div className="relative"><input type="email" name="org_email" placeholder="Organizer Email" onChange={handleInputChange} value={eventDetails.org_email} className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors" /><AtSign className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" /></div></div>
               </div>
 
               <div>

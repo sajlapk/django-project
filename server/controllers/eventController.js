@@ -6,15 +6,28 @@ const Participant = require('../models/participantModel');
 const createEvent = async (req, res) => {
   try {
     // Destructure all new fields from the request body
-    const { 
+    let { // Change keyword "let" to keyword "const" on changing "all fields unrequired" to "optional fields"
       name, date, time, location, description, registration_fee, ticket_fee, total_tickets, banner_image_url, additional_images,
       category, max_participants, judging_criteria, prize_sponsorship, 
       org_phone_no, org_email, social_media, is_audience_only
     } = req.body;
 
-    if (!name || !date || !time || !location || !description || !ticket_fee || !total_tickets || !category ) {
-      return res.status(400).json({ message: 'Please fill in all required fields' });
-    }
+    // Uncomment this to require required fields
+    // if (!name || !date || !time || !location || !description || !ticket_fee || !total_tickets || !category ) {
+    //   return res.status(400).json({ message: 'Please fill in all required fields' });
+    // }
+
+    // Alternative fix in for unrequired instances
+    if(!name)name = "Not provided"
+    if(!date)date = "00:00:00:00"
+    if(!time)time = "00:00"
+    if(!location)location = "Not provided"
+    if(!description)description = "Not provided"
+    if(!ticket_fee)ticket_fee = "0"
+    if(!total_tickets)total_tickets = "0"
+    if(!category)category = "Not provided"
+    if(!org_email)org_email = "Not provided"
+    if(!org_phone_no)org_phone_no = "0000000000"
 
     const newEvent = new Event({
       name, date, time, location, description,
