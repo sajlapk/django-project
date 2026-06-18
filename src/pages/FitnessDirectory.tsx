@@ -33,7 +33,7 @@ interface GymItem {
 }
 
 const getImageUrl = (url: string | null) => {
-  if (!url) return "https://images.pexels.com/photos/1552242/pexels-photo-1552242.jpeg?auto=compress&cs=tinysrgb&w=400";
+  if (!url) return "";
   if (url.startsWith('http://') || url.startsWith('https://')) return url;
   
   // Extract backend base (without /api/v1)
@@ -423,11 +423,18 @@ const FitnessDirectory = () => {
                 className="bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 overflow-hidden"
               >
                 <div className="relative">
-                  <img
-                    src={directory.image}
-                    alt={directory.name}
-                    className="w-full h-48 object-contain bg-gray-100"
-                  />
+                  {directory.image ? (
+                    <img
+                      src={directory.image}
+                      alt={directory.name}
+                      className="w-full h-48 object-contain bg-gray-100"
+                    />
+                  ) : (
+                    <div className="w-full h-48 bg-gray-100 flex flex-col items-center justify-center text-gray-400 gap-2 border-b">
+                      <Dumbbell className="w-12 h-12 text-gray-300" />
+                      <span className="text-xs text-gray-400">No Image Available</span>
+                    </div>
+                  )}
                   <div className="absolute top-4 left-4">
                     <span className={`px-3 py-1 rounded-full text-sm font-medium ${getCategoryColor(directory.category)}`}>
                       {directory.category}
