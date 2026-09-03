@@ -16,7 +16,7 @@ const renderSocialIcon = (platform: string) => {
 const getImageUrl = (url: string | null) => {
   if (!url) return "";
   if (url.startsWith('http://') || url.startsWith('https://')) return url;
-  
+
   // Extract backend base (without /api/v1)
   const base = API_BASE_URL.replace('/api/v1', '');
   // Ensure we don't have double slashes
@@ -43,7 +43,7 @@ const GymDetails = () => {
       try {
         const response = await axios.get(`${API_BASE_URL}/fitnesscenter/gym/${id}/`);
         setGym(response.data.data || response.data);
-        
+
         try {
           const resReviews = await axios.get(`${API_BASE_URL}/fitnesscenter/organization/${id}/reviews/`);
           const reviewsData = resReviews.data.results?.reviews || resReviews.data.reviews || resReviews.data.results || [];
@@ -140,10 +140,29 @@ const GymDetails = () => {
     rating: Number(r.rating) || 5,
     date: formatDate(r.created),
     comment: r.comment || "Great gym, highly recommended!",
-    avatar: r.profile_picture || "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=80"
+    avatar: r.profile_picture ? getImageUrl(r.profile_picture) : `https://ui-avatars.com/api/?name=${encodeURIComponent(r.customer_name || "Member")}&background=random`
   }));
 
   const trainersToRender = gym?.trainers || [];
+
+  const ratingCounts = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+  let totalReviewsForGraph = 0;
+  reviewsToRender.forEach((rev) => {
+    const r = Math.max(1, Math.min(5, Math.round(rev.rating)));
+    ratingCounts[r as keyof typeof ratingCounts]++;
+    totalReviewsForGraph++;
+  });
+
+  const getRatingPercent = (star: number) => {
+    if (totalReviewsForGraph === 0) {
+      if (gymRating >= 4.5) return star === 5 ? 85 : star === 4 ? 10 : star === 3 ? 5 : 0;
+      if (gymRating >= 4.0) return star === 5 ? 60 : star === 4 ? 30 : star === 3 ? 10 : 0;
+      if (gymRating >= 3.0) return star === 5 ? 20 : star === 4 ? 40 : star === 3 ? 30 : star === 2 ? 10 : 0;
+      if (gymRating > 0) return star === 3 ? 50 : star === 2 ? 30 : star === 1 ? 20 : 0;
+      return 0;
+    }
+    return Math.round((ratingCounts[star as keyof typeof ratingCounts] / totalReviewsForGraph) * 100);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
@@ -250,9 +269,9 @@ const GymDetails = () => {
               <h2 className="text-xl font-bold text-black mb-4">Amenities</h2>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                 {gymAmenities.map((a: any) => (
-                  <div key={a.id} className="flex items-center gap-2 bg-gray-50 rounded-lg p-3 text-sm text-gray-700">
-                    <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
-                    <span>{a.name}</span>
+                  <div key={a.id} className="flex items-center justify-center bg-white border border-gray-100 shadow-sm rounded-xl p-3.5 text-sm text-gray-700 hover:border-gray-200 hover:shadow-md transition-all duration-200 text-center">
+                    {/* <Check className="w-4 h-4 text-green-500 flex-shrink-0" /> */}
+                    <span className="font-medium">{a.name}</span>
                   </div>
                 ))}
               </div>
@@ -270,7 +289,7 @@ const GymDetails = () => {
                     onClick={() => setSelectedImage(getImageUrl(p.image))}
                     className="rounded-lg overflow-hidden h-32 md:h-40 cursor-pointer border hover:border-red-200 transition-all shadow-sm"
                   >
-                    <img src={getImageUrl(p.image)} alt={p.caption} className="w-full h-full object-contain bg-gray-50 hover:scale-105 transition-transform duration-300" />
+                    <img src={getImageUrl(p.image)} alt={p.caption} className="w-full h-full object-cover bg-gray-50 hover:scale-105 transition-transform duration-300" />
                   </div>
                 ))}
               </div>
@@ -286,9 +305,8 @@ const GymDetails = () => {
               </div>
               <div className="space-y-3">
                 {gymSlots.map((slot: any) => (
-                  <div key={slot.id} className={`border rounded-lg p-4 flex justify-between items-center ${
-                    slot.is_active ? 'border-green-200 bg-green-50/30' : 'border-gray-200 opacity-50'
-                  }`}>
+                  <div key={slot.id} className={`border rounded-lg p-4 flex justify-between items-center ${slot.is_active ? 'border-green-200 bg-green-50/30' : 'border-gray-200 opacity-50'
+                    }`}>
                     <div>
                       <div className="flex items-center gap-2">
                         <h4 className="font-semibold text-gray-800">{slot.name}</h4>
@@ -327,7 +345,7 @@ const GymDetails = () => {
                     className="border border-gray-200 rounded-xl p-5 hover:border-red-200 hover:shadow-md transition-all duration-300 cursor-pointer flex gap-4 items-start bg-white"
                   >
                     <img
-                      src={getImageUrl(trainer.profile_image)}
+                      src={trainer.profile_image ? getImageUrl(trainer.profile_image) : "/default_avatar.svg"}
                       alt={trainer.full_name}
                       className="w-16 h-16 rounded-full object-cover bg-gray-50 flex-shrink-0"
                     />
@@ -340,7 +358,7 @@ const GymDetails = () => {
                         </div>
                       </div>
                       <p className="text-xs font-medium text-red-500 mb-2">{trainer.user_type}</p>
-                      
+
                       {/* Specializations tags */}
                       <div className="flex flex-wrap gap-1.5 mb-3">
                         {trainer.specializations?.slice(0, 3).map((spec: string, sIdx: number) => (
@@ -349,7 +367,7 @@ const GymDetails = () => {
                           </span>
                         ))}
                       </div>
-                      
+
                       <div className="flex items-center justify-between text-[11px] text-gray-500 font-medium">
                         <span>Clients: {trainer.clients_count}</span>
                         <span>Verified: {trainer.verified_workouts_count}</span>
@@ -364,19 +382,19 @@ const GymDetails = () => {
           {/* Member Reviews Section */}
           <div className="bg-white rounded-xl shadow-sm p-6 md:p-8">
             <h2 className="text-xl font-bold text-black mb-6">Member Reviews</h2>
-            
+
             {/* Rating Overview */}
             <div className="flex flex-col md:flex-row gap-6 items-center border-b border-gray-100 pb-6 mb-6">
               <div className="text-center md:border-r border-gray-100 md:pr-8 flex-shrink-0">
-                <div className="text-5xl font-black text-gray-900 mb-1">{gymRating > 0 ? gymRating.toFixed(1) : "4.8"}</div>
-                <div className="flex items-center gap-1 justify-center text-yellow-400 mb-1">
-                  <Star className="w-5 h-5 fill-current" />
-                  <Star className="w-5 h-5 fill-current" />
-                  <Star className="w-5 h-5 fill-current" />
-                  <Star className="w-5 h-5 fill-current" />
-                  <Star className="w-5 h-5 fill-current" />
+                <div className="text-5xl font-black text-gray-900 mb-1">{gymRating > 0 ? gymRating.toFixed(1) : "0.0"}</div>
+                <div className="flex items-center gap-1 justify-center mb-1">
+                  <Star className={`w-5 h-5 ${Math.round(gymRating) >= 1 ? "fill-current text-yellow-400" : "text-gray-300"}`} />
+                  <Star className={`w-5 h-5 ${Math.round(gymRating) >= 2 ? "fill-current text-yellow-400" : "text-gray-300"}`} />
+                  <Star className={`w-5 h-5 ${Math.round(gymRating) >= 3 ? "fill-current text-yellow-400" : "text-gray-300"}`} />
+                  <Star className={`w-5 h-5 ${Math.round(gymRating) >= 4 ? "fill-current text-yellow-400" : "text-gray-300"}`} />
+                  <Star className={`w-5 h-5 ${Math.round(gymRating) >= 5 ? "fill-current text-yellow-400" : "text-gray-300"}`} />
                 </div>
-                <div className="text-xs text-gray-500 font-medium">Based on {gymReviews > 0 ? gymReviews : 24} ratings</div>
+                <div className="text-xs text-gray-500 font-medium">Based on {gymReviews > 0 ? gymReviews : 0} ratings</div>
               </div>
 
               {/* Rating Bars */}
@@ -384,37 +402,37 @@ const GymDetails = () => {
                 <div className="flex items-center gap-3 text-xs text-gray-600">
                   <span className="w-3 font-semibold">5</span>
                   <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-emerald-500 rounded-full" style={{ width: '85%' }}></div>
+                    <div className="h-full bg-emerald-500 rounded-full transition-all duration-500" style={{ width: `${getRatingPercent(5)}%` }}></div>
                   </div>
-                  <span className="w-8 text-right font-medium">85%</span>
+                  <span className="w-8 text-right font-medium">{getRatingPercent(5)}%</span>
                 </div>
                 <div className="flex items-center gap-3 text-xs text-gray-600">
                   <span className="w-3 font-semibold">4</span>
                   <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-emerald-400 rounded-full" style={{ width: '10%' }}></div>
+                    <div className="h-full bg-emerald-400 rounded-full transition-all duration-500" style={{ width: `${getRatingPercent(4)}%` }}></div>
                   </div>
-                  <span className="w-8 text-right font-medium">10%</span>
+                  <span className="w-8 text-right font-medium">{getRatingPercent(4)}%</span>
                 </div>
                 <div className="flex items-center gap-3 text-xs text-gray-600">
                   <span className="w-3 font-semibold">3</span>
                   <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-yellow-400 rounded-full" style={{ width: '5%' }}></div>
+                    <div className="h-full bg-yellow-400 rounded-full transition-all duration-500" style={{ width: `${getRatingPercent(3)}%` }}></div>
                   </div>
-                  <span className="w-8 text-right font-medium">5%</span>
+                  <span className="w-8 text-right font-medium">{getRatingPercent(3)}%</span>
                 </div>
                 <div className="flex items-center gap-3 text-xs text-gray-600">
                   <span className="w-3 font-semibold">2</span>
                   <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-orange-400 rounded-full" style={{ width: '0%' }}></div>
+                    <div className="h-full bg-orange-400 rounded-full transition-all duration-500" style={{ width: `${getRatingPercent(2)}%` }}></div>
                   </div>
-                  <span className="w-8 text-right font-medium">0%</span>
+                  <span className="w-8 text-right font-medium">{getRatingPercent(2)}%</span>
                 </div>
                 <div className="flex items-center gap-3 text-xs text-gray-600">
                   <span className="w-3 font-semibold">1</span>
                   <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-red-400 rounded-full" style={{ width: '0%' }}></div>
+                    <div className="h-full bg-red-400 rounded-full transition-all duration-500" style={{ width: `${getRatingPercent(1)}%` }}></div>
                   </div>
-                  <span className="w-8 text-right font-medium">0%</span>
+                  <span className="w-8 text-right font-medium">{getRatingPercent(1)}%</span>
                 </div>
               </div>
             </div>
@@ -426,24 +444,24 @@ const GymDetails = () => {
               ) : (
                 reviewsToRender.map((rev) => (
                   <div key={rev.id} className="flex gap-4 border-b border-gray-50 pb-6 last:border-b-0 last:pb-0">
-                  <img
-                    src={rev.avatar}
-                    alt={rev.name}
-                    className="w-10 h-10 rounded-full object-cover bg-gray-50 flex-shrink-0"
-                  />
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between mb-1">
-                      <h4 className="text-sm font-bold text-gray-900">{rev.name}</h4>
-                      <span className="text-[10px] text-gray-400 font-medium">{rev.date}</span>
+                    <img
+                      src={rev.avatar}
+                      alt={rev.name}
+                      className="w-10 h-10 rounded-full object-cover bg-gray-50 flex-shrink-0"
+                    />
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between mb-1">
+                        <h4 className="text-sm font-bold text-gray-900">{rev.name}</h4>
+                        <span className="text-[10px] text-gray-400 font-medium">{rev.date}</span>
+                      </div>
+                      <div className="flex items-center gap-0.5 text-yellow-400 mb-2">
+                        {[...Array(rev.rating)].map((_, i) => (
+                          <Star key={i} className="w-3 h-3 fill-current" />
+                        ))}
+                      </div>
+                      <p className="text-xs text-gray-600 leading-relaxed">{rev.comment}</p>
                     </div>
-                    <div className="flex items-center gap-0.5 text-yellow-400 mb-2">
-                      {[...Array(rev.rating)].map((_, i) => (
-                        <Star key={i} className="w-3 h-3 fill-current" />
-                      ))}
-                    </div>
-                    <p className="text-xs text-gray-600 leading-relaxed">{rev.comment}</p>
                   </div>
-                </div>
                 ))
               )}
             </div>
@@ -458,36 +476,35 @@ const GymDetails = () => {
             {gymPlans.length === 0 ? (
               <p className="text-sm text-gray-400 text-center py-8">No plans available yet.</p>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
                 {gymPlans.filter((p: any) => p.is_active).map((plan: any, idx: number) => (
                   <div
                     key={plan.id}
                     onClick={() => setSelectedPlan(plan.id)}
-                    className={`border rounded-lg p-5 cursor-pointer transition-all ${
-                      selectedPlan === plan.id
-                        ? 'border-red-500 ring-1 ring-red-500 bg-red-50/30'
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
+                    className={`border rounded-lg p-5 cursor-pointer transition-all ${selectedPlan === plan.id
+                      ? 'border-red-500 ring-1 ring-red-500 bg-red-50/30'
+                      : 'border-gray-200 hover:border-gray-300'
+                      }`}
                   >
                     <div className="flex justify-between items-start mb-2">
                       <h3 className="font-bold text-gray-900">{plan.name}</h3>
                       <div className="text-right">
-                        <span className="text-xl font-bold text-black">₹{Number(plan.price).toLocaleString()}</span>
+                        <span className="text-xl font-bold text-black">₹{Number(plan.actual_price).toLocaleString()}</span>
                         <p className="text-xs text-gray-400">{formatDuration(plan.duration_days)}</p>
                       </div>
                     </div>
                     {plan.description && (
                       <p className="text-xs text-gray-500 mb-3">{plan.description}</p>
                     )}
-                    <button
+                    {/* <button
                       onClick={(e) => { e.stopPropagation(); handleRequestMembership(plan.name); }}
                       className="w-full bg-red-500 text-white py-2.5 rounded-full text-sm font-semibold hover:bg-red-600 transition-colors mb-2"
                     >
                       Request Membership
-                    </button>
+                    </button> */}
                     {gymPhone && (
                       <a
-                        href={`https://wa.me/${gymPhone.replace(/[^\d]/g, '')}?text=${encodeURIComponent(`Hi, I'm interested in the "${plan.name}" package at ${gymName}.`)}`}
+                        href={`https://wa.me/${gymPhone.replace(/[^\d]/g, '')}?text=${encodeURIComponent(`Hi, I'm interested in the "${plan.name}" package at ${gymName}.\n\nEnquiry through Discipl.`)}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         onClick={(e) => e.stopPropagation()}
@@ -508,153 +525,153 @@ const GymDetails = () => {
             </div>
           </div>
         </div>
-    </div>
+      </div>
 
-    {/* Trainer Profile Modal */}
-    {selectedTrainer && (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fadeIn">
-        <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto relative animate-scaleUp">
-          
-          {/* Close Button */}
-          <button
-            onClick={() => setSelectedTrainer(null)}
-            className="absolute top-4 right-4 z-10 p-2 bg-gray-100 hover:bg-gray-200 text-gray-500 rounded-full transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
+      {/* Trainer Profile Modal */}
+      {selectedTrainer && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fadeIn">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto relative animate-scaleUp">
 
-          {/* Banner/Header Block */}
-          <div className="h-32 bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 rounded-t-2xl relative">
-            <div className="absolute -bottom-12 left-6 border-4 border-white rounded-full overflow-hidden w-24 h-24 shadow-lg bg-white">
-              <img
-                src={getImageUrl(selectedTrainer.profile_image)}
-                alt={selectedTrainer.full_name}
-                className="w-full h-full object-cover"
-              />
-            </div>
-          </div>
+            {/* Close Button */}
+            <button
+              onClick={() => setSelectedTrainer(null)}
+              className="absolute top-4 right-4 z-10 p-2 bg-gray-100 hover:bg-gray-200 text-gray-500 rounded-full transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
 
-          {/* Modal Body */}
-          <div className="p-6 pt-16">
-            <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 border-b pb-5 mb-5">
-              <div>
-                <h3 className="text-2xl font-bold text-gray-900">{selectedTrainer.full_name}</h3>
-                <p className="text-sm font-semibold text-red-500 capitalize">{selectedTrainer.user_type}</p>
-                <div className="flex items-center gap-1.5 text-yellow-400 mt-1.5">
-                  <Star className="w-4 h-4 fill-current" />
-                  <span className="text-sm font-bold text-gray-800">{selectedTrainer.average_rating}</span>
-                  <span className="text-xs text-gray-400">({selectedTrainer.review_count} reviews)</span>
-                  <span className="text-xs text-gray-300">|</span>
-                  <span className="text-xs text-gray-500 font-semibold">{selectedTrainer.experience_years} Years Experience</span>
-                </div>
-              </div>
-              
-              {/* Contact info in modal */}
-              <div className="flex flex-col gap-1.5 text-xs text-gray-500 font-medium">
-                {selectedTrainer.email && <span className="flex items-center gap-1"><Mail className="w-3.5 h-3.5 text-red-500" /> {selectedTrainer.email}</span>}
-                {selectedTrainer.mobile && <span className="flex items-center gap-1"><Phone className="w-3.5 h-3.5 text-red-500" /> {selectedTrainer.mobile}</span>}
+            {/* Banner/Header Block */}
+            <div className="h-32 bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 rounded-t-2xl relative">
+              <div className="absolute -bottom-12 left-6 border-4 border-white rounded-full overflow-hidden w-24 h-24 shadow-lg bg-white">
+                <img
+                  src={selectedTrainer.profile_image ? getImageUrl(selectedTrainer.profile_image) : "/default_avatar.svg"}
+                  alt={selectedTrainer.full_name}
+                  className="w-full h-full object-cover"
+                />
               </div>
             </div>
 
-            {/* Bio & Details Grid */}
-            <div className="space-y-6">
-              
-              {/* Bio */}
-              <div>
-                <h4 className="font-bold text-gray-900 mb-2 text-sm">About / Bio</h4>
-                <p className="text-sm text-gray-600 leading-relaxed">{selectedTrainer.bio}</p>
-              </div>
-
-              {/* Specializations */}
-              <div>
-                <h4 className="font-bold text-gray-900 mb-2 text-sm">Specialities</h4>
-                <div className="flex flex-wrap gap-2">
-                  {selectedTrainer.specializations?.map((spec: string, idx: number) => (
-                    <span key={idx} className="text-xs bg-red-50 text-red-600 px-3 py-1 rounded-full font-medium border border-red-100">
-                      {spec}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              {/* Certifications */}
-              {selectedTrainer.certifications?.length > 0 && (
+            {/* Modal Body */}
+            <div className="p-6 pt-16">
+              <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 border-b pb-5 mb-5">
                 <div>
-                  <h4 className="font-bold text-gray-900 mb-2.5 text-sm">Certifications & Credentials</h4>
-                  <div className="space-y-2">
-                    {selectedTrainer.certifications.map((cert: any, idx: number) => (
-                      <div key={idx} className="flex items-start gap-3 bg-gray-50 p-3 rounded-lg border border-gray-100">
-                        <Award className="w-5 h-5 text-yellow-500 flex-shrink-0 mt-0.5" />
-                        <div>
-                          <h5 className="text-xs font-bold text-gray-900">{cert.name}</h5>
-                          <p className="text-[11px] text-gray-500">{cert.issued_by} {cert.issued_date && `• Issued ${cert.issued_date}`}</p>
+                  <h3 className="text-2xl font-bold text-gray-900">{selectedTrainer.full_name}</h3>
+                  <p className="text-sm font-semibold text-red-500 capitalize">{selectedTrainer.user_type}</p>
+                  <div className="flex items-center gap-1.5 text-yellow-400 mt-1.5">
+                    <Star className="w-4 h-4 fill-current" />
+                    <span className="text-sm font-bold text-gray-800">{selectedTrainer.average_rating}</span>
+                    <span className="text-xs text-gray-400">({selectedTrainer.review_count} reviews)</span>
+                    <span className="text-xs text-gray-300">|</span>
+                    <span className="text-xs text-gray-500 font-semibold">{selectedTrainer.experience_years} Years Experience</span>
+                  </div>
+                </div>
+
+                {/* Contact info in modal */}
+                <div className="flex flex-col gap-1.5 text-xs text-gray-500 font-medium">
+                  {selectedTrainer.email && <span className="flex items-center gap-1"><Mail className="w-3.5 h-3.5 text-red-500" /> {selectedTrainer.email}</span>}
+                  {selectedTrainer.mobile && <span className="flex items-center gap-1"><Phone className="w-3.5 h-3.5 text-red-500" /> {selectedTrainer.mobile}</span>}
+                </div>
+              </div>
+
+              {/* Bio & Details Grid */}
+              <div className="space-y-6">
+
+                {/* Bio */}
+                <div>
+                  <h4 className="font-bold text-gray-900 mb-2 text-sm">About / Bio</h4>
+                  <p className="text-sm text-gray-600 leading-relaxed">{selectedTrainer.bio}</p>
+                </div>
+
+                {/* Specializations */}
+                <div>
+                  <h4 className="font-bold text-gray-900 mb-2 text-sm">Specialities</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedTrainer.specializations?.map((spec: string, idx: number) => (
+                      <span key={idx} className="text-xs bg-red-50 text-red-600 px-3 py-1 rounded-full font-medium border border-red-100">
+                        {spec}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Certifications */}
+                {selectedTrainer.certifications?.length > 0 && (
+                  <div>
+                    <h4 className="font-bold text-gray-900 mb-2.5 text-sm">Certifications & Credentials</h4>
+                    <div className="space-y-2">
+                      {selectedTrainer.certifications.map((cert: any, idx: number) => (
+                        <div key={idx} className="flex items-start gap-3 bg-gray-50 p-3 rounded-lg border border-gray-100">
+                          <Award className="w-5 h-5 text-yellow-500 flex-shrink-0 mt-0.5" />
+                          <div>
+                            <h5 className="text-xs font-bold text-gray-900">{cert.name}</h5>
+                            <p className="text-[11px] text-gray-500">{cert.issued_by} {cert.issued_date && `• Issued ${cert.issued_date}`}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Transformations (Before/After Slider/Grid) */}
+                {selectedTrainer.transformations?.length > 0 && (
+                  <div>
+                    <h4 className="font-bold text-gray-900 mb-3 text-sm">Client Transformations</h4>
+                    {selectedTrainer.transformations.map((trans: any, idx: number) => (
+                      <div key={idx} className="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                        <p className="text-xs text-gray-700 italic mb-3">"{trans.description}"</p>
+                        <div className="grid grid-cols-2 gap-4">
+                          {/* Before Image */}
+                          <div className="relative rounded-lg overflow-hidden h-48 border bg-white">
+                            <img
+                              src={getImageUrl(trans.before_image)}
+                              alt="Before"
+                              className="w-full h-full object-contain bg-gray-100"
+                            />
+                            <div className="absolute bottom-2 left-2 bg-black/70 text-white text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full">
+                              Before
+                            </div>
+                          </div>
+
+                          {/* After Image */}
+                          <div className="relative rounded-lg overflow-hidden h-48 border bg-white">
+                            <img
+                              src={getImageUrl(trans.after_image)}
+                              alt="After"
+                              className="w-full h-full object-contain bg-gray-100"
+                            />
+                            <div className="absolute bottom-2 left-2 bg-emerald-600 text-white text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full">
+                              After
+                            </div>
+                          </div>
                         </div>
                       </div>
                     ))}
                   </div>
-                </div>
-              )}
-
-              {/* Transformations (Before/After Slider/Grid) */}
-              {selectedTrainer.transformations?.length > 0 && (
-                <div>
-                  <h4 className="font-bold text-gray-900 mb-3 text-sm">Client Transformations</h4>
-                  {selectedTrainer.transformations.map((trans: any, idx: number) => (
-                    <div key={idx} className="bg-gray-50 p-4 rounded-xl border border-gray-200">
-                      <p className="text-xs text-gray-700 italic mb-3">"{trans.description}"</p>
-                      <div className="grid grid-cols-2 gap-4">
-                        {/* Before Image */}
-                        <div className="relative rounded-lg overflow-hidden h-48 border bg-white">
-                          <img
-                            src={getImageUrl(trans.before_image)}
-                            alt="Before"
-                            className="w-full h-full object-contain bg-gray-100"
-                          />
-                          <div className="absolute bottom-2 left-2 bg-black/70 text-white text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full">
-                            Before
-                          </div>
-                        </div>
-                        
-                        {/* After Image */}
-                        <div className="relative rounded-lg overflow-hidden h-48 border bg-white">
-                          <img
-                            src={getImageUrl(trans.after_image)}
-                            alt="After"
-                            className="w-full h-full object-contain bg-gray-100"
-                          />
-                          <div className="absolute bottom-2 left-2 bg-emerald-600 text-white text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full">
-                            After
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    )}
+      )}
 
-    {/* Image Lightbox Modal */}
-    {selectedImage && (
-      <div 
-        className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-sm p-4 cursor-zoom-out animate-fadeIn" 
-        onClick={() => setSelectedImage(null)}
-      >
-        <button
+      {/* Image Lightbox Modal */}
+      {selectedImage && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-sm p-4 cursor-zoom-out animate-fadeIn"
           onClick={() => setSelectedImage(null)}
-          className="absolute top-4 right-4 z-[110] p-2 bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors cursor-pointer"
         >
-          <X className="w-6 h-6" />
-        </button>
-        <div className="max-w-4xl max-h-[85vh] relative animate-scaleUp" onClick={(e) => e.stopPropagation()}>
-          <img src={selectedImage} alt="Gym details" className="max-w-full max-h-[80vh] object-contain rounded-lg shadow-2xl bg-black" />
+          <button
+            onClick={() => setSelectedImage(null)}
+            className="absolute top-4 right-4 z-[110] p-2 bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors cursor-pointer"
+          >
+            <X className="w-6 h-6" />
+          </button>
+          <div className="max-w-4xl max-h-[85vh] relative animate-scaleUp" onClick={(e) => e.stopPropagation()}>
+            <img src={selectedImage} alt="Gym details" className="max-w-full max-h-[80vh] object-contain rounded-lg shadow-2xl bg-black" />
+          </div>
         </div>
-      </div>
-    )}
-  </div>
+      )}
+    </div>
   );
 };
 

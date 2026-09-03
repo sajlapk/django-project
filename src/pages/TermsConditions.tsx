@@ -2,127 +2,150 @@ import React from "react";
 
 const TermsConditions: React.FC = () => {
   return (
-    <main className="bg-white text-black py-12 px-4 sm:px-6 lg:px-16 leading-relaxed">
-      <article className="max-w-4xl mx-auto lg:mt-16">
-        {/* Header */}
+    <div className="w-full bg-white flex flex-col items-center">
+      <div className="w-full m-0 p-0 overflow-hidden">
+        <img
+          src="/Tremsandcondition.png"
+          alt="Terms and Conditions Banner"
+          className="w-[100vw] max-w-none h-64 sm:h-80 md:h-[400px] lg:h-[500px] object-cover object-center block"
+        />
+      </div>
+      <main className="w-full max-w-7xl bg-white text-black text-sm pt-6 pb-12 px-4 sm:px-6 lg:px-16 leading-relaxed">
+        <article className="max-w-4xl mx-auto">
+          {/* Header */}
         <header className="mb-10">
-          <h1 className="text-2xl md:text-4xl font-bold mb-6">TERMS & CONDITIONS (T&amp;C)</h1>
-          <p className="text-sm md:text-base"><strong>Effective Date:</strong> 24.10.2025</p>
-          <p><strong>Entity:</strong> Habitoz Private Limited (“we,” “our,” “us”)</p>
-          <p><strong>Brand:</strong> Discipl</p>
-          <p><strong>Applicable in:</strong> India</p>
+          <h1 className="text-xl md:text-3xl font-bold mb-6">TERMS & CONDITIONS (T&amp;C)</h1>
+          <p className="text-xs md:text-sm">Effective Date: 24.10.2025</p>
+          <p>Entity:Habitoz Private Limited (“we,” “our,” “us”)</p>
+          <p>Brand: Discipl</p>
+          <p>Applicable in: India</p>
         </header>
-
-        <hr className="border-black my-6" />
 
         {/* 1. INTRODUCTION */}
         <section className="mb-8">
-          <h2 className="text-xl font-bold mb-2">1. INTRODUCTION</h2>
+          <h2 className="text-lg font-bold mb-2">Inroduction</h2>
           <p>
             Welcome to <strong>Discipl</strong>, an integrated fitness ecosystem consisting of:
           </p>
           <ul className="list-disc pl-6 space-y-1 mt-2">
-            <li><strong>Discipl Mentor App</strong> (for fitness centers and trainers)</li>
-            <li><strong>Discipl User App</strong> (for members and fitness enthusiasts)</li>
-            <li><strong>Discipl Sponsor App</strong> (for brands and advertisers)</li>
-            <li><strong>Discipl Website</strong> (for public information and event registrations)</li>
+            <p>
+              Welcome to <strong>Discipl</strong>, an integrated fitness ecosystem designed to connect fitness centers, trainers,
+              members, fitness enthusiasts, brands, and advertisers through a unified platform. The Discipl ecosystem
+              consists of the <strong>Discipl Mentor App</strong>, designed for fitness centers and trainers; the <strong>Discipl User App</strong>, designed for
+              members and fitness enthusiasts; the <strong>Discipl Sponsor App</strong>, designed for brands and advertisers; and the Discipl
+              Website, which provides public information, platform-related details, and event registration facilities.
+            </p><p>
+              By accessing, registering for, or using any of our applications,
+              website, features, or services, you acknowledge that you have read,
+              understood, and agree to be bound by these Terms & Conditions (“Terms”).
+              These Terms apply to all users of the Discipl ecosystem, including Users, Mentors,
+              Fitness Centers, Sponsors, and other participating parties.
+            </p><p>
+              If you do not agree with any part of these Terms, please do not access or use Discipl or any of its services.
+            </p>
           </ul>
           <p className="mt-2">
             By accessing or using any of our apps, website, or services, you agree to be bound by
-            these Terms & Conditions (“Terms”).<br/> 
+            these Terms & Conditions (“Terms”).<br />
             If you do not agree, please do not use Discipl.
           </p>
         </section>
 
-        <hr className="border-black my-6" />
-
         {/* 2. ELIGIBILITY */}
         <section className="mb-8">
-          <h2 className="text-xl font-bold mb-2">2. ELIGIBILITY</h2>
+          <h2 className="text-lg font-bold mb-2"> Eligibility </h2>
           <p>You must be at <strong>least 16 years of age</strong> to use Discipl.</p>
           <p>If you are under 18, you may use the platform only under parental or guardian supervision.</p>
           <p className="mt-2">By registering, you confirm that:</p>
           <ul className="list-disc pl-6 space-y-1 mt-1">
-            <li>The information you provide is accurate and complete.</li>
-            <li>You are not barred under any law from receiving our services.</li>
+            <p><strong>-</strong> The information you provide is accurate and complete.</p>
+            <p><strong>-</strong> You are not barred under any law from receiving our services.</p>
           </ul>
         </section>
 
-        <hr className="border-black my-6" />
-
         {/* 3. SERVICES OFFERED */}
         <section className="mb-8">
-          <h2 className="text-xl font-bold mb-2">3. SERVICES OFFERED</h2>
+          <h2 className="text-lg font-bold mb-2"> Services Offered </h2>
           <p>Discipl provides:</p>
           <ol className="list-decimal pl-6 space-y-1 mt-2">
-            <li><strong>Mentor App</strong> – Tools for fitness centers and trainers to manage members, payments, attendance, and plans.</li>
-            <li><strong>User App</strong> – Platform for individuals to discover centers, subscribe to plans (including EMI options), track workouts, and participate in challenges.</li>
-            <li><strong>Sponsor App</strong> – Platform for businesses to advertise, run campaigns, and sponsor fitness challenges.</li>
-            <li><strong>Website</strong> – Public portal for information, event registration, and gym listings.</li>
+            <li>  Mentor App - Tools for fitness centers and trainers to manage members, payments, attendance, and plans.</li>
+            <li>  User App - Platform for individuals to discover centers, subscribe to plans (including EMI options), track workouts, and participate in challenges.</li>
+            <li>  Sponsor App - Platform for businesses to advertise, run campaigns, and sponsor fitness challenges.</li>
+            <li>  Website - Public portal for information, event registration, and gym listings.</li>
           </ol>
           <p className="mt-2">We may update or modify these services at any time.</p>
         </section>
 
-        <hr className="border-black my-6" />
-
         {/* 4. USER ACCOUNTS */}
         <section className="mb-8">
-          <h2 className="text-xl font-bold mb-2">4. USER ACCOUNTS</h2>
-          <p>You must register an account using:</p>
-          <ul className="list-disc pl-6 space-y-1 mt-2">
-            <li>Mobile OTP or Google login (for Users)</li>
-            <li>Business KYC verification (for Mentors and Sponsors)</li>
-          </ul>
-          <p className="mt-2">You are responsible for:</p>
-          <ul className="list-disc pl-6 space-y-1 mt-2">
-            <li>Maintaining confidentiality of your login credentials.</li>
-            <li>All activity occurring under your account.</li>
-            <li>Ensuring the information you provide is accurate and up to date.</li>
-          </ul>
-          <p className="mt-2">
-            Discipl is not liable for losses due to unauthorized access caused by your negligence.
+          <h2 className="text-lg font-bold mb-2"> User Account
+          </h2>
+          <p>To access certain Discipl services, you may be required to register and maintain an account.
+            Users may register using Mobile OTP or Google Login, while Mentors and Sponsors may be required
+            to complete business KYC verification before accessing relevant features or services. By creating an account,
+            you agree to provide information that is accurate, complete, and up to date.
+          </p>
+          <p>
+            You are responsible for maintaining the confidentiality and security of your login credentials
+            and for all activities that occur under your account. You must not share your account credentials
+            with others or allow unauthorized persons to access your account. You are also responsible for ensuring
+            that the information associated with your account remains accurate and current.
+          </p>
+          <p>
+            If you become aware of any unauthorized access, suspicious activity, or misuse of your account,
+            you should notify Discipl as soon as possible. Discipl will not be responsible for any loss, damage,
+            or unauthorized activity resulting from your failure to maintain the security of your account or login credentials.
           </p>
         </section>
-
-        <hr className="border-black my-6" />
 
         {/* 5. PAYMENTS AND SUBSCRIPTIONS */}
         <section className="mb-8">
-          <h2 className="text-xl font-bold mb-2">5. PAYMENTS AND SUBSCRIPTIONS</h2>
+          <h2 className="text-lg font-bold mb-2"> Payment and Subscription
+          </h2>
           <p>Discipl enables:</p>
           <ul className="list-disc pl-6 space-y-1 mt-2">
-            <li><strong>Fitness center memberships</strong> through subscription or EMI models.</li>
-            <li><strong>Mentor App premium plans</strong> on a monthly or yearly basis.</li>
-            <li><strong>Ad payments</strong> for sponsors on a duration or subscription basis.</li>
+            <p> <strong>-</strong>  Fitness center memberships through subscription or EMI models.</p>
+            <p> <strong>-</strong>  Mentor App premium planson a monthly or yearly basis.</p>
+            <p> <strong>-</strong>  Ad payments for sponsors on a duration or subscription basis.</p>
           </ul>
           <p className="mt-2">
-            All payments are processed securely through our payment gateway partner (e.g., Razorpay).<br/> 
+            All payments are processed securely through our payment gateway partner (e.g., Razorpay).
             Refunds, if applicable, are governed by the respective fitness center or advertiser policies.
-          </p>
-          <p>
-            Discipl is <strong>not responsible</strong> for disputes between users, fitness centers, or sponsors regarding refunds, cancellations,
-            or service quality.
-          </p>
+            <strong> Discipl </strong> is not responsible for disputes between users, fitness centers, or sponsors regarding refunds, cancellations,
+            or service quality.</p>
         </section>
-
-        <hr className="border-black my-6" />
 
         {/* 6. SPONSOR ADVERTISEMENTS */}
         <section className="mb-8">
-          <h2 className="text-xl font-bold mb-2">6. SPONSOR ADVERTISEMENTS</h2>
+          <h2 className="text-lg font-bold mb-2"> Sponsor Advertisements </h2>
           <ul className="list-disc pl-6 space-y-1">
-            <li>Sponsors are solely responsible for the content and legality of their ads.</li>
-            <li>Discipl does not endorse, guarantee, or verify any sponsor products or services.</li>
-            <li>Ads may appear in various areas of the app ecosystem (Mentor, User, Sponsor apps, and TVs).</li>
-            <li>Any false or misleading ad may result in suspension of the sponsor account.</li>
+            <p> Sponsors are responsible for ensuring that all advertisements submitted through
+              Discipl are accurate, lawful, clear, and not misleading. Sponsors are solely responsible for the content,
+              claims, products, services, offers, and representations made in their advertisements. By submitting an advertisement,
+              the Sponsor confirms that they have the necessary rights and authorization to promote the advertised product or
+              service.
+            </p>
+            <p>
+              Discipl provides advertising space as a platform and does not endorse, guarantee, certify,
+              or independently verify the products, services, claims, or offers promoted by Sponsors.
+              Users should make their own decisions and verify any information before purchasing or using a product or
+              service advertised through Discipl.
+            </p>
+            <p>
+              Advertisements may be displayed across different parts of the Discipl ecosystem, including the Mentor,
+              User, and Sponsor applications, as well as supported TV or display platforms.
+            </p>
+            <p>
+              If Discipl determines that an advertisement contains false, misleading, unlawful, deceptive,
+              or inappropriate information, we may remove or restrict the advertisement and may suspend or terminate the Sponsor's
+              account, depending on the nature and seriousness of the violation.
+            </p>
           </ul>
         </section>
 
-        <hr className="border-black my-6" />
-
         {/* 7. USER-GENERATED CONTENT */}
         <section className="mb-8">
-          <h2 className="text-xl font-bold mb-2">7. USER-GENERATED CONTENT</h2>
+          <h2 className="text-lg font-bold mb-2"> User-Generated Content </h2>
           <p>Users and trainers may post workout logs, images, videos, or comments. You agree that:</p>
           <ul className="list-disc pl-6 space-y-1 mt-2">
             <li>You own or have rights to the content you share.</li>
@@ -132,63 +155,57 @@ const TermsConditions: React.FC = () => {
           <p className="mt-2">Discipl reserves the right to remove any inappropriate content.</p>
         </section>
 
-        <hr className="border-black my-6" />
-
         {/* 8. HEALTH DISCLAIMER */}
         <section className="mb-8">
-          <h2 className="text-xl font-bold">8. HEALTH DISCLAIMER</h2>
+          <h2 className="text-lg font-bold"> Health Disclaimer </h2>
           <p>
-            Discipl provides tools and information for fitness and wellness purposes only.<br/> 
-            It does <strong>not</strong> replace professional medical advice.<br/> 
+            Discipl provides tools and information for fitness and wellness purposes only.
+            It does not replace professional medical advice.
             Users must consult qualified health professionals before starting any fitness program.
-          </p>
-          <p>
-            Discipl, its affiliates, and partners are <strong>not liable</strong> for injuries, health issues, or damages resulting from workouts or
+            Discipl, its affiliates, and partners are not liable for injuries, health issues, or damages resulting from workouts or
             activities tracked on the app.
           </p>
         </section>
 
-        <hr className="border-black my-6" />
-
         {/* 9. DATA & PRIVACY */}
         <section className="mb-8">
-          <h2 className="text-xl font-bold mb-2">9. DATA & PRIVACY</h2>
+          <h2 className="text-lg font-bold mb-2"> Data & Privacy</h2>
           <p>
-            Discipl collects and processes personal and fitness-related data as per our <strong>Privacy Policy. We ensure compliance with
+            Discipl collects and processes personal and fitness-related data as per our Privacy Policy. We ensure compliance with
             the Information Technology Act, 2000, IT (Reasonable Security Practices and Procedures) Rules, 2011, and the Digital
-            Personal Data Protection (DPDP) Act, 2023.</strong>
+            Personal Data Protection (DPDP) Act, 2023.
           </p>
           <p className="mt-2">
             You consent to our collection and processing of your information as described in the Privacy Policy.
           </p>
         </section>
 
-        <hr className="border-black my-6" />
-
         {/* 10. THIRD-PARTY INTEGRATIONS */}
         <section className="mb-8">
-          <h2 className="text-xl font-bold mb-2">10. THIRD-PARTY INTEGRATIONS</h2>
-          <p>Discipl may integrate with:</p>
-          <ul className="list-disc pl-6 space-y-1 mt-2">
-            <li>Biometric devices for attendance tracking</li>
-            <li>Payment gateways for transactions</li>
-            <li>Third-party APIs for analytics or AI suggestions</li>
-          </ul>
-          <p className="mt-2">
-            These integrations are provided “as-is,” and Discipl is not responsible for their failures or issues.
+          <h2 className="text-lg font-bold mb-2"> Third-Party Integrations </h2>
+          <p>Discipl may integrate with various third-party devices, services,
+            and technologies to provide and improve certain features of the platform. T
+            hese may include biometric devices used for attendance tracking, payment gateways used
+            to process transactions, and third-party APIs used for analytics, automation, or AI-based
+            suggestions and recommendations.
+          </p>
+          <p>
+            These third-party integrations may be subject to their own terms,
+            policies, availability, and technical limitations. Discipl does not control the
+            operation of third-party services and therefore cannot guarantee their continuous availability,
+            accuracy, reliability, or performance. To the extent permitted by applicable law, Discipl will
+            not be responsible for failures, interruptions, errors, or issues caused by third-party integrations or services.
           </p>
         </section>
 
-        <hr className="border-black my-6" />
-
         {/* 11. TERMINATION */}
         <section className="mb-8">
-          <h2 className="text-xl font-bold mb-2">11. TERMINATION</h2>
+          <h2 className="text-lg font-bold mb-2"> Termination</h2>
           <p>We may suspend or terminate your account if:</p>
           <ul className="list-disc pl-6 space-y-1 mt-2">
-            <li>You violate these Terms</li>
-            <li>Provide false information</li>
-            <li>Engage in fraudulent or abusive behavior</li>
+            <p><strong>-</strong> You violate these Terms</p>
+            <p><strong>-</strong> Provide false information</p>
+            <p><strong>-</strong> Engage in fraudulent or abusive behavior</p>
           </ul>
           <p className="mt-2">
             You may delete your account anytime by contacting{" "}
@@ -198,62 +215,78 @@ const TermsConditions: React.FC = () => {
           </p>
         </section>
 
-        <hr className="border-black my-6" />
 
         {/* 12. INTELLECTUAL PROPERTY */}
         <section className="mb-8">
-          <h2 className="text-xl font-bold mb-2">12. INTELLECTUAL PROPERTY</h2>
+          <h2 className="text-lg font-bold mb-2"> Intellectual Property</h2>
           <p>
-            All content, software, UI designs, logos, and trademarks belong to <strong>Habitoz Pvt. Ltd.</strong><br/> You may not copy, modify, or reuse
+            All content, software, UI designs, logos, and trademarks belong to <strong>Habitoz Pvt. Ltd.</strong> You may not copy, modify, or reuse
             them without prior written consent.
           </p>
         </section>
 
-        <hr className="border-black my-6" />
-
         {/* 13. LIMITATION OF LIABILITY */}
         <section className="mb-8">
-          <h2 className="text-xl font-bold mb-2">13. LIMITATION OF LIABILITY</h2>
+          <h2 className="text-lg font-bold mb-2">Limitation Of Liability </h2>
           <ul className="list-disc pl-6 space-y-1">
-            <li>Any direct or indirect damages due to app usage or service interruptions</li>
-            <li>Financial disputes between users, gyms, and sponsors</li>
-            <li>Health outcomes related to fitness activity</li>
+            <p>
+              To the maximum extent permitted by applicable law, Discipl shall not be liable for any direct,
+              indirect, incidental, consequential, or other damages arising from or related to your use of the platform,
+              including losses resulting from app errors, service interruptions, technical issues, or temporary unavailability
+              of any feature or service.
+            </p><p>
+              Discipl shall also not be responsible for financial disputes or losses arising between users,
+              fitness centers, gyms, Mentors, Sponsors, or other third-party service providers, including disputes
+              relating to memberships, payments, services, products, or advertisements.
+            </p><p>
+              Fitness activities involve inherent risks, and Discipl does not guarantee any particular fitness,
+              performance, or health outcome. Any workout, exercise, fitness recommendation, or related activity
+              available through the platform is undertaken at your own discretion and risk. You are responsible for
+              determining whether an activity is suitable for you and should seek appropriate professional or medical advice
+              when necessary.
+            </p><p>
+              By using Discipl, you acknowledge these limitations and agree that you use the platform and its services at your
+              own risk, subject to your rights under applicable law.
+            </p>
           </ul>
           <p className="mt-2">You use the platform at your own risk.</p>
         </section>
 
-        <hr className="border-black my-6" />
-
         {/* 14. INDEMNITY */}
         <section className="mb-8">
-          <h2 className="text-xl font-bold mb-2">14. IDENTITY</h2>
+          <h2 className="text-lg font-bold mb-2">Identity</h2>
           <p>
             You agree to indemnify and hold harmless <strong>Habitoz Pvt. Ltd.</strong>, its directors, employees, and partners from any claim, loss,
             or damage arising from:
           </p>
           <ul className="list-disc pl-6 space-y-1 mt-2">
-            <li>Violation of these Terms</li>
-            <li>Misuse of the platform</li>
-            <li>Content or data you share</li>
+            <p>
+              You agree to indemnify, defend, and hold harmless Habitoz Pvt. Ltd., its directors, employees, partners,
+              affiliates, and representatives from and against any claims, liabilities, losses, damages, costs,
+              or expenses arising out of or relating to your use of the Discipl platform.
+            </p><p>
+              This includes any claim or loss resulting from your violation of these Terms & Conditions,
+              misuse of the platform, unauthorized or unlawful activities, or any content, information,
+              or data that you submit, upload, publish, or otherwise share through Discipl.
+            </p><p>
+              You are responsible for ensuring that your use of the platform and the content you provide
+              do not violate applicable laws, these Terms & Conditions, or the rights of any other person or organization.
+            </p>
           </ul>
         </section>
 
-        <hr className="border-black my-6" />
-
         {/* 15. GOVERNING LAW */}
         <section className="mb-8">
-          <h2 className="text-xl font-bold mb-2">15. GOVERNING LAW & DISPUTE RESOLUTION</h2>
+          <h2 className="text-lg font-bold mb-2"> Governing Low & Dispute Resolution  </h2>
           <p>
-            These Terms are governed by <strong>the laws of India.</strong><br/> Any disputes shall be subject to the <strong>exclusive jurisdiction of the courts
-            in Kozhikode, Kerala.</strong>
+            These Terms are governed by the laws of India. Any disputes shall be subject to the exclusive jurisdiction of the courts
+            in Kozhikode, Kerala.
           </p>
         </section>
 
-        <hr className="border-black my-6" />
-
         {/* 16. CONTACT INFORMATION */}
         <section>
-          <h2 className="text-xl font-bold mb-2">16. CONTACT INFORMATION</h2>
+          <h2 className="text-lg font-bold mb-2"> Contact </h2>
           <p>For support, queries, or legal notices:</p>
           <address className="not-italic space-y-1">
             <p>
@@ -266,7 +299,8 @@ const TermsConditions: React.FC = () => {
           </address>
         </section>
       </article>
-    </main>
+      </main>
+    </div>
   );
 };
 

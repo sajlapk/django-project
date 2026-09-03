@@ -14,16 +14,19 @@ const Footer: React.FC = () => {
   return (
     <footer className="bg-neutral-900 text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10">
           {/* Brand Section */}
-          <div className="space-y-4">
+          <div className="space-y-4 lg:col-span-2 pr-8">
             <div className="flex items-center space-x-2">
               {/* <Dumbbell className="h-8 w-8 text-primary-500" />
               <span className="font-bold text-2xl">Discipl</span> */}
-              <img src="/logo_blac_bg.png" alt="Discipl Logo" className="h-8 w-25" />
+              <img src="logo_white_bg_white.png" alt="Discipl Logo" className="h-8 w-25" />
             </div>
             <p className="text-neutral-400 text-sm leading-6">
-              Your ultimate fitness and sports platform. Connecting athletes, fitness enthusiasts, 
+              Your ultimate fitness and sports platform. 
+              <br />
+              Connecting athletes, fitness enthusiasts,
+              <br />
               and wellness seekers with the best facilities and events.
             </p>
             <div className="flex space-x-4">
@@ -41,15 +44,15 @@ const Footer: React.FC = () => {
 
           {/* Quick Links */}
           <div>
-            <h3 className="font-semibold text-lg mb-4">Quick Links</h3>
+            <h3 className="text-[12px] font-bold tracking-[0.15em] uppercase text-white mb-6">Quick Links</h3>
             <ul className="space-y-3">
               <li>
-                <a href="../#home" className="text-neutral-400 hover:text-primary-500 transition-colors">
+                <a href="../#home" className="text-[11px] font-bold tracking-[0.12em] uppercase text-neutral-400 hover:text-[#d92325] transition-colors">
                   Home
                 </a>
               </li>
               <li>
-                <a href="../#about" className="text-neutral-400 hover:text-primary-500 transition-colors">
+                <a href="../#about" className="text-[11px] font-bold tracking-[0.12em] uppercase text-neutral-400 hover:text-[#d92325] transition-colors">
                   About
                 </a>
               </li>
@@ -59,12 +62,12 @@ const Footer: React.FC = () => {
                 </Link>
               </li> */}
               <li>
-                <a href="../#events" className="text-neutral-400 hover:text-primary-500 transition-colors">
-                  Events
+                <a href="../#events" className="text-[11px] font-bold tracking-[0.12em] uppercase text-neutral-400 hover:text-[#d92325] transition-colors">
+                  Fitness Center
                 </a>
               </li>
               <li>
-                <a href="../#contact" className="text-neutral-400 hover:text-primary-500 transition-colors">
+                <a href="../#contact" className="text-[11px] font-bold tracking-[0.12em] uppercase text-neutral-400 hover:text-[#d92325] transition-colors">
                   Contact
                 </a>
               </li>
@@ -73,19 +76,19 @@ const Footer: React.FC = () => {
 
           {/* Contact Info */}
           <div>
-            <h3 className="font-semibold text-lg mb-4">Contact Info</h3>
+            <h3 className="text-[12px] font-bold tracking-[0.15em] uppercase text-white mb-6">Contact Info</h3>
             <div className="space-y-3">
               <div className="flex items-center space-x-3 text-neutral-400">
-                  <Mail className="h-4 w-4 flex-shrink-0" />
-                  <a href="mailto: info@discipl.com" className="text-sm">info@thediscipl.com</a>
+                <Mail className="h-4 w-4 flex-shrink-0" />
+                <a href="mailto: info@discipl.com" className="text-sm">info@thediscipl.com</a>
               </div>
               <div className="flex items-center space-x-3 text-neutral-400">
                 <Phone className="h-4 w-4 flex-shrink-0" />
-                <a href="tel:+15551234567" className="text-sm">+91 9746458284 </a>
+                <a href="tel:+15551234567" className="text-sm">+91 85899 89890 </a>
               </div>
               <div className="flex items-center space-x-3 text-neutral-400">
                 <MapPin className="h-4 w-4 flex-shrink-0" />
-                <span className="text-[12px]">Vankannayullathil, Near Block Office, Balussery, Kozhikode, Kerala - 673613</span>
+                <span className="text-[12px]">HiLITE Business Park, Pantheeramkavu, Kerala 673014</span>
               </div>
             </div>
           </div>
@@ -93,10 +96,10 @@ const Footer: React.FC = () => {
 
         <div className="border-t border-neutral-800 mt-12 pt-8 text-center">
           <p className="text-neutral-400 text-sm">
-            © 2025 Discipl. All rights reserved. | <a href="/privacy-policy" onClick={(e) => handleInternalLink(e, '/privacy-policy')} className="hover:text-primary-500 transition-colors">Privacy Policy</a> | <a href="/privacy-policy" onClick={(e) => handleInternalLink(e, '/terms-conditions')} className="hover:text-primary-500 transition-colors">Terms and Conditions</a> 
+            © 2025 Discipl. All rights reserved. | <a href="/privacy-policy" onClick={(e) => handleInternalLink(e, '/privacy-policy')} className="hover:text-primary-500 transition-colors">Privacy Policy</a> | <a href="/privacy-policy" onClick={(e) => handleInternalLink(e, '/terms-conditions')} className="hover:text-primary-500 transition-colors">Terms and Conditions</a>
           </p>
         </div>
-              
+
         {/* Space to show terms and conditions in mobile view */}
         <div className="block lg:hidden mt-20"></div>
       </div>

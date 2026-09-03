@@ -1,4 +1,5 @@
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '.env') });
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
@@ -18,8 +19,8 @@ const PORT = process.env.BACKEND_PORT || 5000;
 app.use(express.json());
 
 const corsOptions = {
-  origin: [ `http://localhost:${process.env.FRONTEND_PORT}`,  'https://dicipl-alpha-build.netlify.app', 'https://discipl-web-frontend-beta.onrender.com', 'https://thediscipl.com', 'https://thediscipl.com/' ], 
-  optionsSuccessStatus: 200 
+  origin: [`http://localhost:${process.env.FRONTEND_PORT}`, 'https://dicipl-alpha-build.netlify.app', 'https://discipl-web-frontend-beta.onrender.com', 'https://thediscipl.com', 'https://thediscipl.com/'],
+  optionsSuccessStatus: 200
 };
 
 app.use(cors(corsOptions));

@@ -166,7 +166,7 @@ const MentorDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#fafafa] pb-24 pt-20">
+    <div className="min-h-screen bg-[#fafafa] pb-24 py-8">
       
       {/* Toast Notification */}
       {notification && (

@@ -15,11 +15,10 @@ const Navbar = () => {
 
   // Smooth scroll to section accounting for navbar height
   const scrollToSection = (id: string) => {
-    window.scrollTo({ top: 500, behavior: "smooth" })
     const el = document.getElementById(id);
-    if (!el)return
-    const navbarHeight = document.querySelector('nav')?.clientHeight ?? 0;
-    const y = el.getBoundingClientRect().top + window.scrollY - navbarHeight + 8; // small gap
+    if (!el) return;
+    const navbarHeight = document.querySelector('nav')?.clientHeight ?? 64;
+    const y = el.getBoundingClientRect().top + window.scrollY - navbarHeight;
     window.scrollTo({ top: y, behavior: 'smooth' });
     setActiveSection(id);
   };
@@ -71,62 +70,46 @@ const Navbar = () => {
     }
   };
 
-  // navLinks remain hash paths that map to section IDs
+  // navLinks map directly to page routes
   const navLinks = [
-    { path: '#home', label: 'Home', icon: <Home size={20} /> },
-    { path: '#about', label: 'About', icon: <Info size={20} /> },
-    { path: '#fitness-center', label: 'Fitness Center', icon: <Dumbbell size={20} /> },
-    { path: '#events', label: 'Events', icon: <Calendar size={20} /> },
-    { path: '#contact', label: 'Contact', icon: <Mail size={20} /> },
+    { path: '/', label: 'Home', icon: <Home size={20} /> },
+    { path: '/about', label: 'About', icon: <Info size={20} /> },
+    { path: '/fitness-directory', label: 'Fitness Center', icon: <Dumbbell size={20} /> },
+    // { path: '/events', label: 'Events', icon: <Calendar size={20} /> },
+    { path: '/contact', label: 'Contact', icon: <Mail size={20} /> },
+    { path: '/discipl-screens', label: 'DISCIPL Screens', icon: <Info size={20} /> },
   ];
-
-  useEffect(() => {
-    const onScroll = () => handleObserver();
-    window.addEventListener('scroll', onScroll, { passive: true });
-
-    // initial check
-    handleObserver();
-
-    // scroll if navigated with scrollTo state
-    if (location.state && (location.state as any).scrollTo) {
-      const targetId = (location.state as any).scrollTo;
-      setTimeout(() => {
-        scrollToSection(targetId);
-      }, 200);
-    }
-
-    return () => window.removeEventListener('scroll', onScroll);
-  }, [location.pathname, location.state]);
 
   return (
     <>
       {/* Desktop Navbar */}
-      <nav className="hidden lg:block fixed top-0 left-0 right-0 bg-white shadow-sm border-b border-gray-100 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
+      <nav className="hidden lg:block fixed top-0 left-0 right-0 bg-white/90 backdrop-blur-md shadow-sm border-b border-gray-100 z-50 h-[65px]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
+          <div className="flex justify-between h-full">
             <div className="flex items-center">
               <Link to="/" className="flex items-center">
-                <span className="text-2xl font-bold text-black"><img className="h-8" src="logo_white_bg.png" alt="logo" /></span>
+                <span className="text-2xl font-bold text-black"><img className="h-8" src="/logo_white_bg.png" alt="logo" /></span>
               </Link>
             </div>
 
             {/* Desktop Navigation */}
-            <div className="flex items-center space-x-8">
+            <div className="flex items-center space-x-10">
               {navLinks.map((link) => {
-                const sectionId = link.path.substring(1);
-                const isActive =
-                  (activeSection === sectionId)// also mark active when route is /about etc.
+                const isActive = location.pathname === link.path;
+                const isCta = link.path === '/discipl-screens';
 
                 return (
-                  <button
+                  <Link
                     key={link.path}
-                    onClick={(e) => handleNavClick(e, link.path)}
-                    className={`px-3 py-2 text-sm font-medium transition-colors duration-200 ${
-                      isActive ? 'text-red-500 border-b-2 border-red-500' : 'text-gray-700 hover:text-red-500'
-                    }`}
+                    to={link.path}
+                    className={
+                      isCta
+                        ? "bg-[#f8f9fa] text-gray-900 px-6 py-2 rounded-full text-[11px] font-bold tracking-[0.12em] uppercase shadow-md hover:shadow-lg hover:bg-[#f1f3f5] transition-all"
+                        : `text-[11px] font-bold tracking-[0.12em] uppercase transition-colors duration-300 ${isActive ? 'text-[#d92325]' : 'text-[#222222] hover:text-[#d92325]'}`
+                    }
                   >
                     {link.label}
-                  </button>
+                  </Link>
                 );
               })}
             </div>
@@ -207,9 +190,6 @@ const Navbar = () => {
             </div>
           </div>
         </div>
-        <div id="observer" className="bg-green-200">
-
-        </div>
       </nav>
 
       {/* Mobile Top Bar */}
@@ -217,7 +197,7 @@ const Navbar = () => {
         <div className="px-4 py-3">
           <div className="flex justify-between items-center">
             <Link to="/" className="flex items-center">
-              <img src="logo_white_bg.png" className="h-6"/>
+              <img src="/logo_white_bg.png" className="h-6" />
             </Link>
             {user && (
               <button
@@ -281,11 +261,10 @@ const Navbar = () => {
               <button
                 key={link.path}
                 onClick={(e) => handleNavClick(e, link.path)}
-                className={`flex flex-col items-center py-2 px-1 rounded-lg transition-all duration-200 ${
-                  location.pathname === '/' && activeSection === link.path.substring(1)
-                    ? 'text-red-500 border-b-2 border-red-500'
-                    : 'text-gray-700 hover:text-red-500'
-                }`}
+                className={`flex flex-col items-center py-2 px-1 rounded-lg transition-all duration-200 ${location.pathname === '/' && activeSection === link.path.substring(1)
+                  ? 'text-red-500 border-b-2 border-red-500'
+                  : 'text-gray-700 hover:text-red-500'
+                  }`}
               >
                 <div className='flex flex-col items-center'>
                   {link.icon}

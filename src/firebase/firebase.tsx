@@ -8,7 +8,6 @@ import { getFirestore } from "firebase/firestore";
 // https://firebase.google.com/docs/web/setup#available-libraries
 
 // Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY as string,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN as string,
@@ -19,10 +18,17 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID as string,
 };
 
+if (!firebaseConfig.apiKey) {
+  console.error(
+    "Firebase Error: VITE_FIREBASE_API_KEY is missing or undefined. " +
+    "Please create a .env or .env.local file in the root directory with your Firebase configuration parameters."
+  );
+}
+
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const analytics = getAnalytics(app);
+const analytics = typeof window !== "undefined" && firebaseConfig.measurementId ? getAnalytics(app) : null;
 const db = getFirestore(app);
 
-export { app, auth, analytics, db};
+export { app, auth, analytics, db };

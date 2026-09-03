@@ -428,7 +428,7 @@ const AdminPanel = () => {
         </div>
         )
       )}
-      <div className="min-h-screen bg-gray-50 pt-16 md:pt-20">
+      <div className="min-h-screen bg-gray-50 pb-12">
         <header className="bg-white shadow-sm">
           <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 text-center sm:text-left">

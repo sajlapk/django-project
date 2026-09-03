@@ -28,7 +28,7 @@ export default function WorkoutLogs() {
   const completedWorkouts = workouts.filter((w) => w.status === 'completed');
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 mt-16 bg-gray-50 min-h-screen text-[#111827]">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-gray-50 min-h-screen text-[#111827]">
       {/* Header */}
       <div className="flex items-center gap-3 mb-8">
         <button

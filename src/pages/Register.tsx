@@ -80,7 +80,7 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen pt-16 bg-gray-50 flex items-center justify-center py-12 pt-20">
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12">
       <div className="max-w-md w-full space-y-8 px-4">
         <div>
           <div className="text-center">

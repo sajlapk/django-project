@@ -76,7 +76,7 @@ const Profile: React.FC = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 pt-20">
+        <div className="min-h-screen bg-gray-50 py-8">
             <div className="container mx-auto px-4 py-8 max-w-4xl">
                 {/* User Profile Card */}
                 <div className="bg-white rounded-xl shadow-md p-6 mb-8 flex items-center justify-between">

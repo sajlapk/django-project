@@ -8,7 +8,7 @@ const createEvent = async (req, res) => {
     // Destructure all new fields from the request body
     let { // Change keyword "let" to keyword "const" on changing "all fields unrequired" to "optional fields"
       name, date, time, location, description, registration_fee, ticket_fee, total_tickets, banner_image_url, additional_images,
-      category, max_participants, judging_criteria, prize_sponsorship, 
+      category, max_participants, judging_criteria, prize_sponsorship,
       org_phone_no, org_email, social_media, is_audience_only
     } = req.body;
 
@@ -18,16 +18,16 @@ const createEvent = async (req, res) => {
     // }
 
     // Alternative fix in for unrequired instances
-    if(!name)name = "Not provided"
-    if(!date)date = "00:00:00:00"
-    if(!time)time = "00:00"
-    if(!location)location = "Not provided"
-    if(!description)description = "Not provided"
-    if(!ticket_fee)ticket_fee = "0"
-    if(!total_tickets)total_tickets = "0"
-    if(!category)category = "Not provided"
-    if(!org_email)org_email = "Not provided"
-    if(!org_phone_no)org_phone_no = "0000000000"
+    if (!name) name = "Not provided"
+    if (!date) date = "00:00:00:00"
+    if (!time) time = "00:00"
+    if (!location) location = "Not provided"
+    if (!description) description = "Not provided"
+    if (!ticket_fee) ticket_fee = "0"
+    if (!total_tickets) total_tickets = "0"
+    if (!category) category = "Not provided"
+    if (!org_email) org_email = "Not provided"
+    if (!org_phone_no) org_phone_no = "0000000000"
 
     const newEvent = new Event({
       name, date, time, location, description,
@@ -51,14 +51,20 @@ const createEvent = async (req, res) => {
 
   } catch (error) {
     console.error("Error creating event:", error);
-    res.status(500).json({ message: "Server error while creating event" });
+    console.error("Error name:", error.name);
+    console.error("Error message:", error.message);
+    console.error("Error details:", error.errors);
+
+    res.status(500).json({
+      message: "Server error while creating event"
+    });
   }
 };
 
 // Logic to fetch all events while also calculating available tickets for the event and the participant seats that are left
 const getAllEvents = async (req, res) => {
   try {
-    
+
     // Compute the remaining number of tickets for event and return that along with all the event details
     const events = await Event.aggregate([
       {
@@ -73,9 +79,9 @@ const getAllEvents = async (req, res) => {
       // Adding a new field to each event for the count of issued tickets
       {
         $addFields: {
-          issued_tickets_count: { $sum: { $ifNull: [ '$ticket_details.no_of_tickets', [] ] } }, // Calculate the total number of tickets issued by summing the 'no_of_tickets' value from each document inside the 'ticket_details' array.
-          registered_participants_count: { $cond: { if: { $isArray: "$participants" }, then: { $size: "$participants" }, else: 0 }} // Calculate the number of registered participants by getting the size of the 'participants' array.
-        },  
+          issued_tickets_count: { $sum: { $ifNull: ['$ticket_details.no_of_tickets', []] } }, // Calculate the total number of tickets issued by summing the 'no_of_tickets' value from each document inside the 'ticket_details' array.
+          registered_participants_count: { $cond: { if: { $isArray: "$participants" }, then: { $size: "$participants" }, else: 0 } } // Calculate the number of registered participants by getting the size of the 'participants' array.
+        },
       },
       // Clean up the output by removing the large ticketDetails array
       {
@@ -101,36 +107,36 @@ const getAllEvents = async (req, res) => {
 // Logic to update status of events from admin panel
 const updateEventStatus = async (req, res) => {
   try {
-      const { id } = req.params; // Get the event ID from the URL
-      const { status } = req.body; // Get the new status from the request body
+    const { id } = req.params; // Get the event ID from the URL
+    const { status } = req.body; // Get the new status from the request body
 
-      // Validate the incoming status
-      if (!status || !['ONGOING', 'PASSED'].includes(status)) {
-          return res.status(400).json({ message: 'Invalid status provided.' });
-      }
+    // Validate the incoming status
+    if (!status || !['ONGOING', 'PASSED'].includes(status)) {
+      return res.status(400).json({ message: 'Invalid status provided.' });
+    }
 
-      const updatedEvent = await Event.findByIdAndUpdate(
-          id,
-          { status: status }, // The update to be made
-          { new: true, runValidators: true } // Options: return the new version, run schema validators
-      );
+    const updatedEvent = await Event.findByIdAndUpdate(
+      id,
+      { status: status }, // The update to be made
+      { new: true, runValidators: true } // Options: return the new version, run schema validators
+    );
 
-      if (!updatedEvent) {
-          return res.status(404).json({ message: 'Event not found.' });
-      }
+    if (!updatedEvent) {
+      return res.status(404).json({ message: 'Event not found.' });
+    }
 
-      res.status(200).json(updatedEvent);
+    res.status(200).json(updatedEvent);
 
   } catch (error) {
-      console.error("Error updating event status:", error);
-      res.status(500).json({ message: "Server error while updating event status" });
+    console.error("Error updating event status:", error);
+    res.status(500).json({ message: "Server error while updating event status" });
   }
 };
 
 // Logic to delete an event and associated participant and tickets from respective collections from admin panel
 const deleteEvent = async (req, res) => {
-  try{
-     const { id: eventId } = req.params;
+  try {
+    const { id: eventId } = req.params;
 
     // 1. Find the event document BEFORE deleting it.
     // We need to access its 'tickets' and 'participants' arrays.

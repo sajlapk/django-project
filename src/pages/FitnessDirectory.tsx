@@ -25,6 +25,7 @@ interface GymItem {
   rating: number;
   reviews: number;
   category: string;
+  categories?: string[];
   amenities: string[];
   hours: string;
   membership: string;
@@ -35,7 +36,7 @@ interface GymItem {
 const getImageUrl = (url: string | null) => {
   if (!url) return "";
   if (url.startsWith('http://') || url.startsWith('https://')) return url;
-  
+
   // Extract backend base (without /api/v1)
   const base = API_BASE_URL.replace('/api/v1', '');
   // Ensure we don't have double slashes
@@ -53,6 +54,11 @@ const FitnessDirectory = () => {
   const [userCoords, setUserCoords] = useState<{ lat: number; lon: number } | null>(null);
   const [locationStatus, setLocationStatus] = useState<'idle' | 'loading' | 'granted' | 'denied'>('idle');
   const [sortByNearest, setSortByNearest] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(6);
+
+  useEffect(() => {
+    setVisibleCount(6);
+  }, [searchTerm, selectedCategory]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -239,9 +245,10 @@ const FitnessDirectory = () => {
               description: g.description || 'Premium fitness arena designed for peak performance training.',
               address: addr,
               phone: g.phone_number || '+91 99000 12345',
-              rating: Number(g.average_rating) || 4.8,
+              rating: Number(g.average_rating) || 0.0,
               reviews: g.review_count || 0,
               category: g.category?.[0]?.name || g.categories?.[0]?.name || 'Gym',
+              categories: g.categories?.map((c: any) => c.name) || (g.category ? (Array.isArray(g.category) ? g.category.map((c: any) => c.name) : [g.category.name || 'Gym']) : ['Gym']),
               amenities: g.amenities?.map((a: any) => a.name) || ["Free Weights", "Cardio Units", "Trainer Guided"],
               hours: "6:00 AM - 10:00 PM",
               membership: priceVal,
@@ -283,13 +290,13 @@ const FitnessDirectory = () => {
 
   const filteredDirectories = gyms.filter(directory => {
     const matchesCategory = selectedCategory === 'All' || directory.category.toLowerCase().includes(selectedCategory.toLowerCase());
-    const matchesSearch = searchTerm === '' || 
+    const matchesSearch = searchTerm === '' ||
       directory.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       directory.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
       directory.address.toLowerCase().includes(searchTerm.toLowerCase()) ||
       directory.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
       directory.amenities.some(amenity => amenity.toLowerCase().includes(searchTerm.toLowerCase()));
-    
+
     return matchesCategory && matchesSearch;
   });
 
@@ -309,19 +316,30 @@ const FitnessDirectory = () => {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="py-20 bg-gradient-to-br from-gray-50 to-red-50 text-black  sm: h-[15rem] md: h-[15rem]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <h1 className="text-4xl md:text-6xl font-bold mb-6">
-              Fitness <span className="text-red-500">Directory</span>
+      <section className="pt-10 pb-6 md:pt-16 md:pb-10 bg-white text-black relative overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="text-left max-w-3xl">
+            <div className="flex items-center gap-2 mb-6">
+              <span className="w-6 h-6 rounded-full bg-red-600 flex items-center justify-center shadow-lg shadow-red-500/30">
+                <div className="w-0 h-0 border-t-[4px] border-t-transparent border-l-[6px] border-l-white border-b-[4px] border-b-transparent ml-0.5"></div>
+              </span>
+              <span className="text-red-600 text-sm font-bold tracking-[0.2em] uppercase">
+                Fitness Centers
+              </span>
+            </div>
+
+            <h1 className="text-4xl md:text-5xl font-bold mb-6 tracking-tight text-black">
+              Explore <span className="text-red-600">centers near you.</span>
             </h1>
-            <p className="text-xl md:text-2xl max-w-3xl mx-auto text-gray-600">
+
+            <p className="text-lg md:text-xl text-gray-500 font-medium leading-relaxed">
               {userCoords
-                ? 'Showing fitness centers nearest to your current location'
-                : 'Find the perfect fitness center that matches your goals and lifestyle'}
+                ? 'Showing a sample of gyms and training spaces nearest to your location.'
+                : 'A sample of the gyms, studios, and training spaces listed on the Customer App. Real partner listings go live as centers onboard.'}
             </p>
+
             {userCoords && (
-              <div className="inline-flex items-center gap-1.5 mt-4 px-4 py-1.5 bg-emerald-50 text-emerald-700 text-sm font-bold rounded-full border border-emerald-200">
+              <div className="inline-flex items-center gap-1.5 mt-6 px-4 py-1.5 bg-emerald-50 text-emerald-700 text-sm font-bold rounded-full border border-emerald-200">
                 <Navigation className="w-4 h-4" />
                 Sorted by distance from your location
               </div>
@@ -342,7 +360,7 @@ const FitnessDirectory = () => {
               <span>{filteredDirectories.length} results</span>
             </div>
           </div>
-          
+
           {/* Search & Location Bar */}
           <div className="mb-6 flex flex-col md:flex-row gap-4 items-stretch md:items-center">
             <div className="relative flex-1 max-w-md">
@@ -355,15 +373,14 @@ const FitnessDirectory = () => {
                 className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors duration-200"
               />
             </div>
-            
+
             <button
               type="button"
               onClick={() => setSortByNearest(!sortByNearest)}
-              className={`inline-flex items-center justify-center gap-2 px-5 py-3 rounded-lg font-semibold border transition-all ${
-                sortByNearest
-                  ? 'bg-red-500 text-white border-red-500 shadow-md hover:bg-red-600'
-                  : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-              }`}
+              className={`inline-flex items-center justify-center gap-2 px-5 py-3 rounded-lg font-semibold border transition-all ${sortByNearest
+                ? 'bg-red-500 text-white border-red-500 shadow-md hover:bg-red-600'
+                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                }`}
             >
               <Navigation className={`w-4 h-4 ${sortByNearest ? 'animate-pulse' : ''}`} />
               {sortByNearest ? 'Nearest Location: Active' : 'Nearest Location'}
@@ -375,18 +392,17 @@ const FitnessDirectory = () => {
               </div>
             )}
           </div>
-          
+
           {/* Category Filters */}
           <div className="flex flex-wrap gap-3">
             {categories.map((category) => (
               <button
                 key={category}
                 onClick={() => setSelectedCategory(category)}
-                className={`px-4 py-2 rounded-full font-medium transition-colors duration-200 ${
-                  selectedCategory === category
-                    ? 'bg-red-500 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
+                className={`px-4 py-2 rounded-full font-medium transition-colors duration-200 ${selectedCategory === category
+                  ? 'bg-red-500 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
               >
                 {category}
               </button>
@@ -410,130 +426,159 @@ const FitnessDirectory = () => {
               </div>
               <h3 className="text-xl font-semibold text-gray-700 mb-2">No fitness centers found</h3>
               <p className="text-gray-500">
-                {searchTerm || selectedCategory !== 'All' 
-                  ? 'No centers match your current filters. Try adjusting your search or category selection.' 
+                {searchTerm || selectedCategory !== 'All'
+                  ? 'No centers match your current filters. Try adjusting your search or category selection.'
                   : 'No fitness centers available at the moment.'}
               </p>
             </div>
           ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredDirectories.map((directory) => (
-              <div
-                key={directory.id}
-                className="bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 overflow-hidden"
-              >
-                <div className="relative">
-                  {directory.image ? (
-                    <img
-                      src={directory.image}
-                      alt={directory.name}
-                      className="w-full h-48 object-contain bg-gray-100"
-                    />
-                  ) : (
-                    <div className="w-full h-48 bg-gray-100 flex flex-col items-center justify-center text-gray-400 gap-2 border-b">
-                      <Dumbbell className="w-12 h-12 text-gray-300" />
-                      <span className="text-xs text-gray-400">No Image Available</span>
-                    </div>
-                  )}
-                  <div className="absolute top-4 left-4">
-                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${getCategoryColor(directory.category)}`}>
-                      {directory.category}
-                    </span>
-                  </div>
-                  {directory.membership && (
-                    <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full">
-                      <span className="text-lg font-bold text-red-500">{directory.membership}</span>
-                    </div>
-                  )}
-                  {directory.distance_km !== undefined && (
-                    <div className="absolute bottom-3 left-3 bg-black/70 backdrop-blur-sm px-2.5 py-1 rounded-full flex items-center gap-1">
-                      <Navigation className="w-3 h-3 text-emerald-400" />
-                      <span className="text-white text-xs font-bold">{directory.distance_km} km</span>
-                    </div>
-                  )}
-                </div>
-                
-                <div className="p-6">
-                  <div className="flex items-start justify-between mb-3">
-                    <h3 className="text-xl font-bold text-black">
-                      {directory.name}
-                    </h3>
-                    <div className="flex items-center">
-                      <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                      <span className="text-sm font-medium text-gray-700 ml-1">
-                        {directory.rating}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {filteredDirectories.slice(0, visibleCount).map((directory) => (
+                <div
+                  key={directory.id}
+                  className="bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 overflow-hidden"
+                >
+                  <div className="relative">
+                    {directory.image ? (
+                      <img
+                        src={directory.image}
+                        alt={directory.name}
+                        className="w-full h-48 object-cover bg-gray-100"
+                      />
+                    ) : (
+                      <div className="w-full h-48 bg-gray-100 flex flex-col items-center justify-center text-gray-400 gap-2 border-b">
+                        <Dumbbell className="w-12 h-12 text-gray-300" />
+                        <span className="text-xs text-gray-400">No Image Available</span>
+                      </div>
+                    )}
+                    <div className="absolute top-4 left-4">
+                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${getCategoryColor(directory.category)}`}>
+                        {directory.category}
                       </span>
                     </div>
-                  </div>
-                  
-                  <p className="text-gray-600 mb-4 text-sm line-clamp-3">
-                    {directory.description}
-                  </p>
-                  
-                  <div className="space-y-2 mb-4">
-                    <div className="flex items-center text-gray-700">
-                      <MapPin className="w-4 h-4 mr-2 text-red-500 flex-shrink-0" />
-                      <span className="text-sm">{directory.address}</span>
-                    </div>
-                    {directory.phone && (
-                      <div className="flex items-center text-gray-700">
-                        <Phone className="w-4 h-4 mr-2 text-red-500 flex-shrink-0" />
-                        <span className="text-sm">{directory.phone}</span>
+                    {directory.membership && (
+                      <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full">
+                        <span className="text-lg font-bold text-red-500">{directory.membership}</span>
                       </div>
                     )}
-                    {directory.hours && (
-                      <div className="flex items-center text-gray-700">
-                        <Clock className="w-4 h-4 mr-2 text-red-500 flex-shrink-0" />
-                        <span className="text-sm">{directory.hours}</span>
+                    {directory.distance_km !== undefined && (
+                      <div className="absolute bottom-3 left-3 bg-black/70 backdrop-blur-sm px-2.5 py-1 rounded-full flex items-center gap-1">
+                        <Navigation className="w-3 h-3 text-emerald-400" />
+                        <span className="text-white text-xs font-bold">{directory.distance_km} km</span>
                       </div>
                     )}
-                    <div className="flex items-center text-gray-700">
-                      <Users className="w-4 h-4 mr-2 text-red-500 flex-shrink-0" />
-                      <span className="text-sm">{directory.reviews} reviews</span>
-                    </div>
                   </div>
-                  
-                  {directory.amenities && directory.amenities.length > 0 && (
-                    <div className="mb-4">
-                      <h4 className="text-sm font-semibold text-gray-800 mb-2">Amenities:</h4>
-                      <div className="flex flex-wrap gap-1">
-                        {directory.amenities.slice(0, 3).map((amenity, index) => (
-                          <span
-                            key={index}
-                            className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full"
-                          >
-                            {amenity}
-                          </span>
-                        ))}
-                        {directory.amenities.length > 3 && (
-                          <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full">
-                            +{directory.amenities.length - 3} more
-                          </span>
-                        )}
+
+                  <div className="p-6">
+                    <div className="flex items-start justify-between mb-3">
+                      <h3 className="text-xl font-bold text-black">
+                        {directory.name}
+                      </h3>
+                      <div className="flex items-center">
+                        <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                        <span className="text-sm font-medium text-gray-700 ml-1">
+                          {directory.rating}
+                        </span>
                       </div>
                     </div>
-                  )}
-                  
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => navigate(`/gym/${directory.id}/${slugify(directory.name || 'gym')}`)}
-                      className="flex-1 bg-red-500 text-white px-4 py-2 rounded-full font-semibold hover:bg-red-600 transition-colors duration-200 text-sm"
-                    >
-                      View Details
-                    </button>
-                    {directory.phone && (
-                      <a
-                        href={`tel:${directory.phone}`}
-                        className="px-4 py-2 border border-red-500 text-red-500 rounded-full hover:bg-red-500 hover:text-white transition-colors duration-200 text-sm flex items-center justify-center"
+
+                    {/* <p className="text-gray-600 mb-4 text-sm line-clamp-3">
+                      {directory.description}
+                    </p> */}
+
+                    <div className="space-y-2 mb-4">
+                      <div className="flex items-center text-gray-700">
+                        <MapPin className="w-4 h-4 mr-2 text-red-500 flex-shrink-0" />
+                        <span className="text-sm">{directory.address}</span>
+                      </div>
+                      {/* directory.phone && (
+                        <div className="flex items-center text-gray-700">
+                          <Phone className="w-4 h-4 mr-2 text-red-500 flex-shrink-0" />
+                          <span className="text-sm">{directory.phone}</span>
+                        </div>
+                      ) */}
+                      {directory.hours && (
+                        <div className="flex items-center text-gray-700">
+                          <Clock className="w-4 h-4 mr-2 text-red-500 flex-shrink-0" />
+                          <span className="text-sm">{directory.hours}</span>
+                        </div>
+                      )}
+                      {/* <div className="flex items-center text-gray-700">
+                        <Users className="w-4 h-4 mr-2 text-red-500 flex-shrink-0" />
+                        <span className="text-sm">{directory.reviews} reviews</span>
+                      </div> */}
+                    </div>
+
+                    {(directory.categories && directory.categories.length > 0) ? (
+                      <div className="mb-4">
+                        <h4 className="text-sm font-semibold text-gray-800 mb-2">Categories included:</h4>
+                        <div className="flex flex-wrap gap-1">
+                          {directory.categories.slice(0, 3).map((cat, index) => (
+                            <span
+                              key={index}
+                              className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full"
+                            >
+                              {cat}
+                            </span>
+                          ))}
+                          {directory.categories.length > 3 && (
+                            <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full">
+                              +{directory.categories.length - 3} more
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    ) : (directory.amenities && directory.amenities.length > 0 && (
+                      <div className="mb-4">
+                        <h4 className="text-sm font-semibold text-gray-800 mb-2">Amenities:</h4>
+                        <div className="flex flex-wrap gap-1">
+                          {directory.amenities.slice(0, 3).map((amenity, index) => (
+                            <span
+                              key={index}
+                              className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full"
+                            >
+                              {amenity}
+                            </span>
+                          ))}
+                          {directory.amenities.length > 3 && (
+                            <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full">
+                              +{directory.amenities.length - 3} more
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => navigate(`/gym/${directory.id}/${slugify(directory.name || 'gym')}`)}
+                        className="flex-1 bg-red-500 text-white px-4 py-2 rounded-full font-semibold hover:bg-red-600 transition-colors duration-200 text-sm"
                       >
-                        <Phone className="w-4 h-4" />
-                      </a>
-                    )}
+                        View Details
+                      </button>
+                      {/* directory.phone && (
+                        <a
+                          href={`tel:${directory.phone}`}
+                          className="px-4 py-2 border border-red-500 text-red-500 rounded-full hover:bg-red-500 hover:text-white transition-colors duration-200 text-sm flex items-center justify-center"
+                        >
+                          <Phone className="w-4 h-4" />
+                        </a>
+                      ) */}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
+          {filteredDirectories.length > visibleCount && !loading && (
+            <div className="mt-10 flex justify-center">
+              <button
+                onClick={() => setVisibleCount(prev => prev + 9)}
+                className="bg-red-500 text-white px-8 py-3 rounded-full font-semibold shadow-lg hover:bg-red-600 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+              >
+                See More
+              </button>
+            </div>
           )}
         </div>
       </section>

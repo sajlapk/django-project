@@ -2,189 +2,254 @@ import React from "react";
 
 const PrivacyPolicy: React.FC = () => {
   return (
-    <main className="bg-white text-black py-12 px-4 sm:px-6 lg:px-16 leading-relaxed">
-      <article className="max-w-4xl mx-auto lg:mt-16">
-        {/* Header */}
-        <header className="mb-10">
-          <h1 className="text-2xl md:text-4xl font-bold mb-2">PRIVACY POLICY</h1>
-          <p className="text-sm md:text-base font-medium">
-            <strong>Effective Date:</strong> 24.10.2025
-          </p>
-        </header>
+    <div className="w-full bg-white text-black">
+      {/* Privacy Policy Banner */}
+      <div className="w-full m-0 p-0 overflow-hidden">
+        <img
+          src="/privacypolicy.png"
+          alt="Privacy Policy Security Banner"
+          className="w-[100vw] max-w-none h-64 sm:h-80 md:h-[400px] lg:h-[500px] object-cover object-center block"
+        />
+      </div>
 
-        <hr className="border-black my-6" />
+      <main className="py-12 px-4 sm:px-6 lg:px-16 leading-relaxed text-sm text-gray-800">
+        <article className="max-w-4xl mx-auto">
 
-        {/* 1. INTRODUCTION */}
-        <section className="mb-8">
-          <h2 className="text-xl font-bold mb-2">1. INTRODUCTION</h2>
-          <p>
-            This Privacy Policy explains how <strong>Discipl</strong> (operated by <b>Habitoz Pvt. Ltd</b>.)
-            collects, uses, shares, and protects your personal data when you use our apps or website.
-          </p>
-          <p className="mt-2">
-            By using our services, you consent to this policy.
-          </p>
-        </section>
+          {/* Header */}
+          <header className="mb-10">
+            <h1 className="text-xl md:text-3xl font-bold mb-2">
+              PRIVACY POLICY
+            </h1>
 
-        <hr className="border-black my-6" />
+            <p className="text-sm md:text-base font-medium">
+              Effective Date: 24.10.2025
+            </p>
+          </header>
 
-        {/* 2. INFORMATION WE COLLECT */}
-        <section className="mb-8">
-          <h2 className="text-xl font-bold mb-2">2. INFORMATION WE COLLECT</h2>
-          <p>We collect:</p>
-          <ul className="list-disc pl-6 space-y-2 mt-2">
-            <li><strong>Personal Information:</strong> Name, mobile number, email, gender, profession, fitness goals</li>
-            <li><strong>Usage Data:</strong> App interactions, activity logs, step counts, workout entries</li>
-            <li><strong>Payment Data:</strong> Transaction IDs, Razorpay UPI references (handled securely)</li>
-            <li><strong>Device Data:</strong> Model, OS version, IP address (for analytics and security)</li>
-            <li><strong>Optional Health Data:</strong> Weight, height, sleep hours, medical conditions (if provided voluntarily)</li>
-          </ul>
-        </section>
+          {/* <hr className="border-black my-6" /> */}
 
-        <hr className="border-black my-6" />
-
-        {/* 3. HOW WE USE YOUR DATA */}
-        <section className="mb-8">
-          <h2 className="text-xl font-bold mb-2">3. HOW WE USE YOUR DATA</h2>
-          <p>We use your information to:</p>
-          <ul className="list-disc pl-6 space-y-2 mt-2">
-            <li>Create and manage your account</li>
-            <li>Facilitate gym memberships, EMI payments, and subscriptions</li>
-            <li>Suggest workout plans and challenges</li>
-            <li>Display personalized content and ads</li>
-            <li>Improve app experience and analytics</li>
-            <li>Send updates, notifications, and marketing (if opted-in)</li>
-          </ul>
-        </section>
-
-        <hr className="border-black my-6" />
-
-        {/* 4. DATA SHARING */}
-        <section className="mb-8">
-          <h2 className="text-xl font-bold mb-2">4. DATA SHARING</h2>
-          <p>We share data only:</p>
-          <ul className="list-disc pl-6 space-y-2 mt-2">
-            <li>With <b>fitness centers</b> (for your membership and training data)</li>
-            <li>With <b>payment gateways</b> (for transactions)</li>
-            <li>With <b>advertisers</b> (anonymized, non-identifiable data for ad targeting)</li>
-            <li>As required by <b>law or court orders</b></li>
-          </ul>
-          <p className="mt-2 font-medium">We never sell your personal data.</p>
-        </section>
-
-        <hr className="border-black my-6" />
-
-        {/* 5. DATA SECURITY */}
-        <section className="mb-8">
-          <h2 className="text-xl font-bold mb-2">5. DATA SECURITY</h2>
-          <p>We follow industry-standard practices to safeguard data, including:</p>
-          <ul className="list-disc pl-6 space-y-2 mt-2">
-            <li>HTTPS encryption</li>
-            <li>Secure cloud storage (India-based servers)</li>
-            <li>Regular access audits</li>
-            <li>Limited internal access on a need-to-know basis</li>
-          </ul>
-          <p className="mt-2">
-            However, no system is 100% secure. You use Discipl at your own risk.
-          </p>
-        </section>
-
-        <hr className="border-black my-6" />
-
-        {/* 6. DATA RETENTION */}
-        <section className="mb-8">
-          <h2 className="text-xl font-bold mb-2">6. DATA RETENTION</h2>
-          <p>
-            Your data is retained as long as your account remains active.<br/> 
-            You may request deletion of your account and data at any time by emailing{" "}
-            <a
-              href="mailto:info@thediscipl.com"
-              className="text-red-500 hover:underline font-bold"
-            >
-              info@thediscipl.com
-            </a>.
-          </p>
-        </section>
-
-        <hr className="border-black my-6" />
-
-        {/* 7. YOUR RIGHTS */}
-        <section className="mb-8">
-          <h2 className="text-xl font-bold mb-2">
-            7. YOUR RIGHTS (Under DPDP Act 2023)
-          </h2>
-          <p>As an Indian user, you have the right to:</p>
-          <ul className="list-disc pl-6 space-y-2 mt-2">
-            <li>Access your personal data</li>
-            <li>Request correction or deletion</li>
-            <li>Withdraw consent for data processing</li>
-            <li>Lodge complaints with the Data Protection Board of India</li>
-          </ul>
-          <p className="mt-2">
-            To exercise these rights, contact us at{" "}
-            <a
-              href="mailto:info@thediscipl.com"
-              className="text-red-500 hover:underline font-bold"
-            >
-              info@thediscipl.com
-            </a>.
-          </p>
-        </section>
-
-        <hr className="border-black my-6" />
-
-        {/* 8. COOKIES */}
-        <section className="mb-8">
-          <h2 className="text-xl font-bold mb-2">8. COOKIES & TRACKING</h2>
-          <p>
-            We use cookies for analytics, personalization, and remembering preferences.<br/> 
-            You may disable cookies in your browser settings, but some features may not function properly.
-          </p>
-        </section>
-
-        <hr className="border-black my-6" />
-
-        {/* 9. CHILDREN’S PRIVACY */}
-        <section className="mb-8">
-          <h2 className="text-xl font-bold mb-2">9. CHILDREN’S PRIVACY</h2>
-          <p>
-            We do not knowingly collect data from users under 16 years of age.<br/> 
-            If you believe your child has provided us data, please contact us for removal.
-          </p>
-        </section>
-
-        <hr className="border-black my-6" />
-
-        {/* 10. POLICY UPDATES */}
-        <section className="mb-8">
-          <h2 className="text-xl font-bold mb-2">10. POLICY UPDATES</h2>
-          <p>
-            We may update this Privacy Policy periodically.<br/> 
-            Changes will be notified via the app or website with an updated “Effective Date.”
-          </p>
-        </section>
-
-        <hr className="border-black my-6" />
-
-        {/* 11. CONTACT */}
-        <section>
-          <h2 className="text-xl font-bold mb-2">11. CONTACT</h2>
-          <p>For data or privacy queries:</p>
-          <address className="not-italic space-y-1">
+          {/* 1. INTRODUCTION */}
+          <section className="mb-8">
+            <h2 className="text-lg font-bold mb-2">
+              Introduction
+            </h2>
             <p>
-              📧{" "}
+              At <strong>Discipl</strong> we value your privacy and are committed to protecting and processing your personal information responsibly.
+            </p>
+            <p>
+              This Privacy Policy explains how <strong>Discipl</strong>{" "}
+              (operated by <strong>Habitoz Pvt. Ltd.</strong>) collects,
+              uses, shares, and protects your personal data when you use
+              our apps or website.
+            </p>
+
+            <p className="mt-2">
+              By using our services, you consent to this policy.
+            </p>
+          </section>
+
+
+          {/* 2. INFORMATION WE COLLECT */}
+          <section className="mb-8">
+            <h2 className="text-lg font-bold mb-2">
+              Information We Collect
+            </h2>
+
+            <p>We may collect the following types of information:</p>
+
+            <ul className="list-disc pl-6 space-y-2 mt-2">
+              <p>
+                Personal Information: Name, mobile number,
+                email, gender, profession, fitness goals
+              </p>
+
+              <p>
+                Usage Data: App interactions, activity
+                logs, step counts, workout entries
+              </p>
+
+              <p>
+                Payment Data: Transaction IDs, Razorpay
+                UPI references (handled securely)
+              </p>
+
+              <p>
+                Device Data:Model, OS version, IP address
+                (for analytics and security)
+              </p>
+
+              <p>
+                Optional Health Data:Weight, height,
+                sleep hours, medical conditions (if provided voluntarily)
+              </p>
+            </ul>
+          </section>
+
+          {/* 3. HOW WE USE YOUR DATA */}
+          <section className="mb-8">
+            <h2 className="text-lg font-bold mb-2">
+              How We Use Your Data
+            </h2>
+
+            <p>We use your information to:</p>
+            <p>
+              We use your information to create and manage your account, facilitate gym memberships,
+              EMI payments, and subscriptions, suggest workout plans and challenges, display personalized content and advertisements,
+              improve our app experience and analytics, and send updates, notifications,
+              and marketing communications where you have opted in.
+            </p>
+          </section>
+
+          {/* 4. DATA SHARING */}
+          <section className="mb-8">
+            <h2 className="text-lg font-bold mb-2">
+              Data Sharing
+            </h2>
+            <p>
+              We may share your information with fitness centers when required for membership and training services,
+              with payment gateways to process transactions, with advertisers using anonymized
+              and non-identifiable information for advertising purposes, and with authorities where disclosure is
+              required by law or court order. We do not sell your personal data.
+            </p>
+          </section>
+
+          {/* 5. DATA SECURITY */}
+          <section className="mb-8">
+            <h2 className="text-lg font-bold mb-2">
+              Data Security
+            </h2>
+
+            <p>
+              We follow industry-standard practices to safeguard data,
+              including:
+            </p>
+
+            <ul className="list-disc pl-6 space-y-2 mt-2">
+              <p><strong>-</strong> HTTPS encryption</p>
+              <p><strong>-</strong> Secure cloud storage (India-based servers).</p>
+              <p><strong>-</strong> Regular access audits.</p>
+              <p><strong>-</strong> Limited internal access on a need-to-know basis.</p>
+            </ul>
+
+            <p className="mt-2">
+              However, no system is 100% secure. You use Discipl at your
+              own risk.
+            </p>
+          </section>
+
+          {/* 6. DATA RETENTION */}
+          <section className="mb-8">
+            <h2 className="text-lg font-bold mb-2">
+              Data Rentention
+            </h2>
+
+            <p>
+              Your data is retained as long as your account remains active.
+              You may request deletion of your account and data at any time by emailing{" "}
               <a
                 href="mailto:info@thediscipl.com"
                 className="text-red-500 hover:underline font-bold"
               >
                 info@thediscipl.com
               </a>
+              .
             </p>
-            <p>📍 Vankannayullathi, Near Block Office, Balussery, Kozhikode - 673612</p>
-          </address>
-        </section>
-      </article>
-    </main>
+          </section>
+
+          {/* 7. YOUR RIGHTS */}
+          <section className="mb-8">
+            <h2 className="text-lg font-bold mb-2">
+              Your Rights (Under DPDP Act 2023)
+            </h2>
+
+            <p>As an Indian user, you have the right to:</p>
+
+            <ul className="list-disc pl-6 space-y-2 mt-2">
+              <p><strong>-</strong> Access your personal data.</p>
+              <p><strong>-</strong> Request correction or deletion.</p>
+              <p><strong>-</strong> Withdraw consent for data processing.</p>
+              <p><strong>-</strong> Lodge complaints with the Data Protection Board of India. </p>
+            </ul>
+
+            <p className="mt-2">
+              To exercise these rights, contact us at{" "}
+              <a
+                href="mailto:info@thediscipl.com"
+                className="text-red-500 hover:underline font-bold"
+              >
+                info@thediscipl.com
+              </a>
+              .
+            </p>
+          </section>
+
+          {/* 8. COOKIES */}
+          <section className="mb-8">
+            <h2 className="text-lg font-bold mb-2">
+              Cookies & Tracking
+            </h2>
+
+            <p>
+              We use cookies for analytics, personalization, and remembering
+              preferences.You may disable cookies in your browser settings, but some
+              features may not function properly.
+            </p>
+          </section>
+
+          {/* 9. CHILDREN'S PRIVACY */}
+          <section className="mb-8">
+            <h2 className="text-lg font-bold mb-2">
+              Children&apos;s Privacy
+            </h2>
+
+            <p>
+              We do not knowingly collect personal information from users under 16 years of age.
+              If you believe that a child has provided personal information to us,
+              please contact us so that we can review and take appropriate steps to remove the information where applicable.
+            </p>
+          </section>
+
+          {/* 10. POLICY UPDATES */}
+          <section className="mb-8">
+            <h2 className="text-lg font-bold mb-2">
+              Updates to This Policy
+            </h2>
+
+            <p>
+              We may update this Privacy Policy periodically. Changes will be notified via the app or website with an
+              updated “Effective Date.”
+            </p>
+          </section>
+
+          {/* 11. CONTACT */}
+          <section>
+            <h2 className="text-lg font-bold mb-2">
+              Contact
+            </h2>
+
+            <p>For data or privacy queries:</p>
+
+            <address className="not-italic space-y-1">
+              <p>
+                📧{" "}
+                <a
+                  href="mailto:info@thediscipl.com"
+                  className="text-red-500 hover:underline font-bold"
+                >
+                  info@thediscipl.com
+                </a>
+              </p>
+
+              <p>
+                📍 Vankannayullathi, Near Block Office, Balussery,
+                Kozhikode - 673612
+              </p>
+            </address>
+          </section>
+
+        </article>
+      </main>
+    </div>
   );
 };
 

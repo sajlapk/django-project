@@ -18,7 +18,7 @@ const sendMessage = async (req, res) => {
 
         await transporter.sendMail({
             from: email,
-            to: "hamiyasir72@gmail.com", //'info@thediscipl.com', // your receiving email
+            to: "info@thediscipl.com ", //'hamiyasir72@gmail.com', // your receiving email
             subject: `[Contact Form] ${subject}`,
             html: `<p><b>Name:</b> ${name}</p>
                     <p><b>Email:</b> ${email}</p>
