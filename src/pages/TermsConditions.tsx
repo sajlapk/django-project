@@ -2,8 +2,8 @@ import React from "react";
 
 const TermsConditions: React.FC = () => {
   return (
-    <div className="w-full bg-white flex flex-col items-center">
-      <div className="w-full m-0 p-0 overflow-hidden">
+    <div className="min-h-screen flex flex-col bg-white overflow-x-hidden">
+      <div className="w-full m-0 p-0 overflow-x-hidden">
         <img
           src="/Tremsandcondition.png"
           alt="Terms and Conditions Banner"
