@@ -9,13 +9,13 @@ import { getFirestore } from "firebase/firestore";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY as string,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN as string,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID as string,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET as string,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID as string,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID as string,
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID as string,
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyDXSmtUkkMncYIUgbAR58CHtxbRpfSyJJM",
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "discipl-3edfb.firebaseapp.com",
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "discipl-3edfb",
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "discipl-3edfb.firebasestorage.app",
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "310319463382",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:310319463382:web:217daa1e918fb982934277",
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || "G-NQLY3GWM71",
 };
 
 if (!firebaseConfig.apiKey) {
