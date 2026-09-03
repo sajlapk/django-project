@@ -257,21 +257,24 @@ const Navbar = () => {
       <div className="lg:hidden w-screen fixed bottom-0 left-0 right-0 z-50">
         <div className="bg-white/95 backdrop-blur-sm border-t border-gray-200 shadow-lg rounded-t-2xl mx-4 mb-4">
           <div className="flex justify-around items-center py-2">
-            {navLinks.map((link) => (
-              <button
-                key={link.path}
-                onClick={(e) => handleNavClick(e, link.path)}
-                className={`flex flex-col items-center py-2 px-1 rounded-lg transition-all duration-200 ${location.pathname === '/' && activeSection === link.path.substring(1)
-                  ? 'text-red-500 border-b-2 border-red-500'
-                  : 'text-gray-700 hover:text-red-500'
-                  }`}
-              >
-                <div className='flex flex-col items-center'>
-                  {link.icon}
-                  <span className="text-[10px] mt-1 font-medium">{link.label}</span>
-                </div>
-              </button>
-            ))}
+            {navLinks.map((link) => {
+              const isActive = location.pathname === link.path;
+              return (
+                <Link
+                  key={link.path}
+                  to={link.path}
+                  className={`flex flex-col items-center py-2 px-1 rounded-lg transition-all duration-200 ${isActive
+                    ? 'text-red-500 border-b-2 border-red-500'
+                    : 'text-gray-700 hover:text-red-500'
+                    }`}
+                >
+                  <div className='flex flex-col items-center'>
+                    {link.icon}
+                    <span className="text-[10px] mt-1 font-medium">{link.label}</span>
+                  </div>
+                </Link>
+              );
+            })}
             {!user && (
               <Link
                 to="/login"
