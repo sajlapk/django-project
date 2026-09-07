@@ -118,7 +118,7 @@ const Login = () => {
             </button>
           </form>
 
-          <div className="mt-8 border-t border-gray-155 pt-6">
+          {/* <div className="mt-8 border-t border-gray-155 pt-6">
             <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4 text-center">
               Quick ERP Demo Logins
             </h3>
@@ -154,7 +154,7 @@ const Login = () => {
                 </button>
               ))}
             </div>
-          </div>
+          </div> */}
 
           <div className="mt-6 text-center">
             <p className="text-gray-600">
