@@ -2,9 +2,9 @@ import React from "react";
 
 const PrivacyPolicy: React.FC = () => {
   return (
-    <div className="w-full bg-white flex flex-col items-center">
+    <div className="w-full bg-white text-black">
       {/* Privacy Policy Banner */}
-      <div className="w-full m-0 p-0 overflow-x-hidden">
+      <div className="w-full m-0 p-0 overflow-hidden">
         <img
           src="/privacypolicy.png"
           alt="Privacy Policy Security Banner"

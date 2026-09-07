@@ -256,21 +256,29 @@ const Navbar = () => {
       {/* Mobile Bottom Navigation */}
       <div className="lg:hidden w-screen fixed bottom-0 left-0 right-0 z-50">
         <div className="bg-white/95 backdrop-blur-sm border-t border-gray-200 shadow-lg rounded-t-2xl mx-4 mb-4">
-          <div className="flex justify-around items-center py-2">
+          <div className="flex justify-around items-end py-2 px-1">
             {navLinks.map((link) => {
               const isActive = location.pathname === link.path;
               return (
-                <Link
-                  key={link.path}
-                  to={link.path}
-                  className={`flex flex-col items-center py-2 px-1 rounded-lg transition-all duration-200 ${isActive
+                  <Link
+                    key={link.path}
+                    to={link.path}
+                    className={`flex flex-col items-center pt-2 pb-1 px-1 rounded-lg transition-all duration-200 ${isActive
                     ? 'text-red-500 border-b-2 border-red-500'
                     : 'text-gray-700 hover:text-red-500'
                     }`}
                 >
                   <div className='flex flex-col items-center'>
                     {link.icon}
-                    <span className="text-[10px] mt-1 font-medium">{link.label}</span>
+                    <span className="text-[10px] mt-1 font-medium text-center leading-[1.1] h-[24px] flex items-center justify-center">
+                      {link.label === 'DISCIPL Screens' ? (
+                        <>DISCIPL<br/>Screens</>
+                      ) : link.label === 'Fitness Center' ? (
+                        <>Fitness<br/>Center</>
+                      ) : (
+                        link.label
+                      )}
+                    </span>
                   </div>
                 </Link>
               );
@@ -278,10 +286,10 @@ const Navbar = () => {
             {!user && (
               <Link
                 to="/login"
-                className="flex flex-col items-center py-2 px-3 rounded-lg transition-all duration-200 text-gray-600 hover:text-red-500 hover:bg-gray-50"
+                className="flex flex-col items-center pt-2 pb-1 px-2 rounded-lg transition-all duration-200 text-gray-600 hover:text-red-500 hover:bg-gray-50"
               >
                 <User size={20} />
-                <span className="text-xs mt-1 font-medium">Login</span>
+                <span className="text-xs mt-1 font-medium h-[24px] flex items-center justify-center">Login</span>
               </Link>
             )}
           </div>

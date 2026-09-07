@@ -27,7 +27,9 @@ interface GymItem {
   category: string;
   categories?: string[];
   amenities: string[];
-  hours: string;
+  hours?: string;
+  hoursNode?: React.ReactNode;
+  rawGym?: any;
   membership: string;
   image: string;
   distance_km?: number;
@@ -42,6 +44,93 @@ const getImageUrl = (url: string | null) => {
   // Ensure we don't have double slashes
   const cleanUrl = url.startsWith('/') ? url : `/${url}`;
   return `${base}${cleanUrl}`;
+};
+
+const formatTimeStr = (t: string, forcePM: boolean = false) => {
+  if (!t) return '';
+  try {
+    let [h, m] = t.split(':').map(Number);
+    if (forcePM && h < 12) h += 12;
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const hour = h % 12 || 12;
+    return `${hour}:${String(m).padStart(2, '0')} ${ampm}`;
+  } catch {
+    return t;
+  }
+};
+
+const getGymHours = (g: any): React.ReactNode => {
+  if (g.working_days && g.working_days.length > 0) {
+    const openDays = g.working_days.filter((d: any) => d.is_open);
+    if (openDays.length > 0) {
+      return (
+        <div className="flex flex-col gap-1 w-full mt-1">
+          {openDays.map((wd: any) => {
+            let times = [];
+            if (wd.morning_opening_time && wd.morning_closing_time) {
+              times.push(`M: ${formatTimeStr(wd.morning_opening_time)} - ${formatTimeStr(wd.morning_closing_time, true)}`);
+            }
+            if (wd.evening_opening_time && wd.evening_closing_time) {
+              times.push(`E: ${formatTimeStr(wd.evening_opening_time, true)} - ${formatTimeStr(wd.evening_closing_time, true)}`);
+            }
+            if (wd.ladies_opening_time && wd.ladies_closing_time) {
+              times.push(`L: ${formatTimeStr(wd.ladies_opening_time, true)} - ${formatTimeStr(wd.ladies_closing_time, true)}`);
+            }
+            if (times.length === 0) return null;
+            return (
+              <div key={wd.id || wd.day} className="flex justify-between items-start text-[11px] border-b border-gray-100 last:border-0 pb-1">
+                <span className="font-semibold capitalize text-gray-700 w-10">{wd.day.substring(0, 3)}:</span>
+                <div className="flex flex-col flex-1 text-right text-gray-500">
+                  {times.map((t, idx) => (
+                    <span key={idx}>{t}</span>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      );
+    }
+  }
+
+  if (g.opening_time && g.closing_time) {
+    return `${formatTimeStr(g.opening_time)} - ${formatTimeStr(g.closing_time)}`;
+  }
+  if (g.time_slots && g.time_slots.length > 0) {
+    const sorted = [...g.time_slots].sort((a, b) => a.start_time.localeCompare(b.start_time));
+    const first = sorted[0];
+    const last = sorted[sorted.length - 1];
+    return `${formatTimeStr(first.start_time)} - ${formatTimeStr(last.end_time)}`;
+  }
+  return "Hours not available";
+};
+
+const GymHoursDropdown = ({ gym }: { gym: any }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const content = getGymHours(gym);
+
+  if (typeof content === 'string' && content === "Hours not available") {
+    return <span className="text-sm text-gray-500">{content}</span>;
+  }
+
+  return (
+    <div className="w-full relative z-10" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
+      <button 
+        onClick={() => setIsOpen(!isOpen)} 
+        className="flex items-center justify-between w-full text-[13px] font-semibold text-gray-700 hover:text-red-500 transition-colors focus:outline-none"
+      >
+        <span>View Weekly Schedule</span>
+        <div className={`transform transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </div>
+      </button>
+      {isOpen && (
+        <div className="mt-2 pt-2 border-t border-gray-200 animate-fade-in">
+          {content}
+        </div>
+      )}
+    </div>
+  );
 };
 
 const FitnessDirectory = () => {
@@ -229,8 +318,30 @@ const FitnessDirectory = () => {
         const response = await axios.get(url, {
           headers: { 'X-Platform': 'admin-web' }
         });
-        const list = response.data.results || response.data;
+        let list = response.data.results || response.data;
+        
         if (Array.isArray(list) && list.length > 0) {
+          // --- FIX FOR DATABASE TIME ---
+          // Because the /gym/list/ API does NOT return 'working_days' or 'time_slots',
+          // we MUST fetch the details of each gym individually to display the correct database time!
+          list = await Promise.all(list.map(async (g: any) => {
+            try {
+              const detailResp = await axios.get(`${API_BASE_URL}/fitnesscenter/gym/${g.id}/`, {
+                headers: { 'X-Platform': 'admin-web' }
+              });
+              const gymData = detailResp.data.data || detailResp.data;
+              return { 
+                ...g, 
+                working_days: gymData.working_days, 
+                time_slots: gymData.time_slots,
+                opening_time: gymData.opening_time,
+                closing_time: gymData.closing_time
+              };
+            } catch (e) {
+              return g; // fallback to list data
+            }
+          }));
+
           const mapped = list.map((g: any) => {
             const city = g.location?.city || '';
             const state = g.location?.state || '';
@@ -250,7 +361,7 @@ const FitnessDirectory = () => {
               category: g.category?.[0]?.name || g.categories?.[0]?.name || 'Gym',
               categories: g.categories?.map((c: any) => c.name) || (g.category ? (Array.isArray(g.category) ? g.category.map((c: any) => c.name) : [g.category.name || 'Gym']) : ['Gym']),
               amenities: g.amenities?.map((a: any) => a.name) || ["Free Weights", "Cardio Units", "Trainer Guided"],
-              hours: "6:00 AM - 10:00 PM",
+              rawGym: g,
               membership: priceVal,
               image: getImageUrl(g.logo),
               distance_km: g.distance_km ?? undefined,
@@ -497,12 +608,14 @@ const FitnessDirectory = () => {
                           <span className="text-sm">{directory.phone}</span>
                         </div>
                       ) */}
-                      {directory.hours && (
-                        <div className="flex items-center text-gray-700">
-                          <Clock className="w-4 h-4 mr-2 text-red-500 flex-shrink-0" />
-                          <span className="text-sm">{directory.hours}</span>
-                        </div>
-                      )}
+                      {directory.rawGym && (
+                  <div className="flex items-start mt-4 bg-gray-50 p-3 rounded-lg border border-gray-100">
+                    <Clock size={16} className="mr-2 text-red-500 flex-shrink-0 relative top-[2px]" />
+                    <div className="w-full">
+                      <GymHoursDropdown gym={directory.rawGym} />
+                    </div>
+                  </div>
+                )}      
                       {/* <div className="flex items-center text-gray-700">
                         <Users className="w-4 h-4 mr-2 text-red-500 flex-shrink-0" />
                         <span className="text-sm">{directory.reviews} reviews</span>

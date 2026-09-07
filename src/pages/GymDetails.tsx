@@ -61,12 +61,17 @@ const GymDetails = () => {
     if (id) fetchGym();
   }, [id]);
 
-  const formatTime = (t: string) => {
+  const formatTime = (t: string, forcePM: boolean = false) => {
     if (!t) return '';
-    const [h, m] = t.split(':').map(Number);
-    const ampm = h >= 12 ? 'PM' : 'AM';
-    const hour = h % 12 || 12;
-    return `${hour}:${String(m).padStart(2, '0')} ${ampm}`;
+    try {
+      let [h, m] = t.split(':').map(Number);
+      if (forcePM && h < 12) h += 12;
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      const hour = h % 12 || 12;
+      return `${hour}:${String(m).padStart(2, '0')} ${ampm}`;
+    } catch {
+      return t;
+    }
   };
 
   const formatDuration = (days: number) => {
@@ -130,6 +135,7 @@ const GymDetails = () => {
   const gymPhotos = gym?.photos || [];
   const gymPlans = gym?.packages || [];
   const gymSlots = gym?.time_slots || [];
+  const gymWorkingDays = gym?.working_days || [];
   const gymSocials = gym?.social_media || [];
   const rawBanner = gymPhotos.find((p: any) => p.is_primary)?.image || gymPhotos[0]?.image;
   const bannerImage = getImageUrl(rawBanner);
@@ -296,11 +302,54 @@ const GymDetails = () => {
             </div>
           )}
 
+          {/* Working Days */}
+          {gymWorkingDays.length > 0 && (
+            <div className="bg-white rounded-xl shadow-sm p-6 md:p-8 mb-8">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-bold text-black">Weekly Schedule</h2>
+                <Clock className="w-5 h-5 text-gray-400" />
+              </div>
+              <div className="space-y-3">
+                {gymWorkingDays.map((wd: any) => (
+                  <div key={wd.id || wd.day} className={`border rounded-lg p-4 flex justify-between items-center ${wd.is_open ? 'border-green-200 bg-green-50/30' : 'border-gray-200 opacity-50'}`}>
+                    <div className="w-full">
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="font-semibold text-gray-800 capitalize">{wd.day}</h4>
+                        {wd.is_open ? (
+                          <span className="flex items-center gap-1 bg-green-100 text-green-700 text-xs font-bold px-3 py-1 rounded-full">
+                            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                            Open
+                          </span>
+                        ) : (
+                          <span className="text-xs font-medium text-gray-400 bg-gray-100 px-3 py-1 rounded-full">Closed</span>
+                        )}
+                      </div>
+
+                      {wd.is_open && (
+                        <div className="text-sm text-gray-500 space-y-1">
+                          {wd.morning_opening_time && wd.morning_closing_time && (
+                            <p><span className="font-medium text-gray-700">Morning:</span> {formatTime(wd.morning_opening_time)} - {formatTime(wd.morning_closing_time, true)}</p>
+                          )}
+                          {wd.evening_opening_time && wd.evening_closing_time && (
+                            <p><span className="font-medium text-gray-700">Evening:</span> {formatTime(wd.evening_opening_time, true)} - {formatTime(wd.evening_closing_time, true)}</p>
+                          )}
+                          {wd.ladies_opening_time && wd.ladies_closing_time && (
+                            <p><span className="font-medium text-pink-600">Ladies Only:</span> {formatTime(wd.ladies_opening_time, true)} - {formatTime(wd.ladies_closing_time, true)}</p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Time Slots */}
           {gymSlots.length > 0 && (
             <div className="bg-white rounded-xl shadow-sm p-6 md:p-8">
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-bold text-black">Schedule & Slots</h2>
+                <h2 className="text-xl font-bold text-black">Specific Time Slots</h2>
                 <Clock className="w-5 h-5 text-gray-400" />
               </div>
               <div className="space-y-3">
@@ -313,11 +362,11 @@ const GymDetails = () => {
                         {slot.start_date && slot.end_date && (
                           <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded flex items-center gap-1">
                             <Calendar className="w-3 h-3" />
-                            {slot.start_date} — {slot.end_date}
+                            {slot.start_date} - {slot.end_date}
                           </span>
                         )}
                       </div>
-                      <p className="text-sm text-gray-500 mt-1">{formatTime(slot.start_time)} — {formatTime(slot.end_time)}</p>
+                      <p className="text-sm text-gray-500 mt-1">{formatTime(slot.start_time)} - {formatTime(slot.end_time)}</p>
                     </div>
                     {slot.is_active ? (
                       <span className="flex items-center gap-1 bg-green-100 text-green-700 text-xs font-bold px-3 py-1 rounded-full">
