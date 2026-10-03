@@ -12,6 +12,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import AdminPanel from './pages/AdminPanel';
 import Profile from './pages/Profile';
+import Challenges from './pages/Challenges';
 import { AuthProvider } from './contexts/AuthContext';
 import { WorkoutProvider } from './contexts/WorkoutContext';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -41,6 +42,7 @@ function AppContent() {
           <Route path="/discipl-screens" element={<DisciplScreens />} />
           <Route path="/about" element={<About />} />
           <Route path="/fitness-directory" element={<FitnessDirectory />} />
+          <Route path="/challenges" element={<Challenges />} />
           <Route path="/gym/:id" element={<GymDetails />} />
           <Route path="/gym/:id/:name" element={<GymDetails />} />
           <Route path="/events" element={<Events />} />

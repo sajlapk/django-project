@@ -131,7 +131,8 @@ const About = () => {
             <span>enjoy fitness more, and stay consistent for life.</span>
           </h2>
           <p>
-            We are building Discipl to make fitness a part of everyday culture - one workout, one challenge, and one achievement at a time.
+            We are building Discipl to make fitness a part of everyday culture - one workout, one challenge,
+            and one achievement at a time.
           </p>
 
           <div className="mission-line"></div>

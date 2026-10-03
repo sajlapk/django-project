@@ -86,6 +86,7 @@ export const useWorkouts = () => {
 export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
   const [customExercises, setCustomExercises] = useState<Exercise[]>([]);
+  const [masterExercises, setMasterExercises] = useState<Exercise[]>(DEFAULT_EXERCISES);
   const [workouts, setWorkouts] = useState<Workout[]>([]);
   const [presets, setPresets] = useState<WorkoutPreset[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -94,6 +95,29 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
+
+      // Try Fetch Master Exercises globally
+      try {
+        const masterRef = collection(db, 'master_exercises');
+        const masterSnap = await getDocs(masterRef);
+        const fbMaster: Exercise[] = [];
+        masterSnap.forEach((doc) => {
+          fbMaster.push({ id: doc.id, ...doc.data(), is_default: true } as Exercise);
+        });
+        
+        if (fbMaster.length > 0) {
+          setMasterExercises(fbMaster);
+          localStorage.setItem('master_exercises', JSON.stringify(fbMaster));
+        } else {
+          const localMaster = localStorage.getItem('master_exercises');
+          if (localMaster) setMasterExercises(JSON.parse(localMaster));
+        }
+      } catch (error) {
+        console.warn('Failed to fetch master exercises, falling back to cache or defaults:', error);
+        const localMaster = localStorage.getItem('master_exercises');
+        if (localMaster) setMasterExercises(JSON.parse(localMaster));
+      }
+
       if (!user) {
         setWorkouts([]);
         setCustomExercises([]);
@@ -433,7 +457,7 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
     return progress;
   };
 
-  const allExercises = [...DEFAULT_EXERCISES, ...customExercises];
+  const allExercises = [...masterExercises, ...customExercises];
 
   return (
     <WorkoutContext.Provider

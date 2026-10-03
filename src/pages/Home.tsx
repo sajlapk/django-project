@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Home.css';
 
@@ -30,11 +30,25 @@ const Home = () => {
   const revealRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
+  const [stats, setStats] = useState({
+    workoutsLogged: '500+',
+    partnerGyms: '120+',
+    challenges: '48',
+    rating: '4.8',
+    dashboardWorkoutTitle: 'Workout logged',
+    dashboardWorkoutDesc: 'Push day · 48 min',
+    dashboardProgressTitle: 'Progress updated',
+    dashboardProgressDesc: 'Bench +5kg this month',
+    dashboardChallengeTitle: 'Challenge joined',
+    dashboardChallengeDesc: '30-Day Consistency'
+  });
+
   useEffect(() => {
     const root = revealRef.current;
     if (!root) return;
 
     const items = root.querySelectorAll<HTMLElement>('[data-reveal]');
+
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -48,6 +62,7 @@ const Home = () => {
     );
 
     items.forEach((item) => observer.observe(item));
+
     return () => observer.disconnect();
   }, []);
 
@@ -122,31 +137,31 @@ const Home = () => {
           <div className="dashboard-item">
             <div className="dashboard-icon">〽</div>
             <div>
-              <strong>Workout logged</strong>
-              <span>Push day · 48 min</span>
+              <strong>{stats.dashboardWorkoutTitle}</strong>
+              <span>{stats.dashboardWorkoutDesc}</span>
             </div>
           </div>
 
           <div className="dashboard-item">
             <div className="dashboard-icon">↗</div>
             <div>
-              <strong>Progress updated</strong>
-              <span>Bench +5kg this month</span>
+              <strong>{stats.dashboardProgressTitle}</strong>
+              <span>{stats.dashboardProgressDesc}</span>
             </div>
           </div>
 
           <div className="dashboard-item">
             <div className="dashboard-icon">♕</div>
             <div>
-              <strong>Challenge joined</strong>
-              <span>30-Day Consistency</span>
+              <strong>{stats.dashboardChallengeTitle}</strong>
+              <span>{stats.dashboardChallengeDesc}</span>
             </div>
           </div>
 
           <div className="dashboard-rating">
             <span>★</span>
             <div>
-              <strong>4.8 average</strong>
+              <strong>{stats.rating} average</strong>
               <small>across partner centers</small>
             </div>
           </div>
@@ -158,22 +173,22 @@ const Home = () => {
         <div className="home-stats" data-reveal>
 
           <div className="home-stat-card home-stat-card-1">
-            <strong>500+</strong>
+            <strong>{stats.workoutsLogged}</strong>
             <span>Workouts Logged</span>
           </div>
 
           <div className="home-stat-card home-stat-card-2">
-            <strong>120+</strong>
+            <strong>{stats.partnerGyms}</strong>
             <span>Partner Gyms</span>
           </div>
 
           <div className="home-stat-card home-stat-card-3">
-            <strong>48</strong>
+            <strong>{stats.challenges}</strong>
             <span>Challenges</span>
           </div>
 
           <div className="home-stat-card home-stat-card-4">
-            <strong>4.8</strong>
+            <strong>{stats.rating}</strong>
             <span>Rating</span>
           </div>
 
@@ -211,6 +226,18 @@ const Home = () => {
             'FITNESS',
             'COMMUNITY',
             'EVENTS',
+            'DISCIPLINE',
+            'WELLNESS',
+            'FITNESS',
+            'COMMUNITY',
+            'EVENTS',
+            'DISCIPLINE',
+            'WELLNESS',
+            'FITNESS',
+            'COMMUNITY',
+            'EVENTS',
+            'DISCIPLINE',
+            'WELLNESS',
           ].map((item, index) => (
             <span key={`${item}-${index}`}>
               {item} <b>✦</b>

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { MapPin, Star, Phone, Clock, Dumbbell, Users, Filter, Search, Loader, Navigation } from 'lucide-react';
-import axios from 'axios';
-import { API_BASE_URL } from '../config/api';
 import { useNavigate } from 'react-router-dom';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '../firebase/firebase';
 
 const slugify = (text: string) => {
   return text
@@ -306,64 +306,30 @@ const FitnessDirectory = () => {
     const fetchGyms = async () => {
       setLoading(true);
       try {
-        let url = sortByNearest
-          ? `${API_BASE_URL}/customer/nearest/fitnesscenter/`
-          : `${API_BASE_URL}/fitnesscenter/gym/list/`;
-        if (sortByNearest && userCoords) {
-          url += `?lat=${userCoords.lat}&lon=${userCoords.lon}&radius_km=100000`;
-        } else {
-          url += `?page_size=1000`;
-        }
-
-        const response = await axios.get(url, {
-          headers: { 'X-Platform': 'admin-web' }
-        });
-        let list = response.data.results || response.data;
+        const gymsRef = collection(db, 'partner_gyms');
+        const snap = await getDocs(gymsRef);
+        const fbGyms: any[] = [];
         
-        if (Array.isArray(list) && list.length > 0) {
-          // --- FIX FOR DATABASE TIME ---
-          // Because the /gym/list/ API does NOT return 'working_days' or 'time_slots',
-          // we MUST fetch the details of each gym individually to display the correct database time!
-          list = await Promise.all(list.map(async (g: any) => {
-            try {
-              const detailResp = await axios.get(`${API_BASE_URL}/fitnesscenter/gym/${g.id}/`, {
-                headers: { 'X-Platform': 'admin-web' }
-              });
-              const gymData = detailResp.data.data || detailResp.data;
-              return { 
-                ...g, 
-                working_days: gymData.working_days, 
-                time_slots: gymData.time_slots,
-                opening_time: gymData.opening_time,
-                closing_time: gymData.closing_time
-              };
-            } catch (e) {
-              return g; // fallback to list data
-            }
-          }));
+        snap.forEach((doc) => {
+          fbGyms.push({ id: doc.id, ...doc.data() });
+        });
 
-          const mapped = list.map((g: any) => {
-            const city = g.location?.city || '';
-            const state = g.location?.state || '';
-            const building = g.location?.building_name || '';
-            const addr = [building, city, state].filter(Boolean).join(', ') || 'Bangalore, India';
-            const packageItem = g.packages?.[0];
-            const price = packageItem ? (packageItem.offer_price || packageItem.actual_price || packageItem.price) : null;
-            const priceVal = price ? `₹${parseInt(price)}/month` : "";
+        if (fbGyms.length > 0) {
+          const mapped = fbGyms.map((g: any) => {
             return {
               id: g.id,
-              name: g.name,
+              name: g.name || g.merchant_name || 'Partner Gym',
               description: g.description || 'Premium fitness arena designed for peak performance training.',
-              address: addr,
-              phone: g.phone_number || '+91 99000 12345',
-              rating: Number(g.average_rating) || 0.0,
-              reviews: g.review_count || 0,
-              category: g.category?.[0]?.name || g.categories?.[0]?.name || 'Gym',
-              categories: g.categories?.map((c: any) => c.name) || (g.category ? (Array.isArray(g.category) ? g.category.map((c: any) => c.name) : [g.category.name || 'Gym']) : ['Gym']),
-              amenities: g.amenities?.map((a: any) => a.name) || ["Free Weights", "Cardio Units", "Trainer Guided"],
+              address: g.address || g.location?.city || 'Bangalore, India',
+              phone: g.phone || g.phone_number || '+91 99000 12345',
+              rating: Number(g.rating || g.average_rating) || 4.5,
+              reviews: g.reviews || g.review_count || 120,
+              category: g.category || 'Gym',
+              categories: g.categories || [g.category || 'Gym'],
+              amenities: g.amenities || ["Free Weights", "Cardio Units", "Trainer Guided"],
               rawGym: g,
-              membership: priceVal,
-              image: getImageUrl(g.logo),
+              membership: g.membership || g.price ? `₹${g.price}/month` : "₹999/month",
+              image: g.image || g.logo || 'https://images.pexels.com/photos/1552242/pexels-photo-1552242.jpeg?auto=compress&cs=tinysrgb&w=400',
               distance_km: g.distance_km ?? undefined,
             };
           });
@@ -372,7 +338,7 @@ const FitnessDirectory = () => {
           setGyms(defaultMockGyms);
         }
       } catch (err) {
-        console.warn("Failed to fetch from Django API, falling back to mock dataset:", err);
+        console.warn("Failed to fetch from Firebase, falling back to mock dataset:", err);
         setGyms(defaultMockGyms);
       } finally {
         setLoading(false);
@@ -384,15 +350,21 @@ const FitnessDirectory = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await axios.get(`${API_BASE_URL}/fitnesscenter/categories/`, {
-          headers: { 'X-Platform': 'admin-web' }
+        const catRef = collection(db, 'gym_categories');
+        const snap = await getDocs(catRef);
+        const list: string[] = [];
+        snap.forEach(doc => {
+          const data = doc.data();
+          if (data.name) list.push(data.name);
         });
-        const list = response.data.results || response.data;
-        if (Array.isArray(list)) {
-          setCategories(['All', ...list.map((c: any) => c.name)]);
+        
+        if (list.length > 0) {
+          setCategories(['All', ...list]);
+        } else {
+          setCategories(['All', 'Gym', 'Yoga', 'CrossFit', 'Swimming', 'Dance', 'Sports Training', 'Pilates']);
         }
       } catch (err) {
-        console.warn("Failed to fetch categories from Django API, using defaults:", err);
+        console.warn("Failed to fetch categories from Firebase, using defaults:", err);
         setCategories(['All', 'Gym', 'Yoga', 'CrossFit', 'Swimming', 'Dance', 'Sports Training', 'Pilates']);
       }
     };
