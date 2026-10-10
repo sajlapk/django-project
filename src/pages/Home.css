@@ -510,6 +510,42 @@
 
 
 /* =========================================================
+   LAPTOP / TABLET
+========================================================= */
+
+@media (max-width: 1440px) {
+  .home-hero-content {
+    margin-left: 5%;
+    width: 55%;
+  }
+
+  .home-hero-dashboard {
+    right: 5%;
+    width: 35%;
+  }
+
+  .home-stats {
+    width: 90%;
+  }
+}
+
+@media (max-width: 1100px) {
+  .home-hero-content {
+    margin-left: 5%;
+    width: 55%;
+    padding: 85px 0 140px;
+  }
+  .home-hero-dashboard {
+    width: 35%;
+    right: 2%;
+    top: 20%;
+  }
+  .home-stats {
+    width: 96%;
+  }
+}
+
+/* =========================================================
    MOBILE
 ========================================================= */
 
@@ -543,7 +579,7 @@
     margin: 0 auto 50px;
     right: auto;
     top: auto;
-    bottom: aufto;
+    bottom: auto;
     left: auto;
     opacity: 1;
   }
